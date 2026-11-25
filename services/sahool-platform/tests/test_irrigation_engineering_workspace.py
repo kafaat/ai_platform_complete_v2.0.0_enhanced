@@ -147,3 +147,79 @@ def test_interactive_sahool_mode_requires_depletion_truth():
 
     with pytest.raises(ValueError, match="soil.depletion_mm"):
         calculate_interactive_irrigation_engineering(req)
+
+
+def test_interactive_uniformity_is_diagnostic_not_execution_authority():
+    demand = InteractiveWaterDemandInput(mode="manual", manual_net_depth_mm=10)
+    legacy = calculate_interactive_irrigation_engineering(
+        InteractiveIrrigationCalculationRequest(specification=_spec(), water_demand=demand)
+    )
+    survey = {
+        "evidence_ref": "synthetic:180ha/pivot-a/catch-can-01",
+        "samples": [
+            {"sample_id": str(i), "depth_mm": depth, "represented_area_m2": 125000}
+            for i, depth in enumerate([4, 8, 12, 16])
+        ],
+    }
+    result = calculate_interactive_irrigation_engineering(
+        InteractiveIrrigationCalculationRequest(
+            specification=_spec(), water_demand=demand, uniformity_survey=survey
+        )
+    )
+    assert "uniformity" not in legacy.hydraulics
+    assert result.hydraulics["uniformity"]["cu_pct"] == 60
+    assert result.hydraulics["uniformity"]["du_low_quarter_pct"] == 40
+    assert result.hydraulics["uniformity"]["compliance_status"] == "not_evaluated"
+    assert result.calculations == legacy.calculations
+    assert result.status == legacy.status
+    assert result.feasibility["execution_authorized"] is False
+    assert result.content_digest != legacy.content_digest
+
+
+def test_deficit_scenario_calls_engine_without_changing_irrigation_target():
+    demand = InteractiveWaterDemandInput(mode="manual", manual_net_depth_mm=10)
+    base = dict(specification=_spec(), water_demand=demand)
+    legacy = calculate_interactive_irrigation_engineering(
+        InteractiveIrrigationCalculationRequest(**base)
+    )
+    scenario = {
+        "etc_fraction_pct": 50,
+        "water_ec_ds_m": 4.0,
+        "crop_salinity_threshold_ece_ds_m": 6.0,
+        "evidence_ref": "synthetic:wheat/pivot-a/salinity",
+    }
+    result = calculate_interactive_irrigation_engineering(
+        InteractiveIrrigationCalculationRequest(**base, deficit_scenario=scenario)
+    )
+    diagnostic = result.water_demand["deficit_scenario"]
+    assert diagnostic["status"] == "estimated"
+    assert diagnostic["salinity_risk_heuristic"] == "high"
+    assert diagnostic["literature_yield_penalty_pct"] > 0
+    assert diagnostic["input_quality"] == "operator_supplied_unverified"
+    assert diagnostic["execution_authorized"] is False
+    assert "recommended" not in diagnostic
+    assert result.calculations == legacy.calculations
+    assert result.feasibility == legacy.feasibility
+    assert result.status == legacy.status
+    assert "deficit_scenario" not in legacy.water_demand
+    assert result.content_digest != legacy.content_digest
+
+
+def test_deficit_scenario_missing_salinity_or_reference_is_not_evaluated():
+    result = calculate_interactive_irrigation_engineering(
+        InteractiveIrrigationCalculationRequest(
+            specification=_spec(),
+            water_demand=InteractiveWaterDemandInput(mode="manual", manual_net_depth_mm=10),
+            deficit_scenario={"etc_fraction_pct": 85},
+        )
+    )
+    diagnostic = result.water_demand["deficit_scenario"]
+    assert diagnostic["status"] == "not_evaluated"
+    assert diagnostic["salinity_risk_heuristic"] is None
+    assert diagnostic["literature_yield_penalty_pct"] is None
+    assert set(diagnostic["missing_inputs"]) == {
+        "water_ec_ds_m",
+        "crop_salinity_threshold_ece_ds_m",
+        "evidence_ref",
+    }
+    assert diagnostic["execution_authorized"] is False

@@ -18,6 +18,8 @@ export interface IrrigationNetworkInput {
   reservoirCapacityM3: number;
   reservoirCurrentM3: number;
   reservoirMinimumM3: number;
+  reservoirEvaporationM3h?: number;
+  reservoirSeepageM3h?: number;
   boosterFlowM3h: number;
   boosterHeadM?: number;
   boosterMotorKw?: number;
@@ -94,14 +96,15 @@ export async function calculateReservoirBoosterNetwork(input: IrrigationNetworkI
     field_id: input.fieldId,
     season_id: input.seasonId ?? null,
     required_gross_volume_m3: input.requiredGrossVolumeM3,
-    wells: input.wellFlowsM3h.filter(v => v >= 0).map((flow, i) => ({ well_id: `well-${i + 1}`, available_flow_m3_h: flow, enabled: flow > 0 })),
+    // Field-scoped calculation slots, not verified asset-registry identifiers.
+    wells: input.wellFlowsM3h.map((flow, i) => ({ well_id: `well:${input.fieldId}:${i + 1}`, available_flow_m3_h: flow, enabled: flow > 0 })),
     reservoir: {
       reservoir_id: `reservoir:${input.fieldId}`,
       capacity_m3: input.reservoirCapacityM3,
       current_volume_m3: input.reservoirCurrentM3,
       minimum_operating_volume_m3: input.reservoirMinimumM3,
-      evaporation_loss_m3_h: 0,
-      seepage_loss_m3_h: 0,
+      evaporation_loss_m3_h: input.reservoirEvaporationM3h ?? 0,
+      seepage_loss_m3_h: input.reservoirSeepageM3h ?? 0,
     },
     booster: {
       pump_id: `booster:${input.fieldId}`,

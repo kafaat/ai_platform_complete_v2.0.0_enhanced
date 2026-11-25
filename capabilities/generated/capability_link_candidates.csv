@@ -2762,6 +2762,7 @@ WX-001,service,services/weather-service/main.py,10,applied
 WX-002,api,GET /api/v1/weather/forecast @ services/sahool-platform/api/routers/weather.py:2053,2,applied
 WX-002,api,GET /v1/weather/forecast @ services/weather-service/main.py:31,3,applied
 WX-002,service,services/weather-service/main.py,10,applied
+WX-002,ui,frontend/src/sections/ReservoirBoosterNetworkCalculator.forecast.test.tsx,2,applied
 WX-003,api,GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:203,4,applied
 WX-003,api,GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:172,4,applied
 WX-003,api,GET /v1/weather/historical @ services/weather-service/main.py:32,3,applied

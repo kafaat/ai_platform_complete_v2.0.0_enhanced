@@ -2261,7 +2261,9 @@
         "GET /api/v1/weather/forecast @ services/sahool-platform/api/routers/weather.py:2053",
         "GET /v1/weather/forecast @ services/weather-service/main.py:31"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/src/sections/ReservoirBoosterNetworkCalculator.forecast.test.tsx"
+      ],
       "mobile_consumers": [],
       "tests": [],
       "runtime": {
@@ -2271,7 +2273,7 @@
         "audit_events": []
       },
       "evidence": [],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "4",

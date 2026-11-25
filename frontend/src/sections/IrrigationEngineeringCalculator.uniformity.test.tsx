@@ -1,0 +1,82 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+
+const api = vi.hoisted(() => ({ calculateInteractiveIrrigation: vi.fn() }));
+vi.mock('../services/api/irrigationEngineeringCalculator', () => api);
+vi.mock('../hooks/useAuth', () => ({ useTenantId: () => 'tenant-a' }));
+
+import IrrigationEngineeringCalculator from './IrrigationEngineeringCalculator';
+
+afterEach(() => { cleanup(); vi.clearAllMocks(); });
+
+describe('interactive irrigation survey', () => {
+  it('submits the optional evidence and displays only the server result, clearing it on field change', async () => {
+    api.calculateInteractiveIrrigation.mockResolvedValue({
+      status: 'pass', calculations: {}, water_demand: {}, pump_energy: {}, feasibility: {},
+      warnings: [], blocking_constraints: [], explanations: [], assumptions: [], input_quality: {},
+      content_digest: 'abc123',
+      hydraulics: { uniformity: {
+        method: 'area_weighted_cu_du_lq.v1', evidence_ref: 'synthetic:pivot-a', sample_count: 4,
+        input_quality: 'operator_supplied_unverified', status: 'calculated', compliance_status: 'not_evaluated',
+        mean_depth_mm: 10, cu_pct: 60, du_low_quarter_pct: 40, reason: null,
+      } },
+    });
+    const { rerender } = render(<IrrigationEngineeringCalculator fieldId="a" />);
+    fireEvent.change(screen.getByLabelText('مرجع دليل القياس'), { target: { value: 'synthetic:pivot-a' } });
+    fireEvent.change(screen.getByLabelText('عينات القياس (المعرّف، العمق، المساحة)'), {
+      target: { value: 'a,4,125000\nb,8,125000\nc,12,125000\nd,16,125000' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'احسب الكمية والضغط' }));
+    expect(api.calculateInteractiveIrrigation).toHaveBeenCalledWith(expect.objectContaining({
+      tenantId: 'tenant-a', fieldId: 'a',
+      uniformitySurvey: { evidence_ref: 'synthetic:pivot-a', samples: [4, 8, 12, 16].map((depth_mm, i) => ({
+        sample_id: 'abcd'[i], depth_mm, represented_area_m2: 125000,
+      })) },
+    }));
+    expect(await screen.findByText('60.00 %')).toBeInTheDocument();
+    expect(screen.getByText('40.00 %')).toBeInTheDocument();
+    rerender(<IrrigationEngineeringCalculator fieldId="b" />);
+    expect(screen.queryByText('60.00 %')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('مرجع دليل القياس')).toHaveValue('');
+  });
+});
+
+
+it('sends a hypothetical deficit scenario and renders the server diagnostic only', async () => {
+  api.calculateInteractiveIrrigation.mockResolvedValue({
+    status: 'pass', calculations: {}, hydraulics: {}, pump_energy: {}, feasibility: {},
+    warnings: [], blocking_constraints: [], explanations: [], assumptions: [], input_quality: {},
+    content_digest: 'abc123',
+    water_demand: { deficit_scenario: {
+      status: 'estimated', salinity_risk_heuristic: 'high', literature_yield_penalty_pct: 36.5,
+      evidence_ref: 'synthetic:pivot-a', missing_inputs: [], execution_authorized: false,
+    } },
+  });
+  render(<IrrigationEngineeringCalculator fieldId="a" />);
+  fireEvent.click(screen.getByText('سيناريو عجز الري والملوحة'));
+  fireEvent.change(screen.getByLabelText(/نسبة ETc الافتراضية/), { target: { value: '50' } });
+  fireEvent.change(screen.getByLabelText(/ملوحة مياه الري ECw/), { target: { value: '4' } });
+  fireEvent.change(screen.getByLabelText(/حد تحمل المحصول ECe/), { target: { value: '6' } });
+  fireEvent.change(screen.getByLabelText('مرجع الملوحة وحد التحمل'), { target: { value: 'synthetic:pivot-a' } });
+  fireEvent.click(screen.getByRole('button', { name: 'احسب الكمية والضغط' }));
+  expect(api.calculateInteractiveIrrigation).toHaveBeenCalledWith(expect.objectContaining({
+    deficitScenario: { etc_fraction_pct: 50, water_ec_ds_m: 4, crop_salinity_threshold_ece_ds_m: 6, evidence_ref: 'synthetic:pivot-a' },
+  }));
+  expect(await screen.findByText('انخفاض الغلة وفق النموذج الأدبي: 36.50 %')).toBeInTheDocument();
+});
+
+it('reports a missing deficit diagnostic instead of implying that it was evaluated', async () => {
+  api.calculateInteractiveIrrigation.mockResolvedValue({
+    status: 'pass', calculations: {}, hydraulics: {}, water_demand: {}, pump_energy: {}, feasibility: {},
+    warnings: [], blocking_constraints: [], explanations: [], assumptions: [], input_quality: {},
+    content_digest: 'legacy-response',
+  });
+  const { rerender } = render(<IrrigationEngineeringCalculator fieldId="a" />);
+  fireEvent.click(screen.getByText('سيناريو عجز الري والملوحة'));
+  fireEvent.change(screen.getByLabelText(/نسبة ETc الافتراضية/), { target: { value: '50' } });
+  fireEvent.click(screen.getByRole('button', { name: 'احسب الكمية والضغط' }));
+  expect(await screen.findByText('لم يُرجع الخادم نتيجة سيناريو عجز الري؛ لا توجد نتيجة معتمدة.')).toBeInTheDocument();
+  expect(screen.queryByLabelText('نتيجة سيناريو عجز الري')).not.toBeInTheDocument();
+  rerender(<IrrigationEngineeringCalculator fieldId="b" />);
+  expect(screen.queryByText('لم يُرجع الخادم نتيجة سيناريو عجز الري؛ لا توجد نتيجة معتمدة.')).not.toBeInTheDocument();
+});
