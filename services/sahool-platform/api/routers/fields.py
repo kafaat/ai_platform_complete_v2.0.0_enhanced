@@ -31,7 +31,7 @@ from api import main as api_main
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
 from api.alert_models import AlertEvaluateResponse
-from api.field_context import refuse_if_fields_have_harvest_lots
+from api.field_context import delete_field_row, refuse_if_fields_have_harvest_lots
 from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_boundary_for_save
 
 # نماذج/مساعدات الحقل نُقِلت إلى api.field_models (تفكيك B1 — نقل عنقوديّ) وتُستورَد
@@ -1649,7 +1649,7 @@ async def delete_field(
                 field_id,
                 {"name": row["name"], "crop": row["crop"], "farm_id": row["farm_id"]},
             )
-            await conn.execute("DELETE FROM fields WHERE field_id = $1", field_id)
+            await delete_field_row(conn, field_id, "حذف الحقل")
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -1816,7 +1816,7 @@ async def merge_fields(
                             "merged_into": field_id,
                         },
                     )
-                    await conn.execute("DELETE FROM fields WHERE field_id = $1", src_id)
+                    await delete_field_row(conn, src_id, "دمج الحقول")
                 return result
 
             if idem:
@@ -1953,7 +1953,7 @@ async def split_field(
                         "split_into": [c["field_id"] for c in children_out],
                     },
                 )
-                await conn.execute("DELETE FROM fields WHERE field_id = $1", req.source_field_id)
+                await delete_field_row(conn, req.source_field_id, "انقسام الحقل")
                 return children_out
 
             if idem:

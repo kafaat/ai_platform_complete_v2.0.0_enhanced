@@ -753,7 +753,7 @@ FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:607,5,applied
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:474,5,applied
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:128,5,applied
-FM-003,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:489,5,applied
+FM-003,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:525,5,applied
 FM-003,api,POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:156,5,applied
 FM-003,api,POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238,3,applied
 FM-003,api,POST /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:349,4,applied
@@ -962,6 +962,7 @@ FM-003,test,services/sahool-platform/tests/test_field_boundary_graph.py,5,applie
 FM-003,test,services/sahool-platform/tests/test_field_boundary_pipeline.py,5,applied
 FM-003,test,services/sahool-platform/tests/test_field_bundle.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_completeness.py,3,applied
+FM-003,test,services/sahool-platform/tests/test_field_delete_protected_reference.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_detail.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_geocode.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py,3,applied
@@ -1743,7 +1744,7 @@ OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:607,4,applied
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:474,4,applied
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:128,4,applied
-OPS-001,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:489,2,applied
+OPS-001,api,POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:525,2,applied
 OPS-001,api,POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:156,2,applied
 OPS-001,api,POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238,4,applied
 OPS-001,mobile,mobile/sahool_app/lib/features/tasks/data/field_task.dart,4,applied

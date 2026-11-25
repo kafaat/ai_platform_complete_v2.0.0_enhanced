@@ -154,7 +154,7 @@ field-management-service,services/field-management-service/fm_verification.py,12
 field-management-service,services/field-management-service/fm_verification.py,156,POST,/internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments,approve_verification_assessment,internal_s2s
 field-management-service,services/field-management-service/fm_verification.py,193,GET,/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id},verification_delivery,internal_s2s
 field-management-service,services/field-management-service/fm_verification.py,215,GET,/internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id},verification_assessment,internal_s2s
-field-management-service,services/field-management-service/fm_verification.py,489,POST,/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver,deliver_verification,internal_s2s
+field-management-service,services/field-management-service/fm_verification.py,525,POST,/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver,deliver_verification,internal_s2s
 field-management-service,services/field-management-service/main.py,234,GET,/healthz,healthz,infra
 field-management-service,services/field-management-service/main.py,239,GET,/health,legacy_health,infra
 field-management-service,services/field-management-service/main.py,244,GET,/readyz,readyz,infra

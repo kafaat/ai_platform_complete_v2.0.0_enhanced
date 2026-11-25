@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7722,
+    "files_scanned": 7723,
     "files_by_kind": {
       "backend": 1317,
       "database": 358,
       "governance": 92,
       "mobile": 429,
       "other": 2253,
-      "tests": 2699,
+      "tests": 2700,
       "web": 574
     },
-    "unmapped_artifacts": 3673,
+    "unmapped_artifacts": 3674,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4200,
+      "python_functional": 4201,
       "raw": 3522
     },
-    "test_dependency_files": 2059,
-    "test_dependency_edges": 5579,
-    "test_dependency_bounded_files": 1178,
-    "test_dependency_unresolved_relations": 534
+    "test_dependency_files": 2060,
+    "test_dependency_edges": 5583,
+    "test_dependency_bounded_files": 1179,
+    "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
     {
@@ -15348,7 +15348,7 @@
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:488",
+          "value": "/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:524",
           "score": 8
         },
         {
@@ -42488,6 +42488,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_field_detail.py",
       "kind": "tests"
     },
@@ -64822,6 +64826,34 @@
           "source": "services/sahool-platform/core/field_completeness.py",
           "kind": "import",
           "line": 11
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "import",
+          "line": 23
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "source": "services/sahool-platform/api/routers/fields.py",
+          "kind": "import",
+          "line": 24
         }
       ],
       "unresolved": []
@@ -97565,7 +97597,15 @@
           "import": "fm_verification_client"
         },
         {
-          "line": 797,
+          "line": 812,
+          "import": "fm_verification_client"
+        },
+        {
+          "line": 992,
+          "import": "fm_verification_client"
+        },
+        {
+          "line": 1025,
           "import": "fm_verification_client"
         }
       ]

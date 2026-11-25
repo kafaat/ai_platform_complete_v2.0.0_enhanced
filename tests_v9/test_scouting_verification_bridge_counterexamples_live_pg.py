@@ -507,15 +507,29 @@ def test_lost_reply_reconciles_a_durable_receipt_but_refuses_corruption(
                 live.anomaly_ref, tenant_id=live.tenant
             )
             second = await live.deliver()
-            assert second.status_code == 200, second.text
-            expected = (
-                "delivery_unknown"
-                if "corrupt" in after_commit or "regressed" in after_commit
-                else "delivered_review_required"
-                if after_commit.endswith("-cancelled")
-                else "delivered"
-            )
-            assert second.json()["state"] == expected, second.text
+            if "corrupt" in after_commit or "regressed" in after_commit:
+                # The owner refuses to vouch for a corrupted record. That read now happens before
+                # the claim, so it answers 503 and the row stays delivery_unknown, untouched: no
+                # attempt is used and nothing is sent.
+                assert second.status_code == 503, second.text
+                assert second.json()["detail"] == (
+                    "verification_context_unavailable:"
+                    "verification_remote_status:503:verification_delivery_receipt_inconsistent"
+                )
+                row = await live.admin.fetchrow(
+                    "SELECT state, attempts FROM scouting_verification_outbox "
+                    "WHERE delivery_id=$1::uuid",
+                    live.delivery_id,
+                )
+                assert (row["state"], row["attempts"]) == ("delivery_unknown", 1)
+            else:
+                assert second.status_code == 200, second.text
+                expected = (
+                    "delivered_review_required"
+                    if after_commit.endswith("-cancelled")
+                    else "delivered"
+                )
+                assert second.json()["state"] == expected, second.text
             assert len(sends) == 1, "reconciliation must not post a second completion"
             assert live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant) == (
                 remote_before_reconcile
@@ -717,7 +731,8 @@ def test_an_unexpected_error_after_the_claim_settles_the_row_instead_of_strandin
             async def broken(*_args, **_kwargs):
                 raise RuntimeError("injected failure after the claim")
 
-            monkeypatch.setattr(live.remote_client, "context", broken)
+            # The context read now happens before the claim; the send is what follows it.
+            monkeypatch.setattr(live.remote_client, "complete", broken)
             response = await live.deliver()
             assert response.status_code == 200, response.text
             row = await _row(live)
@@ -964,5 +979,96 @@ def test_a_failure_while_recording_a_refusal_still_settles_the_row(monkeypatch, 
                 "lease_token": None,
                 "last_error": "verification_settle_failed:refused:RuntimeError",
             }
+
+    run(target())
+
+
+def test_failed_context_reads_never_use_up_the_delivery(monkeypatch, tmp_path):
+    # Devin on #1598: each dispatch counted an attempt before reading the owner's context, so
+    # eight read timeouts exhausted a row that was never sent; reconcile never sends and
+    # relinking refuses an exhausted row, so it stayed stuck after the owner recovered.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            from fm_verification_client import VerificationRemoteError
+
+            await _ready(live)
+            original = live.remote_client.context
+
+            async def owner_down(*_args, **_kwargs):
+                raise VerificationRemoteError("verification_remote_unreachable")
+
+            monkeypatch.setattr(live.remote_client, "context", owner_down)
+            for _ in range(10):
+                response = await live.deliver()
+                assert response.status_code == 503, response.text
+                assert response.json()["detail"] == (
+                    "verification_context_unavailable:verification_remote_unreachable"
+                )
+            row = await _row(live)
+            assert (row["state"], row["attempts"], row["lease_token"]) == ("pending", 0, None)
+            monkeypatch.setattr(live.remote_client, "context", original)
+            response = await live.deliver()
+            assert response.status_code == 200, response.text
+            assert response.json()["state"] == "delivered", response.text
+            assert (await _row(live))["attempts"] == 1
+            accepted = live.anomaly_store.get(live.anomaly_ref, tenant_id=live.tenant)
+            assert accepted["status"] == "confirmed"
+
+    run(target())
+
+
+def test_a_refused_read_after_an_unknown_send_keeps_the_uncertainty(monkeypatch, tmp_path):
+    # A refusal on the read may not overwrite delivery_unknown: an earlier POST may have been
+    # applied, and `refused` would let relinking block it. The row is left exactly as it was.
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            from fm_verification_client import VerificationRemoteError
+
+            await _ready(live)
+            actual_complete = live.remote_client.complete
+
+            async def lose_reply(*args, **kwargs):
+                raise VerificationRemoteError("injected_reply_loss_before_commit")
+
+            monkeypatch.setattr(live.remote_client, "complete", lose_reply)
+            assert (await live.deliver()).json()["state"] == "delivery_unknown"
+            before = await _row(live)
+            monkeypatch.setattr(live.remote_client, "complete", actual_complete)
+            monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "0")
+            response = await live.deliver()
+            assert response.status_code == 503, response.text
+            assert response.json()["detail"].startswith("verification_context_unavailable:")
+            assert await _row(live) == before
+            monkeypatch.setenv("VEGETATION_VERIFICATION_BRIDGE_ENABLED", "1")
+            response = await live.deliver()
+            assert response.json()["state"] == "delivered", response.text
+            assert (await _row(live))["attempts"] == 2
+
+    run(target())
+
+
+def test_dispatch_reveals_a_finished_delivery_only_to_its_assessor(monkeypatch, tmp_path):
+    # Devin on #1598: dispatch returned a terminal delivery before checking the caller wrote the
+    # assessment, so another field user saw the state, receipt and error that GET hides (404).
+    async def target():
+        async with BridgeLive(monkeypatch, tmp_path) as live:
+            await _ready(live)
+            done = await live.deliver()
+            assert done.json()["state"] == "delivered", done.text
+            calls = []
+            original = live.remote_client.context
+
+            async def counted(*args, **kwargs):
+                calls.append(args)
+                return await original(*args, **kwargs)
+
+            monkeypatch.setattr(live.remote_client, "context", counted)
+            for name in ("inspector2", "reviewer"):
+                other = await live.deliver(name=name)
+                assert other.status_code == 403, (name, other.text)
+                assert other.json() == {"detail": "delivery_requires_the_original_assessor"}
+            assert calls == []
+            own = await live.deliver()
+            assert own.status_code == 200 and own.json()["state"] == "delivered", own.text
 
     run(target())

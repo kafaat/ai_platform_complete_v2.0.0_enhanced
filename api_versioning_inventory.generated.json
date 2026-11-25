@@ -1397,7 +1397,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_verification.py",
-    "line": 489,
+    "line": 525,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver",
     "handler": "deliver_verification",

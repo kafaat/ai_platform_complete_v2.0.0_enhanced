@@ -9104,6 +9104,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_field_detail.py",
     "kind": "tests"
   },

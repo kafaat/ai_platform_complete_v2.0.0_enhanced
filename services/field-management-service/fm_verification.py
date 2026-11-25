@@ -320,8 +320,7 @@ async def reconcile_exhausted(caller, field_id, delivery):
     settles it as blocked (the owner's compare-and-set refuses our stale version, so no late
     retry can apply it). Otherwise the outcome is still unknown and the row stays exhausted.
     """
-    if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
-        raise HTTPException(403, "delivery_requires_the_original_assessor")
+    require_original_assessor(caller, delivery)
     async with caller_connection(caller) as conn:
         link = await load_link(conn, caller, field_id, delivery["link_id"])
     anomaly_ref = link["scope_snapshot"]["anomaly_ref"]
@@ -362,6 +361,9 @@ async def dispatch_delivery(caller, field_id, delivery_id):
     async with caller_connection(caller) as conn:
         await require_actor(conn, caller, field_id, OBSERVATION_RECORD)
         delivery = await load_delivery(conn, caller, field_id, delivery_id, lock=True)
+        # Only the assessment's writer dispatches, reconciles or sees the row through this route,
+        # whatever its state: GET hides another user's delivery, so dispatch must not reveal it.
+        require_original_assessor(caller, delivery)
         if delivery["state"] == "delivery_exhausted":
             if not remote_client.configured():
                 raise HTTPException(503, "verification_transport_unconfigured")
@@ -370,26 +372,48 @@ async def dispatch_delivery(caller, field_id, delivery_id):
             return delivery_view(delivery)
         else:
             reconcile = False
+            # An unconfigured transport (no URL, token, key or key id) is refused before any
+            # read or claim, so the row is not left in `sending` and no attempt is counted.
+            if not remote_client.configured():
+                raise HTTPException(503, "verification_transport_unconfigured")
+            if await delivery_busy(conn, delivery_id):
+                raise HTTPException(409, "verification_delivery_already_claimed")
+            link = await load_link(conn, caller, field_id, delivery["link_id"])
+            prior_state = delivery["state"]
     if reconcile:
         return await reconcile_exhausted(caller, field_id, delivery)
+    # The owner's current state is read BEFORE the claim. This read sends nothing, so a failed
+    # read must not use up the delivery's budget: eight timeouts here used to exhaust a row that
+    # was never sent, leaving it stuck (reconcile never sends, relinking refuses it).
+    anomaly_ref = link["scope_snapshot"]["anomaly_ref"]
+    remote, pre_read = None, None
+    try:
+        remote = await remote_client.context(caller.tenant_id, anomaly_ref)
+    except VerificationRemoteRejected as exc:
+        # Definitive: the owner will never accept this request. Recorded as terminal below.
+        pre_read = ("rejected", {"error": str(exc)})
+    except VerificationRemoteRefused as exc:
+        if prior_state not in {"pending", "refused"}:
+            # An earlier POST of this delivery may have been applied; recording a refusal
+            # would hide that uncertainty (and let relinking block it). Nothing changes.
+            raise HTTPException(503, f"verification_context_unavailable:{exc}") from exc
+        # Nothing was ever sent: record the receiver's refusal visibly, with the attempt
+        # refunded (the only refund v289 allows is sending -> refused).
+        pre_read = ("refused", {"error": str(exc)})
+    except VerificationRemoteError as exc:
+        raise HTTPException(503, f"verification_context_unavailable:{exc}") from exc
+    except Exception as exc:
+        raise HTTPException(503, f"verification_context_unavailable:{type(exc).__name__}") from exc
     async with caller_connection(caller) as conn:
         delivery = await load_delivery(conn, caller, field_id, delivery_id, lock=True)
-        if delivery["state"] in TERMINAL_DELIVERY_STATES:
+        require_original_assessor(caller, delivery)
+        if (
+            delivery["state"] in TERMINAL_DELIVERY_STATES
+            or delivery["state"] == "delivery_exhausted"
+        ):
             return delivery_view(delivery)
-        # An unconfigured transport (no URL, token, key or key id) is refused before the
-        # claim, so the row is not left in `sending` and no attempt is counted.
-        if not remote_client.configured():
-            raise HTTPException(503, "verification_transport_unconfigured")
-        busy = await conn.fetchval(
-            "SELECT lease_until > clock_timestamp() FROM scouting_verification_outbox WHERE delivery_id=$1",
-            delivery_id,
-        )
-        if busy:
+        if delivery["state"] != prior_state or await delivery_busy(conn, delivery_id):
             raise HTTPException(409, "verification_delivery_already_claimed")
-        link = await load_link(conn, caller, field_id, delivery["link_id"])
-        # A denied caller cannot trigger even a read from the remote owner.
-        if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
-            raise HTTPException(403, "delivery_requires_the_original_assessor")
         if delivery["attempts"] >= MAX_DELIVERY_ATTEMPTS:
             # Whether the owner accepted an earlier attempt is unknown; stop retrying and
             # hand the row to a person. v289 refuses any further claim at this count.
@@ -408,11 +432,11 @@ async def dispatch_delivery(caller, field_id, delivery_id):
             delivery_id,
             lease,
         )
+    if pre_read is not None:
+        return await settle(caller, field_id, delivery, lease, *pre_read)
     # The try block only decides the outcome; settle() records it once, outside, so a storage
     # failure while recording can never be mistaken for the owner's verdict.
     try:
-        anomaly_ref = link["scope_snapshot"]["anomaly_ref"]
-        remote = await remote_client.context(caller.tenant_id, anomaly_ref)
         if receipt_matches(remote, delivery, link):
             outcome = ("delivered", {"receipt": remote})
         elif remote.get("snapshot_digest") != link["anomaly_snapshot_digest"].strip() or digest(
@@ -461,6 +485,18 @@ async def dispatch_delivery(caller, field_id, delivery_id):
             {"error": f"verification_dispatch_failed:{type(exc).__name__}"},
         )
     return await settle(caller, field_id, delivery, lease, *outcome)
+
+
+def require_original_assessor(caller, delivery):
+    if delivery["reviewer"] != caller.user_id or delivery["reviewer_role"] != caller.role:
+        raise HTTPException(403, "delivery_requires_the_original_assessor")
+
+
+async def delivery_busy(conn, delivery_id):
+    return await conn.fetchval(
+        "SELECT lease_until > clock_timestamp() FROM scouting_verification_outbox WHERE delivery_id=$1",
+        delivery_id,
+    )
 
 
 async def settle(caller, field_id, delivery, lease, state, fields):

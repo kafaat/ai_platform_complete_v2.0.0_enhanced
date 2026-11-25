@@ -5185,7 +5185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3a3263057818aa8f69f61b7779d7b3c32eac309f1dc098eeb44435dcc615e85"
+          "content": "c1df697d9298fd528f3b01ee70c7fe0b3a8a2e1f4abac75486eeec23808df261"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -21135,7 +21135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "751aab7447aba7dc0a775c9af3dca13bb854cd5bb473b4dfdf7ef73316715746"
+          "content": "e3489f7ca8d099b7f86f0944e7156a17044d57bf850733cf7769eceab0ff7c5d"
         }
       ],
       "name": "services/field-management-service/fm_verification.py",
@@ -26585,7 +26585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bbf9d73ba93a091c8f13c1b2517a9fb12f252f71f74cb21cf66f53e5316a707"
+          "content": "b6a591e4a5023f5c20a21305a6351e03edfeaae1c36349fc1d27e7139539ce4c"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -28425,7 +28425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03e6b4a63d9fd5def5ddb2f0914629c373cfe895850d254ca2f99d7931de09f9"
+          "content": "40ef0c35c23ec318029c6c0732325618faaa95fb2766fa7feace731799b51bc2"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -35679,6 +35679,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_field_completeness.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5362e49fbe126efd4c21dd28ff3de30d82b86b2021500b15a0ae28ba0c9c5b89"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_delete_protected_reference.py",
       "type": "file"
     },
     {
