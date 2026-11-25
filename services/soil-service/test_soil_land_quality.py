@@ -389,3 +389,31 @@ def test_every_land_capability_factor_names_its_source():
         assert "AH-210" in f["source"] or "AH210" in f["source"], f
     slope = next(f for f in _lcc().to_dict()["factors"] if f["factor"] == "slope_pct")
     assert slope["source"].startswith("USDA-AH210-INDICATIVE@v1#slope")
+
+
+# ── Devin review of #1624 (follow-up): no rate action without rate inputs ───
+
+
+def test_gypsum_rate_is_blocked_when_the_candidate_lacks_its_rate_inputs():
+    p = _reclaim(
+        lab_verified=True,
+        esp_pct=22.0,
+        irrigation_water_profile_approved=True,
+        drainage_need="none",
+    )
+    gypsum = next(i for i in p.interventions if i["type"] == "gypsum_candidate")
+    assert gypsum["rate_inputs_missing"]
+    assert "gypsum_rate" in p.blocked_actions and "gypsum_rate" not in p.allowed_actions
+    # ...without switching off the other actions the same gates allow
+    assert {"leaching_requirement", "reclamation_execution"} <= set(p.allowed_actions)
+
+
+def test_gypsum_rate_stays_allowed_by_the_gates_when_no_candidate_lacks_inputs():
+    p = _reclaim(
+        lab_verified=True,
+        ec_lab_ds_m=1.0,
+        irrigation_water_profile_approved=True,
+        drainage_need="none",
+    )
+    assert not any(i["type"] == "gypsum_candidate" for i in p.interventions)
+    assert "gypsum_rate" in p.allowed_actions

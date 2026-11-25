@@ -123,11 +123,16 @@ def _is_finite_number(x: object) -> bool:
 
 
 def classify_band(clause: Clause, value: float) -> str | None:
-    """الشريحة التي تقع فيها القيمة ([lower, upper)) أو None إن خرجت عن الشرائح."""
+    """الشريحة التي تقع فيها القيمة ([lower, upper)، أو [lower, upper] لشريحةٍ `upper_inclusive`)
+    أو None إن خرجت عن الشرائح."""
     if clause.limit_kind != "bands" or not _is_finite_number(value):
         return None
     for band in clause.bands:
-        if value >= band.lower and (band.upper is None or value < band.upper):
+        if value >= band.lower and (
+            band.upper is None
+            or value < band.upper
+            or (band.upper_inclusive and value == band.upper)
+        ):
             return band.label
     return None
 
@@ -151,11 +156,13 @@ def evaluate_clause(
         "upper": clause.upper,
         "upper_inclusive": clause.upper_inclusive,
         "unit": clause.unit,
+        "required_method": clause.required_method,
         "source": clause.source,
         "calibrated_for_region": clause.calibrated_for_region,
     }
     if clause.limit_kind == "bands":
         limit["bands"] = [[b.label, b.lower, b.upper] for b in clause.bands]
+        limit["bands_upper_inclusive"] = [b.label for b in clause.bands if b.upper_inclusive]
         limit["pass_labels"] = list(clause.pass_labels)
 
     if clause.applies_to and clause.applies_to not in contexts:
@@ -194,6 +201,24 @@ def evaluate_clause(
         return ClauseResult(
             **base, status="not_evaluated", reason="unit_mismatch", evidence=evidence
         )
+    if clause.required_method:
+        # A matching unit is not a matching method: a 1:5 EC is in dS/m too (HB60 needs a
+        # saturated-paste extract). An unstated method is not assumed to be the right one.
+        method = (observation.method or "").strip()
+        if not method:
+            return ClauseResult(
+                **base,
+                status="not_evaluated",
+                reason=f"method_missing:{clause.required_method}",
+                evidence=evidence,
+            )
+        if method != clause.required_method:
+            return ClauseResult(
+                **base,
+                status="not_evaluated",
+                reason=f"method_mismatch:{method}",
+                evidence=evidence,
+            )
     if isinstance(observation.observed_on, datetime) or not (
         observation.observed_on is None or isinstance(observation.observed_on, date)
     ):

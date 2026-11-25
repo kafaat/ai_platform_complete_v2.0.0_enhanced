@@ -12,6 +12,7 @@ from standards_registry import (
     FARMLAND_AUDIT_CATALOG,
     FARMLAND_AUDIT_CATALOG_SHA256,
     HB60_SALINE_SODIC,
+    SATURATION_EXTRACT_25C,
     Band,
     Clause,
     ClauseOverride,
@@ -33,8 +34,14 @@ ON = date(2026, 11, 25)
 FRESH = date(2026, 10, 1)
 
 
-def _obs(parameter, value, unit, observed_on=FRESH):
-    return Observation(parameter, value, unit, source="lab:test", observed_on=observed_on)
+def _obs(parameter, value, unit, observed_on=FRESH, method=None):
+    # HB60's saline.ECe requires a saturated-paste extract; the helper states that method for
+    # ECe unless a test passes another one (Devin finding on #1624: unit alone is not method).
+    if method is None:
+        method = SATURATION_EXTRACT_25C if parameter == "ece_ds_m" else ""
+    return Observation(
+        parameter, value, unit, source="lab:test", observed_on=observed_on, method=method
+    )
 
 
 def _std(version, effective_from, status="active", superseded_by=None, upper=4.0, **kw):
@@ -252,11 +259,12 @@ def test_range_override_cannot_widen_and_cannot_invert():
 # ── محرّك المطابقة ────────────────────────────────────────────────────────
 
 
-def test_bands_are_half_open_at_the_published_boundaries():
+def test_bands_follow_the_published_boundaries():
     ecw = FAO29_WATER_QUALITY.clause("T1.salinity.ECw")
     assert classify_band(ecw, 0.69) == "none"
     assert classify_band(ecw, 0.7) == "slight_to_moderate"
-    assert classify_band(ecw, 3.0) == "severe"
+    assert classify_band(ecw, 3.0) == "slight_to_moderate"  # FAO-29: Severe is > 3.0
+    assert classify_band(ecw, 3.01) == "severe"
     assert classify_band(ecw, -0.1) is None
     assert classify_band(ecw, float("nan")) is None
 
@@ -720,8 +728,80 @@ def test_nit7_boolean_is_not_a_numeric_tightening():
 
 def test_nit8_a_datetime_observation_date_is_not_evaluated_rather_than_crashing():
     obs = Observation(
-        "ece_ds_m", 1.0, "dS/m", source="lab", observed_on=datetime(2026, 10, 1, 12, 0)
+        "ece_ds_m",
+        1.0,
+        "dS/m",
+        source="lab",
+        observed_on=datetime(2026, 10, 1, 12, 0),
+        method=SATURATION_EXTRACT_25C,
     )
     report = evaluate_standards([HB60_SALINE_SODIC], [obs, _obs("esp_pct", 5.0, "%")], on=ON)
     ece = next(r for r in report.results if r.clause_id == "saline.ECe")
     assert (ece.status, ece.reason) == ("not_evaluated", "observation_date_not_a_date")
+
+
+# ── Devin review of #1624 (follow-up) ───────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "clause_id,none_top,shared,above",
+    [
+        # FAO-29 Table 1: None < a; Slight-to-moderate a–b; Severe > b.
+        ("T1.salinity.ECw", 0.69, 3.0, 3.01),
+        ("T1.sodium.SAR.surface", 2.99, 9.0, 9.01),
+        ("T1.chloride.surface", 3.99, 10.0, 10.01),
+        ("T1.boron", 0.69, 3.0, 3.01),
+    ],
+)
+def test_fao29_shared_severe_boundary_belongs_to_the_middle_band(
+    clause_id, none_top, shared, above
+):
+    clause = FAO29_WATER_QUALITY.clause(clause_id)
+    lower_of_middle = next(b.lower for b in clause.bands if b.label == "slight_to_moderate")
+    assert classify_band(clause, none_top) == "none"
+    assert classify_band(clause, lower_of_middle) == "slight_to_moderate"
+    assert classify_band(clause, shared) == "slight_to_moderate"
+    assert classify_band(clause, above) == "severe"
+
+
+def test_bands_without_the_flag_keep_half_open_semantics():
+    clause = Clause(
+        clause_id="x",
+        parameter="p",
+        unit="u",
+        limit_kind="bands",
+        title_ar="t",
+        source="s",
+        bands=(Band("a", 0.0, 1.0), Band("b", 1.0, None)),
+        pass_labels=("a",),
+    )
+    assert classify_band(clause, 1.0) == "b"
+
+
+@pytest.mark.parametrize(
+    "method,reason",
+    [("ec_1_5", "method_mismatch:ec_1_5"), ("", "method_missing:saturation_extract_25c")],
+)
+def test_hb60_ece_from_another_or_unstated_method_is_not_evaluated(method, reason):
+    # A 1:5 EC reported in dS/m used to pass HB60 on the unit alone (Devin on #1624).
+    obs = [_obs("ece_ds_m", 1.0, "dS/m", method=method), _obs("esp_pct", 10.0, "%")]
+    report = evaluate_standards([HB60_SALINE_SODIC], obs, on=ON)
+    ece = next(r for r in report.results if r.clause_id == "saline.ECe")
+    assert (ece.status, ece.reason) == ("not_evaluated", reason)
+    assert ece.evidence["limit"]["required_method"] == SATURATION_EXTRACT_25C
+    assert report.verdict == "incomplete"
+
+
+def test_hb60_ece_from_the_saturated_paste_extract_is_evaluated():
+    obs = [_obs("ece_ds_m", 1.0, "dS/m"), _obs("esp_pct", 10.0, "%")]
+    assert evaluate_standards([HB60_SALINE_SODIC], obs, on=ON).verdict == "compliant"
+
+
+def test_clauses_without_a_required_method_ignore_the_method_field():
+    ecw = [_obs("ecw_ds_m", 0.5, "dS/m", method="anything")]
+    report = evaluate_standards([FAO29_WATER_QUALITY], ecw, on=ON)
+    assert next(r for r in report.results if r.clause_id == "T1.salinity.ECw").status == "pass"
+
+
+def test_load_catalog_accepts_a_str_path():
+    assert load_catalog(str(FARMLAND_AUDIT_CATALOG))["version"]
