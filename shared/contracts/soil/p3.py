@@ -115,11 +115,11 @@ class DrainageAssessmentRequest(BaseModel):
     geometry_hash: str
     assessment_version: str = "drainage-v1"
     natural_outlet_score: float = Field(ge=0, le=1)
-    water_table_depth_m: float | None = Field(default=None, ge=0)
-    impermeable_layer_depth_m: float | None = Field(default=None, ge=0)
+    water_table_depth_m: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    impermeable_layer_depth_m: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     depression_fraction: float = Field(ge=0, le=1)
-    mean_drainage_gradient_pct: float = Field(ge=0)
-    ksat_mm_h: float | None = Field(default=None, ge=0)
+    mean_drainage_gradient_pct: float = Field(ge=0, allow_inf_nan=False)
+    ksat_mm_h: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     flood_risk: float = Field(ge=0, le=1)
     wadi_risk: float = Field(ge=0, le=1)
     salinity_persistence: float = Field(ge=0, le=1)
@@ -159,8 +159,8 @@ class ReclamationAssessmentRequest(BaseModel):
     leveling_need: float = Field(ge=0, le=1)
     drainage_need: Literal["none", "monitor", "surface", "subsurface", "combined"]
     crop_suitability_score: float = Field(ge=0, le=1)
-    ec_lab_ds_m: float | None = Field(default=None, ge=0)
-    esp_pct: float | None = Field(default=None, ge=0)
+    ec_lab_ds_m: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    esp_pct: float | None = Field(default=None, ge=0, le=100)
     irrigation_water_profile_approved: bool = False
     drainage_engineering_verified: bool = False
     lab_verified: bool = False
@@ -188,20 +188,20 @@ class ReclamationAssessmentProduct(BaseModel):
 class ReclamationEconomicsRequest(BaseModel):
     tenant_id: str
     field_id: str
-    area_ha: float = Field(gt=0)
+    area_ha: float = Field(gt=0, allow_inf_nan=False)
     currency: str = "USD"
-    water_cost_per_m3: float = Field(ge=0)
-    energy_cost_per_kwh: float = Field(ge=0)
-    gypsum_cost_per_tonne: float = Field(ge=0)
-    drainage_cost_per_ha: float = Field(ge=0)
-    leveling_cost_per_ha: float = Field(ge=0)
-    stone_removal_cost_per_ha: float = Field(ge=0)
-    expected_annual_margin_per_ha: float = Field(ge=0)
+    water_cost_per_m3: float = Field(ge=0, allow_inf_nan=False)
+    energy_cost_per_kwh: float = Field(ge=0, allow_inf_nan=False)
+    gypsum_cost_per_tonne: float = Field(ge=0, allow_inf_nan=False)
+    drainage_cost_per_ha: float = Field(ge=0, allow_inf_nan=False)
+    leveling_cost_per_ha: float = Field(ge=0, allow_inf_nan=False)
+    stone_removal_cost_per_ha: float = Field(ge=0, allow_inf_nan=False)
+    expected_annual_margin_per_ha: float = Field(ge=0, allow_inf_nan=False)
     discount_rate: float = Field(default=0.1, ge=0, le=1)
     horizon_years: int = Field(default=10, ge=1, le=30)
-    water_m3_per_ha: float = Field(default=0, ge=0)
-    energy_kwh_per_ha: float = Field(default=0, ge=0)
-    gypsum_t_per_ha: float = Field(default=0, ge=0)
+    water_m3_per_ha: float = Field(default=0, ge=0, allow_inf_nan=False)
+    energy_kwh_per_ha: float = Field(default=0, ge=0, allow_inf_nan=False)
+    gypsum_t_per_ha: float = Field(default=0, ge=0, allow_inf_nan=False)
     drainage_required: bool = False
     leveling_required: bool = False
     stone_removal_required: bool = False
