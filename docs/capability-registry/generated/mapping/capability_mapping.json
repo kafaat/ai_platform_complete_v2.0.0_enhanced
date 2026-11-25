@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7731,
+    "files_scanned": 7732,
     "files_by_kind": {
       "backend": 1317,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2254,
-      "tests": 2705,
+      "tests": 2706,
       "web": 574
     },
-    "unmapped_artifacts": 3679,
+    "unmapped_artifacts": 3680,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4206,
+      "python_functional": 4207,
       "raw": 3525
     },
-    "test_dependency_files": 2065,
-    "test_dependency_edges": 5592,
-    "test_dependency_bounded_files": 1184,
+    "test_dependency_files": 2066,
+    "test_dependency_edges": 5593,
+    "test_dependency_bounded_files": 1185,
     "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
@@ -43394,6 +43394,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_water_cost_numeric_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
       "kind": "tests"
     },
@@ -71360,6 +71364,19 @@
           "source": "services/sahool-platform/api/water_balance.py",
           "kind": "import",
           "line": 15
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_water_cost_numeric_contract.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/core/engines/water_cost.py",
+          "kind": "import",
+          "line": 6
         }
       ],
       "unresolved": []

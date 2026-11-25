@@ -31805,7 +31805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b30d00c71bff6de5b14df9b796947dbddfafee37fef8af41f0688e6f210a2a91"
+          "content": "bd22e36df187b3443b1eef89fe2f3b9ad38c1fa31dcfe9af63601972adbf9bba"
         }
       ],
       "name": "services/sahool-platform/core/engines/water_cost.py",
@@ -38859,6 +38859,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_water_balance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "212edbb1a478dee8aa42e45b992749885139400dcff79e56e73af09a3e3d7764"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_water_cost_numeric_contract.py",
       "type": "file"
     },
     {
