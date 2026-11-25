@@ -9,6 +9,7 @@ from land_quality import (
     esp_from_exchangeable_na,
     esp_from_sar,
     gypsum_requirement,
+    gypsum_requirement_from_exchangeable_na,
     land_capability,
 )
 from p3_products import build_reclamation_assessment
@@ -289,3 +290,36 @@ def test_screening_probability_path_is_unchanged_when_no_lab_values_exist():
     p = _reclaim(sodicity_probability=0.6)
     gypsum = next(i for i in p.interventions if i["type"] == "gypsum_candidate")
     assert gypsum == {"type": "gypsum_candidate", "requires": "lab_EC_ESP_and_water_profile"}
+
+
+def test_gypsum_from_measured_exchangeable_na_records_the_measured_basis():
+    r = gypsum_requirement_from_exchangeable_na(
+        cec_cmolc_kg=20.0,
+        na_exchangeable_cmolc_kg=5.0,
+        esp_target_pct=10.0,
+        depth_m=0.3,
+        bulk_density_t_m3=1.4,
+    )
+    # ESP 25 → 10 on CEC 20 = 3 cmolc/kg, identical to the ESP-based path
+    assert r.na_to_replace_cmolc_kg == 3.0
+    assert r.gypsum_t_per_ha == pytest.approx(10.847, abs=1e-3)
+    assert r.assumptions["esp_basis"] == "measured_exchangeable_na"
+    assert r.inputs["na_exchangeable_cmolc_kg"] == 5.0
+
+
+def test_gypsum_from_exchangeable_na_refuses_na_above_cec():
+    with pytest.raises(LandQualityInputError, match="exchangeable_na_exceeds_cec"):
+        gypsum_requirement_from_exchangeable_na(
+            cec_cmolc_kg=10.0,
+            na_exchangeable_cmolc_kg=12.0,
+            esp_target_pct=5.0,
+            depth_m=0.3,
+            bulk_density_t_m3=1.4,
+        )
+
+
+def test_every_land_capability_factor_names_its_source():
+    for f in _lcc(esp_pct=None).to_dict()["factors"]:
+        assert "AH-210" in f["source"] or "AH210" in f["source"], f
+    slope = next(f for f in _lcc().to_dict()["factors"] if f["factor"] == "slope_pct")
+    assert slope["source"].startswith("USDA-AH210-INDICATIVE@v1#slope")

@@ -29,6 +29,7 @@ from datetime import date
 from compliance_engine import Observation, classify_band, evaluate_standards
 from standards_registry import (
     AH210_LAND_CAPABILITY,
+    AH210_SOURCE,
     DRAINAGE_CLASS_TO_CAPABILITY,
     EFFECTIVE_DEPTH_CLASS_LIMITS_CM,
     HB60_SALINE_SODIC,
@@ -122,6 +123,36 @@ class GypsumRequirement:
         }
 
 
+def gypsum_requirement_from_exchangeable_na(
+    *,
+    cec_cmolc_kg: float,
+    na_exchangeable_cmolc_kg: float,
+    esp_target_pct: float,
+    depth_m: float,
+    bulk_density_t_m3: float,
+    purity: float = 1.0,
+    exchange_efficiency_factor: float = 1.0,
+) -> GypsumRequirement:
+    """احتياج الجبس من القياس المخبريّ المباشر (Na المتبادل + CEC) — المسار المُفضَّل.
+
+    لا تقدير لـ ESP من SAR هنا: الجرعة تُبنى على ما قِيس، والأساس يُسجَّل في الناتج.
+    """
+    esp = esp_from_exchangeable_na(na_exchangeable_cmolc_kg, cec_cmolc_kg)
+    r = gypsum_requirement(
+        cec_cmolc_kg=cec_cmolc_kg,
+        esp_initial_pct=esp.esp_pct,
+        esp_target_pct=esp_target_pct,
+        depth_m=depth_m,
+        bulk_density_t_m3=bulk_density_t_m3,
+        purity=purity,
+        exchange_efficiency_factor=exchange_efficiency_factor,
+        esp_basis=esp.basis,
+    )
+    return replace(
+        r, inputs={**r.inputs, "na_exchangeable_cmolc_kg": float(na_exchangeable_cmolc_kg)}
+    )
+
+
 def gypsum_requirement(
     *,
     cec_cmolc_kg: float,
@@ -131,6 +162,7 @@ def gypsum_requirement(
     bulk_density_t_m3: float,
     purity: float = 1.0,
     exchange_efficiency_factor: float = 1.0,
+    esp_basis: str = "caller_supplied",
 ) -> GypsumRequirement:
     """احتياج الجبس (t/ha) لخفض ESP من القيمة الحاليّة إلى الهدف في عمق مُعلَن.
 
@@ -166,6 +198,7 @@ def gypsum_requirement(
             "purity": pur,
             "exchange_efficiency_factor": eff,
             "requirement_basis": "theoretical" if eff == 1.0 else "efficiency_adjusted",
+            "esp_basis": esp_basis,
             "amendment": "CaSO4·2H2O",
             "equivalent_weight_g_per_molc": GYPSUM_EQ_WEIGHT_G_PER_MOLC,
         },
@@ -261,6 +294,7 @@ class FactorClass:
     capability_class: str | None
     subclass: str
     status: str  # evaluated | missing | invalid
+    source: str = AH210_SOURCE  # مصدر حدود الصنف لهذا العامل
 
     def to_dict(self) -> dict:
         return {
@@ -269,6 +303,7 @@ class FactorClass:
             "class": self.capability_class,
             "subclass": self.subclass,
             "status": self.status,
+            "source": self.source,
         }
 
 
@@ -314,12 +349,14 @@ def land_capability(
     factors: list[FactorClass] = []
 
     def banded(name: str, clause_id: str, value: float | None, subclass: str) -> None:
+        clause = AH210_LAND_CAPABILITY.clause(clause_id)
+        src = f"{AH210_LAND_CAPABILITY.ref}#{clause_id}: {clause.source}"
         if value is None:
-            factors.append(FactorClass(name, None, None, subclass, "missing"))
+            factors.append(FactorClass(name, None, None, subclass, "missing", src))
             return
-        label = classify_band(AH210_LAND_CAPABILITY.clause(clause_id), value)
+        label = classify_band(clause, value)
         factors.append(
-            FactorClass(name, value, label, subclass, "evaluated" if label else "invalid")
+            FactorClass(name, value, label, subclass, "evaluated" if label else "invalid", src)
         )
 
     banded("slope_pct", "slope", slope_pct, "e")
