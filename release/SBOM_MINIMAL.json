@@ -31945,7 +31945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66bdb69bee3b854976d50731b073f97da845d8c8020bc7a54bb74a321bccfbba"
+          "content": "a3381d07f7ac1a3545f8a7182fe1b792f00515a7a2c19e71f3f7d5108b61719c"
         }
       ],
       "name": "services/sahool-platform/core/farm_costing.py",
@@ -35495,7 +35495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab8da3499357f3760b894e1125c858d5efccb5db1c902ced2f1fc03382590697"
+          "content": "1ae97ae7d1041d6311f5809addb613f6163ecdb71b9bcf463c7e7039af7feae6"
         }
       ],
       "name": "services/sahool-platform/tests/test_farm_costing.py",
