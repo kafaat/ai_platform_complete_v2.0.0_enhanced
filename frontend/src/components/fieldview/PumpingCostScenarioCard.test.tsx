@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import PumpingCostScenarioCard from './PumpingCostScenarioCard';
 
@@ -60,15 +60,19 @@ describe('pumping cost scenario', () => {
     expect(mocks.post).not.toHaveBeenCalled();
   });
 
-  it('does not display a response that arrives after an input edit', async () => {
+  it.each(['edit', 'session change'])('discards a pending response after %s', async (change) => {
     let complete!: (value: typeof response) => void;
     mocks.post.mockReturnValue(new Promise(resolve => { complete = resolve; }));
     render(<PumpingCostScenarioCard areaHa={50} authScope="tenant-a:user-a" />);
     fillGrid();
     fireEvent.click(screen.getByText('احسب تكلفة الضخ'));
-    fireEvent.change(screen.getByLabelText('مرجع التقدير'), { target: { value: 'fixture:pivot-b' } });
-    complete(response);
-    await waitFor(() => expect(screen.getByText('احسب تكلفة الضخ')).toBeTruthy());
+    expect(mocks.post).toHaveBeenCalledTimes(1);
+    if (change === 'edit') {
+      fireEvent.change(screen.getByLabelText('مرجع التقدير'), { target: { value: 'fixture:pivot-b' } });
+    } else {
+      mocks.scope.mockReturnValue('tenant-b:user-b');
+    }
+    await act(async () => { complete(response); });
     expect(screen.queryByRole('status')).toBeNull();
   });
 });

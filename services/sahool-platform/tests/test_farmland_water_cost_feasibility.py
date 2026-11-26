@@ -6,7 +6,7 @@ from api.feasibility_models import FeasibilityRequest, WaterCostScenario
 from pydantic import ValidationError
 
 
-def _grid(**overrides):
+def _grid_pumping_scenario(**overrides):
     return {
         "input_basis": "synthetic",
         "source_ref": "fixture:pivot-1",
@@ -20,10 +20,14 @@ def _grid(**overrides):
 
 
 def test_explicit_water_cost_scenario():
-    request = FeasibilityRequest.model_validate({
-        "area_ha": 50, "yield_t_per_ha": 4, "price_per_t": 300,
-        "water_cost_scenario": _grid(),
-    })
+    request = FeasibilityRequest.model_validate(
+        {
+            "area_ha": 50,
+            "yield_t_per_ha": 4,
+            "price_per_t": 300,
+            "water_cost_scenario": _grid_pumping_scenario(),
+        }
+    )
     assert request.water_cost_scenario.pumped_m3_per_ha == 3000
     result = estimate_pumping_cost(request.water_cost_scenario, request.area_ha)
     assert result["status"] == "estimated"
@@ -35,17 +39,20 @@ def test_explicit_water_cost_scenario():
     assert result["input_basis"] == "synthetic"
 
 
-@pytest.mark.parametrize("overrides", [
-    {"grid_efficiency": None},
-    {"grid_price_usd_per_kwh": None},
-    {"diesel_price_usd_per_liter": 1},
-    {"well_depth_m": True},
-    {"source_ref": " "},
-    {"pumped_m3_per_ha": -1},
-])
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"grid_efficiency": None},
+        {"grid_price_usd_per_kwh": None},
+        {"diesel_price_usd_per_liter": 1},
+        {"well_depth_m": True},
+        {"source_ref": " "},
+        {"pumped_m3_per_ha": -1},
+    ],
+)
 def test_missing_or_invalid_inputs_not_assumed(overrides):
     with pytest.raises(ValidationError):
-        WaterCostScenario.model_validate(_grid(**overrides))
+        WaterCostScenario.model_validate(_grid_pumping_scenario(**overrides))
 
 
 def test_legacy_contract_unchanged():
@@ -54,20 +61,60 @@ def test_legacy_contract_unchanged():
 
 
 def test_unrepresentable_seasonal_cost_not_evaluated():
-    result = estimate_pumping_cost(WaterCostScenario.model_validate(_grid()), 1e308)
+    result = estimate_pumping_cost(
+        WaterCostScenario.model_validate(_grid_pumping_scenario()), 1e308
+    )
     assert result["status"] == "not_evaluated"
     assert "estimate" not in result
 
 
-def test_existing_endpoint_keeps_caller_costs_and_currency_separate():
-    from api.routers.economics import economics_feasibility_endpoint
+@pytest.fixture
+def pumping_http(monkeypatch):
+    from secrets import token_urlsafe
 
-    legacy = FeasibilityRequest(area_ha=50, yield_t_per_ha=4, price_per_t=300,
-                                total_cost=10000)
-    baseline = economics_feasibility_endpoint(legacy, user=None)
-    request = legacy.model_copy(update={"water_cost_scenario": WaterCostScenario.model_validate(_grid())})
-    result = economics_feasibility_endpoint(request, user=None)
+    from api import main
+    from core.canonical_schemas import UserRole, UserSchema
+    from core.jwt_denylist import InMemoryDenylist
+    from fastapi.testclient import TestClient
+
+    key = token_urlsafe(48)
+    monkeypatch.setattr(main, "JWT_SECRET", key)
+    monkeypatch.setattr(main, "JWT_VERIFY_KEY", key)
+    monkeypatch.setattr(main, "JWT_VERIFY_ALGORITHM", main.JWT_ALGORITHM)
+    monkeypatch.setattr(main, "_DENYLIST", InMemoryDenylist())
+    user = UserSchema(
+        user_id="pump-reader", tenant_id="tenant-a", role=UserRole.MANAGER, name_ar="مدير الحقل"
+    )
+    client = TestClient(main.app)
+    try:
+        yield client, {"Authorization": f"Bearer {main.create_token(user)}"}
+    finally:
+        client.close()
+
+
+def test_existing_endpoint_keeps_caller_costs_and_currency_separate(pumping_http):
+    client, headers = pumping_http
+    endpoint = "/api/v1/economics/feasibility"
+    legacy = {"area_ha": 50, "yield_t_per_ha": 4, "price_per_t": 300, "total_cost": 10000}
+    baseline = client.post(endpoint, json=legacy, headers=headers)
+    assert baseline.status_code == 200
+    posted = client.post(
+        endpoint, json={**legacy, "water_cost_scenario": _grid_pumping_scenario()}, headers=headers
+    )
+    assert posted.status_code == 200
+    result = posted.json()
     scenario = result.pop("water_cost_scenario")
-    assert result == baseline
+    assert result == baseline.json()
     assert scenario["estimate"]["cost_mid_usd"] == 10215
     assert scenario["included_in_feasibility"] is False
+
+
+def test_pumping_feasibility_requires_an_authenticated_http_request(pumping_http):
+    client, _ = pumping_http
+    payload = {
+        "area_ha": 50,
+        "yield_t_per_ha": 4,
+        "price_per_t": 300,
+        "water_cost_scenario": _grid_pumping_scenario(),
+    }
+    assert client.post("/api/v1/economics/feasibility", json=payload).status_code == 401

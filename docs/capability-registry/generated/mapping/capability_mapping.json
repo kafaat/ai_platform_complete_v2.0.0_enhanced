@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7749,
+    "files_scanned": 7752,
     "files_by_kind": {
       "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2256,
-      "tests": 2714,
-      "web": 577
+      "tests": 2715,
+      "web": 579
     },
-    "unmapped_artifacts": 3690,
+    "unmapped_artifacts": 3692,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4216,
-      "raw": 3533
+      "python_functional": 4217,
+      "raw": 3535
     },
-    "test_dependency_files": 2070,
-    "test_dependency_edges": 5603,
-    "test_dependency_bounded_files": 1189,
+    "test_dependency_files": 2071,
+    "test_dependency_edges": 5609,
+    "test_dependency_bounded_files": 1190,
     "test_dependency_unresolved_relations": 536
   },
   "capabilities": [
@@ -5004,6 +5004,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
+          "score": 11,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
           "score": 11,
           "signals": [
@@ -5359,7 +5367,7 @@
         "events": 30,
         "web": 20,
         "mobile": 35,
-        "tests": 63,
+        "tests": 64,
         "governance": 0,
         "other_evidence": 27
       },
@@ -33985,6 +33993,14 @@
     },
     {
       "path": "frontend/src/components/fieldview/PlantingAdvisorCard.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/fieldview/PumpingCostScenarioCard.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/fieldview/PumpingCostScenarioCard.tsx",
       "kind": "web"
     },
     {
@@ -64793,6 +64809,44 @@
           "source": "services/sahool-platform/core/engines/fertility.py",
           "kind": "import",
           "line": 6
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 75
+        },
+        {
+          "source": "services/sahool-platform/api/farm_economics.py",
+          "kind": "import",
+          "line": 4
+        },
+        {
+          "source": "services/sahool-platform/api/feasibility_models.py",
+          "kind": "import",
+          "line": 5
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 75
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 76
+        },
+        {
+          "source": "services/sahool-platform/core/jwt_denylist.py",
+          "kind": "import",
+          "line": 77
         }
       ],
       "unresolved": []

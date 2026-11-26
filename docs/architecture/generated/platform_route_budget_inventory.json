@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "66683ba2c3bc66577883e492a4e1df5b8ceb377ffee20cc937f8990bbf42f0ff",
+  "inventory_sha256": "34aef97786d7c1239631d6ad70577736be93d119267af496c2ff1401c6ce39ea",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "9399da32c8daa6a0a6537211d3eea707ee8d68b00d4eaf005423e3afaa50bcb4"
+    "policy_sha256": "63775fc4f96002de990d781e5533d03c3be5b06e2572c00f6a153f0dcd2bdd1c"
   },
   "routes": [
     {
@@ -802,7 +802,7 @@
     {
       "classification": "domain",
       "function": "economics_break_even_endpoint",
-      "line": 45,
+      "line": 48,
       "method": "GET",
       "path": "/api/v1/economics/break-even",
       "source": "api/routers/economics.py"

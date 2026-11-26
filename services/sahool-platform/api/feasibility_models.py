@@ -42,8 +42,11 @@ class WaterCostScenario(BaseModel):
             "diesel": ("pump_efficiency", "diesel_price_usd_per_liter", "diesel_kwh_per_liter"),
             "grid": ("grid_price_usd_per_kwh", "grid_efficiency"),
             "solar": (
-                "solar_capital_usd", "solar_lifetime_years", "solar_maintenance_annual_pct",
-                "solar_m3_per_year", "solar_dust_derate_pct",
+                "solar_capital_usd",
+                "solar_lifetime_years",
+                "solar_maintenance_annual_pct",
+                "solar_m3_per_year",
+                "solar_dust_derate_pct",
             ),
         }
         for pump_type, names in groups.items():

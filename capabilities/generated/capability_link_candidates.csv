@@ -1271,7 +1271,7 @@ FM-005,test,tests_v9/test_supervisor_crop_model_agriai_routing.py,3,applied
 FM-005,test,tests_v9/test_variety_catalog_reference_only_barrier.py,3,applied
 FM-005,test,tests_v9/test_variety_policy_resolution.py,3,applied
 FM-006,api,GET /api/v1/decision/economics @ services/sahool-platform/api/routers/decision_impact.py:185,2,applied
-FM-006,api,GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:46,2,applied
+FM-006,api,GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:49,2,applied
 FM-006,api,GET /api/v1/economics/cost-categories @ services/sahool-platform/api/routers/economics.py:26,4,applied
 FM-006,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554,2,applied
 FM-006,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630,2,applied
@@ -1286,6 +1286,7 @@ FM-006,api,POST /api/v1/scenario/economics @ services/sahool-platform/api/router
 FM-006,api,POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624,2,applied
 FM-006,api,POST /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:144,2,applied
 FM-006,test,services/sahool-platform/tests/test_cost_governance.py,3,applied
+FM-006,test,services/sahool-platform/tests/test_farmland_water_cost_feasibility.py,3,applied
 FM-006,test,services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py,3,applied
 FM-006,test,services/sahool-platform/tests/test_profit_aware_decision_endpoint.py,3,applied
 FM-006,test,services/sahool-platform/tests/test_water_cost_numeric_contract.py,3,applied
