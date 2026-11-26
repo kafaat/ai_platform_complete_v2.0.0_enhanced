@@ -523,3 +523,74 @@ def test_reclamation_stale_sample_does_not_feed_gypsum_kernel(monkeypatch):
     assert product.provenance["lab_salinity_sodicity"]["sodic"] is None
     assert product.provenance["gypsum_scenario"]["reason"] == "esp_sample_not_evaluated"
     assert "gypsum_rate" in product.blocked_actions
+
+def _exchangeable_na_request(**overrides):
+    return _gypsum_scenario_request(
+        gypsum_scenario=None,
+        esp_pct=None,
+        ec_lab_ds_m=1,
+        sodicity_probability=0.1,
+        lab_sample={
+            "source_ref": "fixture:pivot-b/exchangeable-sodium",
+            "observed_on": datetime.now(UTC).date(),
+            "ec_method": "saturation_extract_25c",
+            "exchangeable_sodium": {
+                "na_cmolc_kg": 4.0,
+                "cec_cmolc_kg": 20.0,
+                "method": "fixture-laboratory-exchangeable-cations",
+            },
+            **overrides,
+        },
+    )
+
+
+def test_reclamation_uses_exchangeable_na_kernel_for_hb60(monkeypatch):
+    import p3_products
+
+    original = p3_products.esp_from_exchangeable_na
+    calls = []
+
+    def spy(na_cmolc_kg, cec_cmolc_kg):
+        calls.append((na_cmolc_kg, cec_cmolc_kg))
+        return original(na_cmolc_kg, cec_cmolc_kg)
+
+    monkeypatch.setattr(p3_products, "esp_from_exchangeable_na", spy)
+    result = build_reclamation_assessment(_exchangeable_na_request())
+    assert calls == [(4.0, 20.0)]
+    assert result.provenance["exchangeable_sodium_esp"]["esp_pct"] == 20.0
+    assert result.provenance["lab_salinity_sodicity"]["sodic"] is True
+    assert result.provenance["lab_salinity_sodicity"]["soil_class"] == "sodic"
+    assert "gypsum_rate" in result.blocked_actions
+    assert "reclamation_execution" in result.blocked_actions
+    assert "exchangeable-sodium.v1" in result.assessment_version
+
+
+def test_reclamation_exchangeable_na_stale_sample_not_classified():
+    result = build_reclamation_assessment(_exchangeable_na_request(observed_on="2000-01-01"))
+    assert result.provenance["lab_salinity_sodicity"]["sodic"] is None
+    assert "reclamation_execution" in result.blocked_actions
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        {"na_cmolc_kg": 21, "cec_cmolc_kg": 20, "method": "lab"},
+        {"na_cmolc_kg": 4, "cec_cmolc_kg": 0, "method": "lab"},
+        {"na_cmolc_kg": 4, "method": "lab"},
+        {"na_cmolc_kg": 4, "cec_cmolc_kg": 20, "method": " "},
+    ],
+)
+def test_reclamation_invalid_exchangeable_na_rejected(values):
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        _exchangeable_na_request(exchangeable_sodium=values)
+
+
+def test_reclamation_exchangeable_na_and_direct_esp_cannot_be_mixed():
+    from pydantic import ValidationError
+
+    payload = _exchangeable_na_request().model_dump()
+    payload["esp_pct"] = 3
+    with pytest.raises(ValidationError):
+        ReclamationAssessmentRequest.model_validate(payload)
