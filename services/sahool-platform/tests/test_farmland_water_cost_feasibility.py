@@ -1,7 +1,7 @@
 """Water pumping scenario through the existing economics request and endpoint."""
 
 import pytest
-from api.farm_economics import estimate_pumping_cost
+from api.farm_economics import cost_categories, estimate_pumping_cost
 from api.feasibility_models import FeasibilityRequest, WaterCostScenario
 from pydantic import ValidationError
 
@@ -118,3 +118,26 @@ def test_pumping_feasibility_requires_an_authenticated_http_request(pumping_http
         "water_cost_scenario": _grid_pumping_scenario(),
     }
     assert client.post("/api/v1/economics/feasibility", json=payload).status_code == 401
+
+
+def test_pumping_support_and_solar_reference_volume():
+    assert cost_categories()["supports_well_pumping_scenario"] is True
+    description = WaterCostScenario.model_json_schema()["properties"]["solar_m3_per_year"][
+        "description"
+    ]
+    assert "100 m" in description and "before dust" in description
+    inputs = {
+        "input_basis": "synthetic",
+        "source_ref": "fixture:solar-reference",
+        "pumped_m3_per_ha": 1200,
+        "pump_type": "solar",
+        "well_depth_m": 100,
+        "solar_capital_usd": 30000,
+        "solar_lifetime_years": 10,
+        "solar_maintenance_annual_pct": 0,
+        "solar_m3_per_year": 100000,
+        "solar_dust_derate_pct": 0.2,
+    }
+    for depth, expected_usd in [(100, 2250), (200, 4500)]:
+        scenario = WaterCostScenario.model_validate({**inputs, "well_depth_m": depth})
+        assert estimate_pumping_cost(scenario, 50)["estimate"]["cost_mid_usd"] == expected_usd

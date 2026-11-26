@@ -31,14 +31,14 @@ type Disabled = { disabled: true };
 // ─── قراءات (useQuery) — الاقتصاد ─────────────────────────────────────────────
 
 /** بنود التكلفة القياسيّة — GET /api/v1/economics/cost-categories (مرجعيّة ثابتة). */
-export function useCostCategories(enabled = true): UseQueryResult<CostCategoriesResult> {
+export function useCostCategories(enabled = true, staleTime = 60 * 60_000): UseQueryResult<CostCategoriesResult> {
   return useQuery<CostCategoriesResult>({
     queryKey: ['mc-cost-categories'],
     queryFn: () => kongApi
       .get('/api/v1/economics/cost-categories')
       .then((r) => r.data as CostCategoriesResult)
       .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; }),
-    staleTime: 60 * 60_000,
+    staleTime,
     enabled,
     retry: false,
   });

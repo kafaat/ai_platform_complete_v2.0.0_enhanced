@@ -1765,7 +1765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3d8827f64b416e1d40854aa1d3b63252e408cdc76f0a551d15393d7e9c5c0cf"
+          "content": "cfa535f9db658f50c4b2025cdc34f07c8c34bda09dd88c1118b9cff3de658349"
         }
       ],
       "name": "frontend/src/components/fieldview/PumpingCostScenarioCard.test.tsx",
@@ -1775,7 +1775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54b59d1f04c078a5b8c137dcfff7db5d7b396fd0c4969c9beb242efa0953a4bb"
+          "content": "8b0c0976deb6b8a2aed125571836bbc5e9768b6ed68bb984d615c68905b9c060"
         }
       ],
       "name": "frontend/src/components/fieldview/PumpingCostScenarioCard.tsx",
@@ -3505,7 +3505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca2fc19abe5cdacdc99a94d9f4c7ca7d94b18fa997d66c850897bc5541adfe1f"
+          "content": "b48d8cb9cbd67a6e3bd211ff595f21458cbb5dc604791bb6ec8f103a65e2d0a9"
         }
       ],
       "name": "frontend/src/hooks/useManagerConsole.ts",
@@ -5095,7 +5095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32af2bef4b2b771f51ebe8d5fac458226c00178553e66327973500503bfe7bbf"
+          "content": "457a16e370e2c2c5759bcb911db817e47307e92a959c5b9b7abbff4fb964b29a"
         }
       ],
       "name": "frontend/src/lib/managerConsole.ts",
@@ -26575,7 +26575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e932b7fcc254ee460a5a7bda78fc4157f82e8dff909c019ed62d29bf4cf49d7e"
+          "content": "b5dda017735cf0e6144a37b0f6222518ed4f5cfc48fdc6b8623ebaea2801f2e3"
         }
       ],
       "name": "services/sahool-platform/api/farm_economics.py",
@@ -26595,7 +26595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3ef827a2dbaaf091662cd1d794d2f764b5aef233f1e061fd846b3fe901c0ce4"
+          "content": "0e0f74e1d0c21dec68b468efc7d2ff42d0c10b378d8fd62ace31c1fc48a6c682"
         }
       ],
       "name": "services/sahool-platform/api/feasibility_models.py",
@@ -35685,7 +35685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86118c045ed200c6b5c8ab3f77472de376c8f18b1ea6bd5b3adfd7c00e65e80b"
+          "content": "f565dab00914f0bef26f30ea1df1b1f736a1c36279b6b36ece4033f8cc02511e"
         }
       ],
       "name": "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",

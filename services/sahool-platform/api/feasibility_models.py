@@ -33,7 +33,11 @@ class WaterCostScenario(BaseModel):
     solar_capital_usd: float | None = Field(default=None, gt=0)
     solar_lifetime_years: int | None = Field(default=None, gt=0)
     solar_maintenance_annual_pct: float | None = Field(default=None, ge=0)
-    solar_m3_per_year: float | None = Field(default=None, gt=0)
+    solar_m3_per_year: float | None = Field(
+        default=None,
+        gt=0,
+        description="Annual pumped volume in m³ at the 100 m reference depth, before dust losses.",
+    )
     solar_dust_derate_pct: float | None = Field(default=None, ge=0, lt=1)
 
     @model_validator(mode="after")

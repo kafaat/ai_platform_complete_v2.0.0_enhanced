@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { kongApi } from '../../services/api/client';
+import { useCostCategories } from '../../hooks/useManagerConsole';
 import { getAuthScope } from '../../lib/authStorage';
 
 type Pump = 'grid' | 'diesel' | 'solar';
@@ -12,7 +13,7 @@ const COMMON = [
 const SPECIFIC: Record<Pump, ReadonlyArray<readonly [string, string]>> = {
   grid: [['grid_price_usd_per_kwh', 'سعر الكهرباء (USD/kWh)'], ['grid_efficiency', 'كفاءة الضخ (0–1)']],
   diesel: [['diesel_price_usd_per_liter', 'سعر الديزل (USD/L)'], ['diesel_kwh_per_liter', 'طاقة العمود المتاحة (kWh/L)'], ['pump_efficiency', 'كفاءة الضخ (0–1)']],
-  solar: [['solar_capital_usd', 'رأس المال (USD)'], ['solar_lifetime_years', 'العمر (سنوات)'], ['solar_maintenance_annual_pct', 'الصيانة السنوية (كسر عشري)'], ['solar_m3_per_year', 'الحجم السنوي (م³)'], ['solar_dust_derate_pct', 'فاقد الغبار (كسر عشري)']],
+  solar: [['solar_capital_usd', 'رأس المال (USD)'], ['solar_lifetime_years', 'العمر (سنوات)'], ['solar_maintenance_annual_pct', 'الصيانة السنوية (كسر عشري)'], ['solar_m3_per_year', 'حجم الضخ السنوي قبل فاقد الغبار عند عمق مرجعي 100 متر (م³)'], ['solar_dust_derate_pct', 'فاقد الغبار (كسر عشري)']],
 };
 type Estimate = {
   status: 'estimated' | 'not_evaluated';
@@ -31,6 +32,7 @@ export default function PumpingCostScenarioCard({ areaHa, authScope }: { areaHa:
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const revision = useRef(0);
+  const capabilities = useCostCategories(Boolean(authScope), 0);
   const fields = [...COMMON, ...SPECIFIC[pump]];
   function invalidate() {
     revision.current += 1;
@@ -72,6 +74,9 @@ export default function PumpingCostScenarioCard({ areaHa, authScope }: { areaHa:
       if (id === revision.current && getAuthScope() === authScope) setBusy(false);
     }
   }
+  if (!authScope || capabilities.isFetching || capabilities.isError ||
+      capabilities.data?.supports_well_pumping_scenario !== true) return null;
+
   return (
     <section className="mb-3 rounded-xl border border-slate-700 p-3 text-sm text-slate-200" aria-label="سيناريو تكلفة ضخ الآبار">
       <h3 className="font-semibold">سيناريو تكلفة ضخ الآبار الموسمية</h3>
