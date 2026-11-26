@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Literal
 from uuid import uuid4
 
@@ -172,6 +172,14 @@ class LandCapabilityScenarioInput(BaseModel):
     drainage_class: str | None = Field(default=None, max_length=80)
 
 
+class ReclamationLabSample(BaseModel):
+    """Caller-declared evidence for indicative HB60 evaluation, not local approval."""
+
+    source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
+    observed_on: date
+    ec_method: str = Field(min_length=1, max_length=80, pattern=r"\S")
+
+
 class ReclamationAssessmentRequest(BaseModel):
     tenant_id: str
     field_id: str
@@ -190,6 +198,7 @@ class ReclamationAssessmentRequest(BaseModel):
     irrigation_water_profile_approved: bool = False
     drainage_engineering_verified: bool = False
     lab_verified: bool = False
+    lab_sample: ReclamationLabSample | None = None
     gypsum_scenario: GypsumScenarioInput | None = None
     land_capability_scenario: LandCapabilityScenarioInput | None = None
 

@@ -127,6 +127,8 @@ async def reclamation(
     p = build_reclamation_assessment(payload)
     p.provenance.update(drainage_provenance)
     identity_payload = payload.model_dump(mode="json")
+    if payload.lab_sample is None:
+        identity_payload.pop("lab_sample", None)
     if payload.gypsum_scenario is None:
         # Preserve the identity of pre-scenario requests and explicit nulls.
         identity_payload.pop("gypsum_scenario", None)
