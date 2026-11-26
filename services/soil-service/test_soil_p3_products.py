@@ -594,3 +594,19 @@ def test_reclamation_exchangeable_na_and_direct_esp_cannot_be_mixed():
     payload["esp_pct"] = 3
     with pytest.raises(ValidationError):
         ReclamationAssessmentRequest.model_validate(payload)
+
+def test_reclamation_exchangeable_na_ratio_remains_finite():
+    result = build_reclamation_assessment(
+        _exchangeable_na_request(
+            exchangeable_sodium={"na_cmolc_kg": 1e308, "cec_cmolc_kg": 1e308, "method": "lab"}
+        )
+    )
+    assert result.provenance["exchangeable_sodium_esp"]["esp_pct"] == 100.0
+
+
+def test_reclamation_exchangeable_na_without_lab_claim_is_not_classified():
+    req = _exchangeable_na_request().model_copy(update={"lab_verified": False})
+    result = build_reclamation_assessment(req)
+    assert "exchangeable_sodium_esp" not in result.provenance
+    assert "lab_salinity_sodicity" not in result.provenance
+    assert "gypsum_rate" in result.blocked_actions
