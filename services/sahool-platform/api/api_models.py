@@ -550,6 +550,21 @@ class SharingKeyCreateRequest(BaseModel):
     allowed_field_ids: list[str] = []
 
 
+class FertilizerPlanningScenario(BaseModel):
+    """Explicit hypothetical commercial fertilizer rate; never a lab result or prescription."""
+
+    model_config = {"extra": "forbid"}
+
+    input_basis: Literal["synthetic", "operator_supplied"]
+    source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
+    nutrient_basis: Literal["N", "P2O5", "K2O"]
+    target_yield_t_ha: float = Field(strict=True, ge=0, allow_inf_nan=False)
+    uptake_kg_per_t: float = Field(strict=True, ge=0, allow_inf_nan=False)
+    soil_supply_kg_ha: float = Field(strict=True, ge=0, allow_inf_nan=False)
+    fertilizer_grade_pct: float = Field(strict=True, ge=1, le=100, allow_inf_nan=False)
+    use_efficiency: float = Field(strict=True, ge=0.1, le=1, allow_inf_nan=False)
+
+
 class Soil4RRequest(BaseModel):
     caco3_pct: float | None = None
     ph: float | None = None
@@ -558,6 +573,7 @@ class Soil4RRequest(BaseModel):
     zn_ppm: float | None = None
     om_pct: float | None = None
     nutrients: list[str] | None = None
+    fertilizer_scenario: FertilizerPlanningScenario | None = None
 
 
 class ZoneCellInput(BaseModel):
