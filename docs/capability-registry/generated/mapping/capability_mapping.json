@@ -26370,6 +26370,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
+          "score": 15,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation",
+            "content:Tenant RLS"
+          ]
+        },
+        {
           "path": "tests/security/test_phase23_rls_preserve_using.py",
           "score": 14,
           "signals": [
@@ -26584,14 +26593,6 @@
           "signals": [
             "content:rls",
             "content:tenant isolation",
-            "content:Tenant RLS"
-          ]
-        },
-        {
-          "path": "tests_v9/test_v238_actuator_delivery_state_live_pg.py",
-          "score": 12,
-          "signals": [
-            "content:rls",
             "content:Tenant RLS"
           ]
         },
@@ -55129,7 +55130,7 @@
         {
           "source": "services/actuator-service/routers/commands.py",
           "kind": "import",
-          "line": 502
+          "line": 501
         }
       ],
       "unresolved": []
@@ -55185,17 +55186,17 @@
         {
           "source": "services/actuator-service/actuator_runtime.py",
           "kind": "loader",
-          "line": 66
+          "line": 67
         },
         {
           "source": "services/actuator-service/actuator_runtime.py",
           "kind": "source_read",
-          "line": 67
+          "line": 68
         },
         {
           "source": "services/actuator-service/routers/commands.py",
           "kind": "import",
-          "line": 601
+          "line": 603
         }
       ],
       "unresolved": []
@@ -55274,7 +55275,7 @@
         {
           "source": "shared/actuation_killswitch.py",
           "kind": "import",
-          "line": 515
+          "line": 518
         }
       ],
       "unresolved": []
@@ -76497,12 +76498,12 @@
         {
           "source": "services/actuator-service/routers/commands.py",
           "kind": "import",
-          "line": 97
+          "line": 98
         }
       ],
       "unresolved": [
         {
-          "line": 88,
+          "line": 89,
           "call": "spec_from_file_location"
         }
       ]
@@ -81872,7 +81873,7 @@
       "edges": [],
       "unresolved": [
         {
-          "line": 97,
+          "line": 98,
           "call": "spec_from_file_location"
         }
       ]

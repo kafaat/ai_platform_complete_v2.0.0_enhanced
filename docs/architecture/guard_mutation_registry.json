@@ -1705,8 +1705,8 @@
         },
         {
           "expect": "test_the_seam_forwards_the_full_scope",
-          "find": "        return await is_actuation_halted(\n            ks_conn, tenant_id, field_id=field_id, valve_id=valve_id, command=command\n        )",
-          "replace": "        return await is_actuation_halted(ks_conn, tenant_id, command=command)  # mutated: نطاقُ المستأجِر وحده",
+          "find": "            return await is_actuation_halted(\n                ks_conn, tenant_id, field_id=field_id, valve_id=valve_id, command=command\n            )",
+          "replace": "            return await is_actuation_halted(ks_conn, tenant_id, command=command)  # mutated: نطاقُ المستأجِر وحده",
           "why": "استشارةٌ بنطاقٍ أضيق تمرّ على الحارس الساكن (النداء موجود) وتفشل في مطابقة مفتاح حقلٍ أو صمّام. وكلّ اختبارات التعويض تُرقّع المَفصِل ولا تدخله، فهذا يقيس جسده."
         },
         {
@@ -1751,7 +1751,7 @@
         },
         {
           "expect": "test_a_clear_killswitch_still_lets_a_manual_command_through",
-          "find": "    success = await main.send_mqtt_command(\n        req.device_id,\n        req.command,\n        req.payload,\n        command_id=command_id,\n        tenant_id=tenant_id,\n        field_id=device_field_id,\n    )",
+          "find": "    success = await main.send_mqtt_command(\n        req.device_id,\n        req.command,\n        req.payload,\n        command_id=queue.command_id,\n        tenant_id=tenant_id,\n        field_id=device_field_id,\n    )",
           "replace": "    success = False  # mutated: حجبٌ شامل — لا نشر أصلاً",
           "why": "منعُ تشغيلٍ مشروع عطلٌ أيضاً: بوّابةٌ تحجب الكلّ تُرضي كلّ اختبار حجبٍ وتكسر الخدمة. فالجناح يقيس الاتّجاهين لا اتّجاه المنع وحده."
         }

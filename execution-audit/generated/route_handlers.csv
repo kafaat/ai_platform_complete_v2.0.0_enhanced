@@ -1,7 +1,7 @@
 owner,method,path,handler,file,line
 actuator-service,POST,/v1/command,send_command,services/actuator-service/routers/commands.py,26
-actuator-service,GET,/v1/commands,list_commands,services/actuator-service/routers/commands.py,126
-actuator-service,GET,/v1/commands/{command_id},get_command,services/actuator-service/routers/commands.py,152
+actuator-service,GET,/v1/commands,list_commands,services/actuator-service/routers/commands.py,135
+actuator-service,GET,/v1/commands/{command_id},get_command,services/actuator-service/routers/commands.py,161
 actuator-service,GET,/healthz,health,services/actuator-service/routers/health.py,20
 actuator-service,GET,/readyz,readyz,services/actuator-service/routers/health.py,32
 actuator-service,GET,/v1/idempotency/metrics,idempotency_metrics,services/actuator-service/routers/metrics.py,18

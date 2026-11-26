@@ -17,6 +17,7 @@ import sys
 import types
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -125,6 +126,7 @@ def wired(actuator, monkeypatch):
 
     monkeypatch.setattr(actuator, "send_mqtt_command", _send)
     monkeypatch.setattr(actuator, "log_command", _log)
+    monkeypatch.setattr(actuator, "record_command_queued", AsyncMock(return_value=True))
     return SimpleNamespace(mod=actuator, sent=sent, logged=logged)
 
 

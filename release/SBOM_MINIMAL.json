@@ -18195,7 +18195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5d5244d1ecbde3a56d6526889667c13fc12226c35ce9674b1671d642b5177f8"
+          "content": "b5c048578b41bce739a9559e0c5dda48790a5a46badb0ff3a5922a0238ea6f72"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -18295,7 +18295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "41ba92b975479b9c19a67f68fa3a0ad0dfc243d5cb36db2614ac431d8c1e0533"
+          "content": "163ef33ee8d4a518d010a27d248996079028c13d957df167058c3dc80b37fe0a"
         }
       ],
       "name": "services/actuator-service/routers/commands.py",
@@ -18325,7 +18325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55380fb1487fcba3892160f3a73b40ca704827d49b2f13b1337011536cca9e0e"
+          "content": "4261360cfe717ff9f89894b4aad9a4f473bcfbd8dfb5b2d82f8e28d502960427"
         }
       ],
       "name": "services/actuator-service/test_actuator_delivery_state_20261103.py",
@@ -18355,7 +18355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa875aa4ec5aed7ca00833bc8e6b0a00d33cfc63360e28fb40d896c55aa0145b"
+          "content": "7b27d8c6d26240732fcdc5f6a59df8a794a4e5d44a1fef605b2fb5d5a4b8b7d6"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -18385,7 +18385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c736e10b767834eea808b846f30cd124134df9d056150ba6ff0bf2a8cf8554b3"
+          "content": "9cde7bca66c10d72b1ab03190ea7876df264784a0952063a35261167c0f94ece"
         }
       ],
       "name": "services/actuator-service/test_dispatch_bridge.py",
