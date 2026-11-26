@@ -6,7 +6,12 @@ import hashlib
 import math
 from statistics import fmean
 
-from land_quality import classify_salinity_sodicity, gypsum_requirement, land_capability
+from land_quality import (
+    classify_salinity_sodicity,
+    esp_from_exchangeable_na,
+    gypsum_requirement,
+    land_capability,
+)
 
 from shared.contracts.soil.p3 import (
     AnalogFieldProduct,
@@ -467,11 +472,16 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
     # freshness gates. Legacy requests retain the previous partial evaluation.
     sample = req.lab_sample
     lab_class = None
-    if req.lab_verified and (req.ec_lab_ds_m is not None or req.esp_pct is not None):
+    derived_esp = None
+    sodium = sample.exchangeable_sodium if sample else None
+    if req.lab_verified and sodium is not None:
+        derived_esp = esp_from_exchangeable_na(sodium.na_cmolc_kg, sodium.cec_cmolc_kg)
+    classification_esp = derived_esp.esp_pct if derived_esp is not None else req.esp_pct
+    if req.lab_verified and (req.ec_lab_ds_m is not None or classification_esp is not None):
         lab_class = classify_salinity_sodicity(
             ece_ds_m=req.ec_lab_ds_m,
             ec_method=sample.ec_method if sample else None,
-            esp_pct=req.esp_pct,
+            esp_pct=classification_esp,
             observed_on=sample.observed_on if sample else None,
             source=sample.source_ref if sample else f"reclamation_request:{req.field_id}",
         )
@@ -583,6 +593,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             req.assessment_version
             + (f"+{LAB_HB60_VERSION_SUFFIX}" if lab_class else "")
             + ("+lab-sample.v1" if sample is not None else "")
+            + ("+exchangeable-sodium.v1" if sodium is not None else "")
             + ("+gypsum-scenario.v1" if gypsum_scenario is not None else "")
             + ("+land-capability.v1" if capability is not None else "")
         ),
@@ -602,13 +613,25 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             **(
                 {
                     "lab_sample": {
-                        **sample.model_dump(mode="json"),
+                        **sample.model_dump(mode="json", exclude_none=True),
                         "input_quality": "caller_supplied_unverified",
                         "local_compliance_evaluated": False,
                         "execution_authorized": False,
                     }
                 }
                 if sample is not None
+                else {}
+            ),
+            **(
+                {
+                    "exchangeable_sodium_esp": {
+                        **derived_esp.to_dict(),
+                        "input_quality": "caller_supplied_unverified",
+                        "usable_for_hb60": bool(lab_class and lab_class.sodic is not None),
+                        "usable_for_gypsum_rate": False,
+                    }
+                }
+                if derived_esp is not None
                 else {}
             ),
             **({"gypsum_scenario": gypsum_scenario} if gypsum_scenario is not None else {}),

@@ -129,6 +129,8 @@ async def reclamation(
     identity_payload = payload.model_dump(mode="json")
     if payload.lab_sample is None:
         identity_payload.pop("lab_sample", None)
+    elif payload.lab_sample.exchangeable_sodium is None:
+        identity_payload["lab_sample"].pop("exchangeable_sodium", None)
     if payload.gypsum_scenario is None:
         # Preserve the identity of pre-scenario requests and explicit nulls.
         identity_payload.pop("gypsum_scenario", None)

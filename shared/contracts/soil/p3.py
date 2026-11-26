@@ -6,7 +6,7 @@ from datetime import UTC, date, datetime
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class MobileImageQuality(BaseModel):
@@ -172,12 +172,27 @@ class LandCapabilityScenarioInput(BaseModel):
     drainage_class: str | None = Field(default=None, max_length=80)
 
 
+class ExchangeableSodiumInput(BaseModel):
+    """Paired measurements from the same caller-declared laboratory sample."""
+
+    na_cmolc_kg: float = Field(ge=0, allow_inf_nan=False, strict=True)
+    cec_cmolc_kg: float = Field(gt=0, allow_inf_nan=False, strict=True)
+    method: str = Field(min_length=1, max_length=120, pattern=r"\S")
+
+    @model_validator(mode="after")
+    def validate_pair(self) -> ExchangeableSodiumInput:
+        if self.na_cmolc_kg > self.cec_cmolc_kg:
+            raise ValueError("exchangeable sodium cannot exceed CEC")
+        return self
+
+
 class ReclamationLabSample(BaseModel):
     """Caller-declared evidence for indicative HB60 evaluation, not local approval."""
 
     source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
     observed_on: date
     ec_method: str = Field(min_length=1, max_length=80, pattern=r"\S")
+    exchangeable_sodium: ExchangeableSodiumInput | None = None
 
 
 class ReclamationAssessmentRequest(BaseModel):
@@ -201,6 +216,12 @@ class ReclamationAssessmentRequest(BaseModel):
     lab_sample: ReclamationLabSample | None = None
     gypsum_scenario: GypsumScenarioInput | None = None
     land_capability_scenario: LandCapabilityScenarioInput | None = None
+
+    @model_validator(mode="after")
+    def validate_esp_source(self) -> ReclamationAssessmentRequest:
+        if self.lab_sample and self.lab_sample.exchangeable_sodium and self.esp_pct is not None:
+            raise ValueError("provide either direct ESP or exchangeable sodium and CEC, not both")
+        return self
 
 
 class ReclamationAssessmentProduct(BaseModel):
