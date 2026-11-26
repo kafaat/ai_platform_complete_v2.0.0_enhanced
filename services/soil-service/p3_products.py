@@ -6,7 +6,13 @@ import hashlib
 import math
 from statistics import fmean
 
-from land_quality import classify_salinity_sodicity
+from land_quality import (
+    classify_salinity_sodicity,
+    esp_from_exchangeable_na,
+    gypsum_requirement,
+    gypsum_requirement_from_exchangeable_na,
+    land_capability,
+)
 
 from shared.contracts.soil.p3 import (
     AnalogFieldProduct,
@@ -356,6 +362,88 @@ def reconcile_reclamation_drainage_need(requested: str, stored_assessment: dict 
     }
 
 
+def _gypsum_scenario(
+    req: ReclamationAssessmentRequest, candidate: bool, esp_evidence_usable: bool
+) -> dict | None:
+    scenario = req.gypsum_scenario
+    if scenario is None:
+        return None
+    report = {
+        "status": "not_evaluated",
+        "estimate": None,
+        "input_basis": scenario.input_basis,
+        "source_ref": scenario.source_ref,
+        "input_quality": "caller_supplied_unverified",
+        "execution_authorized": False,
+        "local_compliance_evaluated": False,
+    }
+    sample = req.lab_sample
+    sodium = sample.exchangeable_sodium if sample else None
+    if not req.lab_verified or (req.esp_pct is None and sodium is None):
+        return {**report, "reason": "missing_declared_lab_esp"}
+    if sodium is not None:
+        report["sample_source_ref"] = sample.source_ref
+        # Do not combine the sample's sodium with an unrelated planning CEC.
+        if scenario.cec_cmolc_kg != sodium.cec_cmolc_kg:
+            return {**report, "reason": "cec_sample_mismatch"}
+    if not esp_evidence_usable:
+        return {**report, "reason": "esp_sample_not_evaluated"}
+    if not candidate:
+        return {**report, "reason": "no_gypsum_candidate"}
+    try:
+        inputs = dict(
+            cec_cmolc_kg=scenario.cec_cmolc_kg,
+            esp_target_pct=scenario.esp_target_pct,
+            depth_m=scenario.depth_m,
+            bulk_density_t_m3=scenario.bulk_density_t_m3,
+            purity=scenario.purity,
+            exchange_efficiency_factor=scenario.exchange_efficiency_factor,
+        )
+        if sodium is not None:
+            result = gypsum_requirement_from_exchangeable_na(
+                na_exchangeable_cmolc_kg=sodium.na_cmolc_kg, **inputs
+            )
+        else:
+            result = gypsum_requirement(
+                esp_initial_pct=req.esp_pct,
+                esp_basis="caller_declared_lab_esp",
+                **inputs,
+            )
+        if not all(
+            math.isfinite(value)
+            for value in (
+                result.gypsum_t_per_ha,
+                result.na_to_replace_cmolc_kg,
+                result.soil_mass_t_per_ha,
+            )
+        ):
+            return {**report, "reason": "nonfinite_estimate"}
+    except (ValueError, OverflowError):
+        return {**report, "reason": "invalid_estimate_inputs"}
+    return {**report, "status": "estimated", "estimate": result.to_dict()}
+
+
+def _land_capability_scenario(req: ReclamationAssessmentRequest) -> dict | None:
+    scenario = req.land_capability_scenario
+    if scenario is None:
+        return None
+    result = land_capability(
+        slope_pct=scenario.slope_pct,
+        effective_depth_cm=scenario.effective_depth_cm,
+        ece_ds_m=scenario.ece_ds_m if scenario.ec_method == "saturation_extract_25c" else None,
+        esp_pct=scenario.esp_pct,
+        drainage_class=scenario.drainage_class,
+    )
+    return {
+        "status": "estimated" if result.complete else "incomplete",
+        "inputs": scenario.model_dump(mode="json"),
+        "input_quality": "caller_supplied_unverified",
+        "result": result.to_dict(),
+        "execution_authorized": False,
+        "local_compliance_evaluated": False,
+    }
+
+
 def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> ReclamationAssessmentProduct:
     severity = max(
         req.salinity_probability,
@@ -396,20 +484,22 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         interventions.append(
             {"type": "leaching_candidate", "requires": "approved_water_and_drainage"}
         )
-    # Farmland Phase 2 · 0002: lab ESP (already in the request) is classified against USDA
-    # HB60 through the standards registry. Each HB60 half stands on its own clause: a
-    # lab-verified sodic result (ESP >= 15) raises the gypsum candidate even at a low
-    # screening probability. The salinity half is WITHHELD here: the P3 contract carries no
-    # EC method, and HB60's ECe >= 4 applies only to a saturated-paste extract at 25 °C
-    # (P2 enforces the same via ec_lab_method) — a 1:5 EC must not become a stored "normal".
+    # Reuse the versioned HB60 clauses, including their measurement method and
+    # freshness gates. Legacy requests retain the previous partial evaluation.
+    sample = req.lab_sample
     lab_class = None
-    if req.lab_verified and (req.ec_lab_ds_m is not None or req.esp_pct is not None):
+    derived_esp = None
+    sodium = sample.exchangeable_sodium if sample else None
+    if req.lab_verified and sodium is not None:
+        derived_esp = esp_from_exchangeable_na(sodium.na_cmolc_kg, sodium.cec_cmolc_kg)
+    classification_esp = derived_esp.esp_pct if derived_esp is not None else req.esp_pct
+    if req.lab_verified and (req.ec_lab_ds_m is not None or classification_esp is not None):
         lab_class = classify_salinity_sodicity(
             ece_ds_m=req.ec_lab_ds_m,
-            ec_method=None,  # the P3 request contract carries no EC method
-            esp_pct=req.esp_pct,
-            observed_on=None,  # ...and no sample date
-            source=f"reclamation_request:{req.field_id}",
+            ec_method=sample.ec_method if sample else None,
+            esp_pct=classification_esp,
+            observed_on=sample.observed_on if sample else None,
+            source=sample.source_ref if sample else f"reclamation_request:{req.field_id}",
         )
     lab_sodic = bool(lab_class and lab_class.sodic is True)
     lab_saline = bool(lab_class and lab_class.saline is True)
@@ -456,6 +546,22 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         # assessment must not also allow one. Added AFTER the gate above, so blocking the
         # rate does not switch off leaching or reclamation execution as a side effect.
         blocked.append("gypsum_rate")
+    if sample is not None:
+        # A caller-provided sample reference is not an independently verified
+        # local adoption or work approval; this new path is diagnostic only.
+        blocked.extend(["gypsum_rate", "leaching_requirement", "reclamation_execution"])
+    gypsum_scenario = _gypsum_scenario(
+        req,
+        req.sodicity_probability > 0.45 or lab_sodic,
+        sample is None or bool(lab_class and lab_class.sodic is not None),
+    )
+    if gypsum_scenario is not None:
+        # An unverified planning scenario cannot authorize a rate or field execution.
+        blocked.extend(["gypsum_rate", "reclamation_execution"])
+    capability = _land_capability_scenario(req)
+    if capability is not None:
+        # An indicative scenario must not authorize field execution.
+        blocked.append("reclamation_execution")
     phases = [
         {
             "phase": 1,
@@ -500,9 +606,13 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         field_id=req.field_id,
         geometry_hash=req.geometry_hash,
         assessment_version=(
-            f"{req.assessment_version}+{LAB_HB60_VERSION_SUFFIX}"
-            if lab_class
-            else req.assessment_version
+            req.assessment_version
+            + (f"+{LAB_HB60_VERSION_SUFFIX}" if lab_class else "")
+            + ("+lab-sample.v1" if sample is not None else "")
+            + ("+exchangeable-sodium.v1" if sodium is not None else "")
+            + ("+gypsum-scenario.v1" if gypsum_scenario is not None else "")
+            + ("+paired-gypsum.v1" if sodium is not None and gypsum_scenario is not None else "")
+            + ("+land-capability.v1" if capability is not None else "")
         ),
         suitability_class=suitability,
         reclamation_priority=priority,
@@ -517,6 +627,32 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             "water_profile_approved": req.irrigation_water_profile_approved,
             "drainage_engineering_verified": req.drainage_engineering_verified,
             **({"lab_salinity_sodicity": lab_class.to_dict()} if lab_class else {}),
+            **(
+                {
+                    "lab_sample": {
+                        **sample.model_dump(mode="json", exclude_none=True),
+                        "input_quality": "caller_supplied_unverified",
+                        "local_compliance_evaluated": False,
+                        "execution_authorized": False,
+                    }
+                }
+                if sample is not None
+                else {}
+            ),
+            **(
+                {
+                    "exchangeable_sodium_esp": {
+                        **derived_esp.to_dict(),
+                        "input_quality": "caller_supplied_unverified",
+                        "usable_for_hb60": bool(lab_class and lab_class.sodic is not None),
+                        "usable_for_gypsum_rate": False,
+                    }
+                }
+                if derived_esp is not None
+                else {}
+            ),
+            **({"gypsum_scenario": gypsum_scenario} if gypsum_scenario is not None else {}),
+            **({"land_capability_scenario": capability} if capability is not None else {}),
         },
     )
 

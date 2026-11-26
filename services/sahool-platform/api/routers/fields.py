@@ -1070,7 +1070,7 @@ async def get_field_terrain(
 async def _compute_field_terrain_from_dem(
     field_id: str, geometry: object, user: UserSchema
 ) -> dict | None:
-    """Best-effort DEM terrain compute via raster-service (bbox from field geometry).
+    """Best-effort DEM terrain compute via raster-service (raster-owned field mask).
 
     Returns raster's honest envelope (computed True/False + source) or None if the
     call cannot be made. Never raises — DEM auto-fill must not break the terrain view.
@@ -1078,11 +1078,10 @@ async def _compute_field_terrain_from_dem(
     try:
         if isinstance(geometry, str):
             geometry = json.loads(geometry)
-        guarded = guard_field_geometry(geometry)
+        guard_field_geometry(geometry)  # validate; raster resolves the tenant-owned polygon
         return await raster_get_field_terrain(
             field_id,
             tenant_id=str(user.tenant_id),
-            bbox=guarded.bbox,
             timeout_s=20.0,
         )
     except Exception:  # noqa: BLE001 — best-effort؛ التعذّر ⇒ لا تعبئة، لا كسر

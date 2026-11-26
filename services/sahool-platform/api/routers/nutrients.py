@@ -15,6 +15,7 @@ from api.main import (
     tenant_connection,
 )
 from api.nutrient_4r import SoilContext, approved_sample_4r_plan, full_4r_plan
+from core.agri_tools.tools.fertilizer import compute as compute_fertilizer
 
 router = APIRouter()
 
@@ -50,4 +51,20 @@ async def nutrient_4r_plan(
         zn_ppm=req.zn_ppm,
         om_pct=req.om_pct,
     )
-    return {"plan": full_4r_plan(soil, req.nutrients)}
+    result = {"plan": full_4r_plan(soil, req.nutrients)}
+    if req.fertilizer_scenario is not None:
+        inputs = req.fertilizer_scenario.model_dump()
+        try:
+            estimate = compute_fertilizer(inputs)
+        except (ValueError, OverflowError) as exc:
+            raise HTTPException(422, "invalid_fertilizer_scenario") from exc
+        result["fertilizer_scenario"] = {
+            "status": "estimated",
+            "inputs": inputs,
+            "estimate": estimate,
+            "source_ref_verified": False,
+            "lab_supported": False,
+            "execution_authorized": False,
+            "local_compliance_evaluated": False,
+        }
+    return result

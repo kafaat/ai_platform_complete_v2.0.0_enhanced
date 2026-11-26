@@ -322,3 +322,48 @@ def test_field_and_manual_http_contracts(monkeypatch):
     assert manual.status_code == 200 and set(manual.json()) == {"plan"}
     assert client.post(url, params={"field_id": "f"}, json={"p_ppm": 5}).status_code == 422
     assert client.post(url, params={"field_id": "f"}).status_code == 503
+
+    scenario = {
+        "input_basis": "synthetic",
+        "source_ref": "fixture:180ha/pivot-a/wheat-1",
+        "nutrient_basis": "N",
+        "target_yield_t_ha": 6,
+        "uptake_kg_per_t": 25,
+        "soil_supply_kg_ha": 30,
+        "fertilizer_grade_pct": 46,
+        "use_efficiency": 0.75,
+    }
+    response = client.post(url, json={"p_ppm": 5, "fertilizer_scenario": scenario})
+    assert response.status_code == 200
+    result = response.json()
+    assert result["plan"] == manual.json()["plan"]
+    calculation = result["fertilizer_scenario"]
+    assert calculation["status"] == "estimated"
+    assert calculation["inputs"] == scenario
+    assert calculation["estimate"]["nutrient_to_apply_kg_ha"] == 160
+    assert calculation["estimate"]["product_kg_ha"] == 347.83
+    assert calculation["source_ref_verified"] is False
+    assert calculation["lab_supported"] is False
+    assert calculation["execution_authorized"] is False
+    assert calculation["local_compliance_evaluated"] is False
+
+    # An explicitly zero supply is a scenario input, not an implicit default.
+    zero_supply = {**scenario, "soil_supply_kg_ha": 0}
+    assert client.post(url, json={"fertilizer_scenario": zero_supply}).status_code == 200
+    for key in scenario:
+        missing = {k: v for k, v in scenario.items() if k != key}
+        assert client.post(url, json={"fertilizer_scenario": missing}).status_code == 422
+    for changes in (
+        {"source_ref": " "},
+        {"nutrient_basis": "P"},
+        {"soil_supply_kg_ha": True},
+        {"use_efficiency": 0},
+        {"target_yield_t_ha": 1e308},
+        {"input_basis": "approved_soil_lab"},
+        {"execution_authorized": True},
+    ):
+        invalid = {**scenario, **changes}
+        assert client.post(url, json={"fertilizer_scenario": invalid}).status_code == 422
+    assert client.post(
+        url, params={"field_id": "f"}, json={"fertilizer_scenario": scenario}
+    ).status_code == 422

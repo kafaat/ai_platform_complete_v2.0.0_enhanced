@@ -55,6 +55,12 @@ _SOIL_ROUTES = (
         "GET",
         Permission.OBSERVATION_VIEW,
     ),
+    # P3 stored field assessments: expose read-only evidence, never creation or execution.
+    (
+        r"v1/fields/[^/%\\?#]+/soil/(?:drainage-assessment|reclamation-assessment)",
+        "GET",
+        Permission.OBSERVATION_VIEW,
+    ),
     (r"v1/soil/(?:ingest|observations)", "POST", Permission.OBSERVATION_RECORD),
     (r"v1/fields/[^/%\\?#]+/soil/evidence", "POST", Permission.OBSERVATION_RECORD),
     (r"v1/fields/[^/%\\?#]+/soil/profile/rebuild", "POST", Permission.OBSERVATION_RECORD),

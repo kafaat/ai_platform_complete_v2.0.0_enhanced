@@ -332,3 +332,324 @@ def test_stored_payload_without_limitations_still_validates():
     payload = build_drainage_assessment(_drainage_req()).model_dump(mode="json")
     payload.pop("limitations")
     assert DrainageAssessmentProduct.model_validate(payload).limitations == []
+
+# Farmland Phase 2: a gypsum scenario is a diagnostic, not an approved dose.
+def _gypsum_scenario_request(**overrides):
+    payload = dict(
+        tenant_id="synthetic-tenant",
+        field_id="synthetic-pivot-b",
+        geometry_hash="synthetic-geometry",
+        salinity_probability=0.7,
+        sodicity_probability=0.7,
+        gypsum_probability=0.5,
+        stoniness_fraction=0.1,
+        compaction_risk=0.4,
+        leveling_need=0.5,
+        drainage_need="combined",
+        crop_suitability_score=0.5,
+        esp_pct=20,
+        lab_verified=True,
+        irrigation_water_profile_approved=True,
+        drainage_engineering_verified=True,
+        gypsum_scenario=dict(
+            input_basis="synthetic",
+            source_ref="fixture:pivot-b/soil-lab",
+            cec_cmolc_kg=20,
+            esp_target_pct=10,
+            depth_m=0.15,
+            bulk_density_t_m3=1.33,
+            purity=1.0,
+            exchange_efficiency_factor=1.0,
+        ),
+    )
+    payload.update(overrides)
+    return ReclamationAssessmentRequest(**payload)
+
+
+def test_gypsum_scenario_calls_existing_kernel_without_granting_authority(monkeypatch):
+    import p3_products
+
+    original = p3_products.gypsum_requirement
+    calls = []
+
+    def spy(**kwargs):
+        calls.append(kwargs)
+        return original(**kwargs)
+
+    monkeypatch.setattr(p3_products, "gypsum_requirement", spy)
+    product = build_reclamation_assessment(_gypsum_scenario_request())
+    result = product.provenance["gypsum_scenario"]
+    assert len(calls) == 1
+    assert calls[0]["esp_initial_pct"] == 20
+    assert result["status"] == "estimated"
+    assert result["estimate"]["gypsum_t_per_ha"] == pytest.approx(3.435, abs=0.002)
+    assert result["input_basis"] == "synthetic"
+    assert result["source_ref"] == "fixture:pivot-b/soil-lab"
+    assert result["execution_authorized"] is False
+    assert result["local_compliance_evaluated"] is False
+    assert "gypsum_rate" in product.blocked_actions
+    assert "reclamation_execution" in product.blocked_actions
+    assert "gypsum-scenario.v1" in product.assessment_version
+
+
+@pytest.mark.parametrize("missing", [{"esp_pct": None}, {"lab_verified": False}])
+def test_gypsum_scenario_missing_lab_inputs_is_not_evaluated(missing):
+    product = build_reclamation_assessment(_gypsum_scenario_request(**missing))
+    result = product.provenance["gypsum_scenario"]
+    assert result["status"] == "not_evaluated"
+    assert result["estimate"] is None
+    assert result["execution_authorized"] is False
+    assert "gypsum_rate" in product.blocked_actions
+
+
+def test_no_gypsum_scenario_preserves_legacy_product():
+    product = build_reclamation_assessment(_gypsum_scenario_request(gypsum_scenario=None))
+    assert "gypsum_scenario" not in product.provenance
+    assert "gypsum-scenario.v1" not in product.assessment_version
+    assert "gypsum_rate" in product.blocked_actions
+
+
+def test_gypsum_scenario_requires_explicit_source_and_physical_inputs():
+    from pydantic import ValidationError
+
+    scenario = _gypsum_scenario_request().gypsum_scenario.model_dump()
+    for key in ("source_ref", "depth_m", "purity", "esp_target_pct"):
+        with pytest.raises(ValidationError):
+            _gypsum_scenario_request(
+                gypsum_scenario={k: v for k, v in scenario.items() if k != key}
+            )
+    for key, value in (("source_ref", "   "), ("cec_cmolc_kg", float("inf")), ("purity", 0)):
+        with pytest.raises(ValidationError):
+            _gypsum_scenario_request(gypsum_scenario={**scenario, key: value})
+
+
+
+def _capability_scenario(**overrides):
+    return {
+        "input_basis": "synthetic",
+        "source_ref": "fixture:pivot-a/survey-and-soil",
+        "slope_pct": 1.0,
+        "effective_depth_cm": 120.0,
+        "ece_ds_m": 1.0,
+        "ec_method": "saturation_extract_25c",
+        "esp_pct": 3.0,
+        "drainage_class": "well",
+        **overrides,
+    }
+
+
+@pytest.mark.parametrize(
+    "scenario, expected",
+    [(_capability_scenario(), "I"), (_capability_scenario(esp_pct=30), "VI")],
+)
+def test_reclamation_capability_reuses_indicative_kernel(scenario, expected):
+    req = _gypsum_scenario_request(gypsum_scenario=None, land_capability_scenario=scenario)
+    product = build_reclamation_assessment(req)
+    diagnostic = product.provenance["land_capability_scenario"]
+    assert diagnostic["result"]["capability_class"] == expected
+    assert diagnostic["result"]["standard"] == "USDA-AH210-INDICATIVE@v1"
+    assert diagnostic["result"]["calibrated_for_region"] is False
+    assert diagnostic["inputs"] == scenario
+    assert diagnostic["execution_authorized"] is False
+    assert diagnostic["local_compliance_evaluated"] is False
+    assert "reclamation_execution" in product.blocked_actions
+    assert "land-capability.v1" in product.assessment_version
+
+
+@pytest.mark.parametrize("missing", [{"esp_pct": None}, {"ec_method": None}])
+def test_reclamation_capability_missing_factor_is_incomplete(missing):
+    req = _gypsum_scenario_request(
+        gypsum_scenario=None, land_capability_scenario=_capability_scenario(**missing)
+    )
+    diagnostic = build_reclamation_assessment(req).provenance["land_capability_scenario"]
+    assert diagnostic["status"] == "incomplete"
+    assert diagnostic["result"]["capability_class"] is None
+    assert diagnostic["result"]["complete"] is False
+    assert diagnostic["execution_authorized"] is False
+
+
+def test_reclamation_capability_omitted_preserves_legacy():
+    product = build_reclamation_assessment(_gypsum_scenario_request(gypsum_scenario=None))
+    assert "land_capability_scenario" not in product.provenance
+    assert "land-capability.v1" not in product.assessment_version
+
+# Explicit sample provenance makes the previously unreachable ECe half usable.
+@pytest.mark.parametrize(
+    "method, expected",
+    [("saturation_extract_25c", True), ("soil_water_1_5", None)],
+)
+def test_reclamation_lab_sample_uses_registered_measurement_method(method, expected):
+    req = _gypsum_scenario_request(
+        gypsum_scenario=None,
+        ec_lab_ds_m=8,
+        esp_pct=3,
+        salinity_probability=0.1,
+        sodicity_probability=0.1,
+        lab_sample={
+            "source_ref": "fixture:pivot-b/lab-sample",
+            "observed_on": datetime.now(UTC).date(),
+            "ec_method": method,
+        },
+    )
+    product = build_reclamation_assessment(req)
+    diagnostic = product.provenance["lab_salinity_sodicity"]
+    assert diagnostic["saline"] is expected
+    assert diagnostic["freshness"] == "enforced"
+    assert any(i["type"] == "leaching_candidate" for i in product.interventions) == (
+        expected is True
+    )
+    assert product.provenance["lab_sample"]["local_compliance_evaluated"] is False
+    assert "reclamation_execution" in product.blocked_actions
+    assert "leaching_requirement" in product.blocked_actions
+    assert "lab-sample.v1" in product.assessment_version
+
+
+def test_reclamation_stale_sample_does_not_feed_gypsum_kernel(monkeypatch):
+    import p3_products
+
+    def unexpected(**kwargs):
+        pytest.fail("stale ESP must not feed gypsum calculation")
+
+    monkeypatch.setattr(p3_products, "gypsum_requirement", unexpected)
+    req = _gypsum_scenario_request(
+        ec_lab_ds_m=8,
+        lab_sample={
+            "source_ref": "fixture:pivot-b/stale-lab",
+            "observed_on": "2000-01-01",
+            "ec_method": "saturation_extract_25c",
+        },
+    )
+    product = build_reclamation_assessment(req)
+    assert product.provenance["lab_salinity_sodicity"]["sodic"] is None
+    assert product.provenance["gypsum_scenario"]["reason"] == "esp_sample_not_evaluated"
+    assert "gypsum_rate" in product.blocked_actions
+
+def _exchangeable_na_request(**overrides):
+    return _gypsum_scenario_request(
+        gypsum_scenario=None,
+        esp_pct=None,
+        ec_lab_ds_m=1,
+        sodicity_probability=0.1,
+        lab_sample={
+            "source_ref": "fixture:pivot-b/exchangeable-sodium",
+            "observed_on": datetime.now(UTC).date(),
+            "ec_method": "saturation_extract_25c",
+            "exchangeable_sodium": {
+                "na_cmolc_kg": 4.0,
+                "cec_cmolc_kg": 20.0,
+                "method": "fixture-laboratory-exchangeable-cations",
+            },
+            **overrides,
+        },
+    )
+
+
+def test_reclamation_uses_exchangeable_na_kernel_for_hb60(monkeypatch):
+    import p3_products
+
+    original = p3_products.esp_from_exchangeable_na
+    calls = []
+
+    def spy(na_cmolc_kg, cec_cmolc_kg):
+        calls.append((na_cmolc_kg, cec_cmolc_kg))
+        return original(na_cmolc_kg, cec_cmolc_kg)
+
+    monkeypatch.setattr(p3_products, "esp_from_exchangeable_na", spy)
+    result = build_reclamation_assessment(_exchangeable_na_request())
+    assert calls == [(4.0, 20.0)]
+    assert result.provenance["exchangeable_sodium_esp"]["esp_pct"] == 20.0
+    assert result.provenance["lab_salinity_sodicity"]["sodic"] is True
+    assert result.provenance["lab_salinity_sodicity"]["soil_class"] == "sodic"
+    assert "gypsum_rate" in result.blocked_actions
+    assert "reclamation_execution" in result.blocked_actions
+    assert "exchangeable-sodium.v1" in result.assessment_version
+
+
+def test_reclamation_exchangeable_na_stale_sample_not_classified():
+    result = build_reclamation_assessment(_exchangeable_na_request(observed_on="2000-01-01"))
+    assert result.provenance["lab_salinity_sodicity"]["sodic"] is None
+    assert "reclamation_execution" in result.blocked_actions
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        {"na_cmolc_kg": 21, "cec_cmolc_kg": 20, "method": "lab"},
+        {"na_cmolc_kg": 4, "cec_cmolc_kg": 0, "method": "lab"},
+        {"na_cmolc_kg": 4, "method": "lab"},
+        {"na_cmolc_kg": 4, "cec_cmolc_kg": 20, "method": " "},
+    ],
+)
+def test_reclamation_invalid_exchangeable_na_rejected(values):
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        _exchangeable_na_request(exchangeable_sodium=values)
+
+
+def test_reclamation_exchangeable_na_and_direct_esp_cannot_be_mixed():
+    from pydantic import ValidationError
+
+    payload = _exchangeable_na_request().model_dump()
+    payload["esp_pct"] = 3
+    with pytest.raises(ValidationError):
+        ReclamationAssessmentRequest.model_validate(payload)
+
+def test_reclamation_exchangeable_na_ratio_remains_finite():
+    result = build_reclamation_assessment(
+        _exchangeable_na_request(
+            exchangeable_sodium={"na_cmolc_kg": 1e308, "cec_cmolc_kg": 1e308, "method": "lab"}
+        )
+    )
+    assert result.provenance["exchangeable_sodium_esp"]["esp_pct"] == 100.0
+
+
+def test_reclamation_exchangeable_na_without_lab_claim_is_not_classified():
+    req = _exchangeable_na_request().model_copy(update={"lab_verified": False})
+    result = build_reclamation_assessment(req)
+    assert "exchangeable_sodium_esp" not in result.provenance
+    assert "lab_salinity_sodicity" not in result.provenance
+    assert "gypsum_rate" in result.blocked_actions
+
+
+def _paired_gypsum_request(*, cec=20.0, observed_on=None, lab_verified=True):
+    req = _exchangeable_na_request(
+        observed_on=observed_on or datetime.now(UTC).date(),
+    )
+    scenario = _gypsum_scenario_request().gypsum_scenario.model_dump()
+    scenario["cec_cmolc_kg"] = cec
+    return ReclamationAssessmentRequest.model_validate(
+        {**req.model_dump(), "gypsum_scenario": scenario, "lab_verified": lab_verified}
+    )
+
+
+def test_paired_lab_sodium_feeds_unapproved_gypsum_planning():
+    product = build_reclamation_assessment(_paired_gypsum_request())
+    report = product.provenance["gypsum_scenario"]
+    assert report["status"] == "estimated"
+    assert report["estimate"]["gypsum_t_per_ha"] == pytest.approx(3.435, abs=0.002)
+    assert report["estimate"]["inputs"]["na_exchangeable_cmolc_kg"] == 4.0
+    assert report["estimate"]["assumptions"]["esp_basis"] == "measured_exchangeable_na"
+    assert report["sample_source_ref"] == "fixture:pivot-b/exchangeable-sodium"
+    assert report["execution_authorized"] is False
+    assert report["local_compliance_evaluated"] is False
+    assert product.provenance["exchangeable_sodium_esp"]["usable_for_gypsum_rate"] is False
+    assert {"gypsum_rate", "reclamation_execution"} <= set(product.blocked_actions)
+    assert "paired-gypsum.v1" in product.assessment_version
+
+
+@pytest.mark.parametrize(
+    "overrides, reason",
+    [
+        ({"cec": 30.0}, "cec_sample_mismatch"),
+        ({"observed_on": "2000-01-01"}, "esp_sample_not_evaluated"),
+        ({"lab_verified": False}, "missing_declared_lab_esp"),
+    ],
+)
+def test_paired_lab_sodium_does_not_estimate_without_consistent_evidence(overrides, reason):
+    product = build_reclamation_assessment(_paired_gypsum_request(**overrides))
+    report = product.provenance["gypsum_scenario"]
+    assert report["status"] == "not_evaluated"
+    assert report["estimate"] is None
+    assert report["reason"] == reason
+    assert "gypsum_rate" in product.blocked_actions

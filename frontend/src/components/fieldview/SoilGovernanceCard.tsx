@@ -1,5 +1,6 @@
 import { Layers, ShieldCheck, ShieldAlert, GitBranch, CircleCheck } from 'lucide-react';
 import { useSoilWorkspace } from '../../hooks/useApi';
+import SoilP3Evidence from './SoilP3Evidence';
 import { T, toneColors } from '../ds';
 
 interface Props {
@@ -135,6 +136,7 @@ export default function SoilGovernanceCard({ fieldId, enabled = true }: Props) {
           </div>
         </div>
       )}
+      <SoilP3Evidence fieldId={fieldId} />
     </section>
   );
 }
