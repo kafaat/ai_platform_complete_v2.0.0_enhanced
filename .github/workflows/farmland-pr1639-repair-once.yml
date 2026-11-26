@@ -40,6 +40,17 @@ jobs:
           git fetch --no-tags origin "+refs/heads/$GITHUB_REF_NAME:refs/remotes/origin/$GITHUB_REF_NAME"
           test "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$GITHUB_REF_NAME")"
           git rm -- .github/workflows/farmland-pr1639-repair-once.yml
+      - name: Fail fast on platform route extraction source/map alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from scripts.ci.platform_route_ownership_guard import build_inventory
+          counts = build_inventory()["counts"]
+          assert counts["surface_routes"] == 627, counts
+          assert counts["mapped_routes"] == 627, counts
+          print("FAST ROUTE MAP SOURCE PROOF: PASS", counts)
+          PY
       - name: Format only the three failing regression test files
         run: |
           ruff format services/sahool-platform/tests/test_nutrient_4r.py services/sahool-platform/tests/test_soil_proxy_authorization.py services/soil-service/test_soil_p3_products.py
