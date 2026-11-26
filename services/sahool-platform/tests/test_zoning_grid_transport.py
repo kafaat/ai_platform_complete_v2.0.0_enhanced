@@ -92,8 +92,9 @@ async def test_unusable_layer_is_omitted_without_losing_master_or_other_grid(mon
         elif broken == "scene":
             payload["indicator_product"]["provenance"]["scene_id"] = "S2-other"
         elif broken == "day":
+            # Use the module's scene anchor: CI may cross midnight before this case runs.
             payload["indicator_product"]["provenance"]["acquisition_datetime"] = (
-                date.today() - timedelta(days=1)
+                date.fromisoformat(DAY) - timedelta(days=1)
             ).isoformat()
         elif broken == "affine":
             payload["grid_identity"] = {**IDENTITY, "transform": [0.01, 0, 44.1, 0, -0.01, 16]}
