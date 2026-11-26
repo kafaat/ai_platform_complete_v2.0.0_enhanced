@@ -6,7 +6,7 @@ import hashlib
 import math
 from statistics import fmean
 
-from land_quality import classify_salinity_sodicity, gypsum_requirement
+from land_quality import classify_salinity_sodicity, gypsum_requirement, land_capability
 
 from shared.contracts.soil.p3 import (
     AnalogFieldProduct,
@@ -398,6 +398,27 @@ def _gypsum_scenario(req: ReclamationAssessmentRequest, candidate: bool) -> dict
     return {**report, "status": "estimated", "estimate": result.to_dict()}
 
 
+def _land_capability_scenario(req: ReclamationAssessmentRequest) -> dict | None:
+    scenario = req.land_capability_scenario
+    if scenario is None:
+        return None
+    result = land_capability(
+        slope_pct=scenario.slope_pct,
+        effective_depth_cm=scenario.effective_depth_cm,
+        ece_ds_m=scenario.ece_ds_m if scenario.ec_method == "saturation_extract_25c" else None,
+        esp_pct=scenario.esp_pct,
+        drainage_class=scenario.drainage_class,
+    )
+    return {
+        "status": "estimated" if result.complete else "incomplete",
+        "inputs": scenario.model_dump(mode="json"),
+        "input_quality": "caller_supplied_unverified",
+        "result": result.to_dict(),
+        "execution_authorized": False,
+        "local_compliance_evaluated": False,
+    }
+
+
 def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> ReclamationAssessmentProduct:
     severity = max(
         req.salinity_probability,
@@ -502,6 +523,10 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
     if gypsum_scenario is not None:
         # An unverified planning scenario cannot authorize a rate or field execution.
         blocked.extend(["gypsum_rate", "reclamation_execution"])
+    capability = _land_capability_scenario(req)
+    if capability is not None:
+        # An indicative scenario must not authorize field execution.
+        blocked.append("reclamation_execution")
     phases = [
         {
             "phase": 1,
@@ -549,6 +574,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             req.assessment_version
             + (f"+{LAB_HB60_VERSION_SUFFIX}" if lab_class else "")
             + ("+gypsum-scenario.v1" if gypsum_scenario is not None else "")
+            + ("+land-capability.v1" if capability is not None else "")
         ),
         suitability_class=suitability,
         reclamation_priority=priority,
@@ -564,6 +590,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             "drainage_engineering_verified": req.drainage_engineering_verified,
             **({"lab_salinity_sodicity": lab_class.to_dict()} if lab_class else {}),
             **({"gypsum_scenario": gypsum_scenario} if gypsum_scenario is not None else {}),
+            **({"land_capability_scenario": capability} if capability is not None else {}),
         },
     )
 

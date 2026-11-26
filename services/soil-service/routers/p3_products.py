@@ -130,6 +130,8 @@ async def reclamation(
     if payload.gypsum_scenario is None:
         # Preserve the identity of pre-scenario requests and explicit nulls.
         identity_payload.pop("gypsum_scenario", None)
+    if payload.land_capability_scenario is None:
+        identity_payload.pop("land_capability_scenario", None)
     return await p3_store.save(
         main._pool,
         table="soil_reclamation_assessments",

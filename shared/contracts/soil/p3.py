@@ -159,6 +159,19 @@ class GypsumScenarioInput(BaseModel):
     exchange_efficiency_factor: float = Field(ge=1, le=2, strict=True)
 
 
+class LandCapabilityScenarioInput(BaseModel):
+    """Explicit indicative screening inputs; never a local adoption record."""
+
+    input_basis: Literal["synthetic", "operator_supplied"]
+    source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
+    slope_pct: float | None = Field(default=None, ge=0, allow_inf_nan=False, strict=True)
+    effective_depth_cm: float | None = Field(default=None, ge=0, allow_inf_nan=False, strict=True)
+    ece_ds_m: float | None = Field(default=None, ge=0, allow_inf_nan=False, strict=True)
+    ec_method: Literal["saturation_extract_25c"] | None = None
+    esp_pct: float | None = Field(default=None, ge=0, le=100, strict=True)
+    drainage_class: str | None = Field(default=None, max_length=80)
+
+
 class ReclamationAssessmentRequest(BaseModel):
     tenant_id: str
     field_id: str
@@ -178,6 +191,7 @@ class ReclamationAssessmentRequest(BaseModel):
     drainage_engineering_verified: bool = False
     lab_verified: bool = False
     gypsum_scenario: GypsumScenarioInput | None = None
+    land_capability_scenario: LandCapabilityScenarioInput | None = None
 
 
 class ReclamationAssessmentProduct(BaseModel):
