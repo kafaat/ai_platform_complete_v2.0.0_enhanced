@@ -10,6 +10,7 @@ from land_quality import (
     classify_salinity_sodicity,
     esp_from_exchangeable_na,
     gypsum_requirement,
+    gypsum_requirement_from_exchangeable_na,
     land_capability,
 )
 
@@ -376,23 +377,38 @@ def _gypsum_scenario(
         "execution_authorized": False,
         "local_compliance_evaluated": False,
     }
-    if not req.lab_verified or req.esp_pct is None:
+    sample = req.lab_sample
+    sodium = sample.exchangeable_sodium if sample else None
+    if not req.lab_verified or (req.esp_pct is None and sodium is None):
         return {**report, "reason": "missing_declared_lab_esp"}
+    if sodium is not None:
+        report["sample_source_ref"] = sample.source_ref
+        # Do not combine the sample's sodium with an unrelated planning CEC.
+        if scenario.cec_cmolc_kg != sodium.cec_cmolc_kg:
+            return {**report, "reason": "cec_sample_mismatch"}
     if not esp_evidence_usable:
         return {**report, "reason": "esp_sample_not_evaluated"}
     if not candidate:
         return {**report, "reason": "no_gypsum_candidate"}
     try:
-        result = gypsum_requirement(
+        inputs = dict(
             cec_cmolc_kg=scenario.cec_cmolc_kg,
-            esp_initial_pct=req.esp_pct,
             esp_target_pct=scenario.esp_target_pct,
             depth_m=scenario.depth_m,
             bulk_density_t_m3=scenario.bulk_density_t_m3,
             purity=scenario.purity,
             exchange_efficiency_factor=scenario.exchange_efficiency_factor,
-            esp_basis="caller_declared_lab_esp",
         )
+        if sodium is not None:
+            result = gypsum_requirement_from_exchangeable_na(
+                na_exchangeable_cmolc_kg=sodium.na_cmolc_kg, **inputs
+            )
+        else:
+            result = gypsum_requirement(
+                esp_initial_pct=req.esp_pct,
+                esp_basis="caller_declared_lab_esp",
+                **inputs,
+            )
         if not all(
             math.isfinite(value)
             for value in (
@@ -595,6 +611,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             + ("+lab-sample.v1" if sample is not None else "")
             + ("+exchangeable-sodium.v1" if sodium is not None else "")
             + ("+gypsum-scenario.v1" if gypsum_scenario is not None else "")
+            + ("+paired-gypsum.v1" if sodium is not None and gypsum_scenario is not None else "")
             + ("+land-capability.v1" if capability is not None else "")
         ),
         suitability_class=suitability,
