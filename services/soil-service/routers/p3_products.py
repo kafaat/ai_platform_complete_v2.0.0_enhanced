@@ -126,6 +126,10 @@ async def reclamation(
         raise HTTPException(409, str(exc)) from exc
     p = build_reclamation_assessment(payload)
     p.provenance.update(drainage_provenance)
+    identity_payload = payload.model_dump(mode="json")
+    if payload.gypsum_scenario is None:
+        # Preserve the identity of pre-scenario requests and explicit nulls.
+        identity_payload.pop("gypsum_scenario", None)
     return await p3_store.save(
         main._pool,
         table="soil_reclamation_assessments",
@@ -135,7 +139,7 @@ async def reclamation(
         field_id=field_id,
         product_type="reclamation_assessment",
         version=p.assessment_version,
-        identity_hash=_identity(payload.model_dump(mode="json")),
+        identity_hash=_identity(identity_payload),
         payload=p.model_dump(mode="json"),
     )
 

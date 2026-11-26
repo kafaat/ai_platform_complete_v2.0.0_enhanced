@@ -146,6 +146,19 @@ class DrainageAssessmentProduct(BaseModel):
     limitations: list[str] = Field(default_factory=list)
 
 
+class GypsumScenarioInput(BaseModel):
+    """Explicit, unapproved planning inputs for a theoretical gypsum estimate."""
+
+    input_basis: Literal["synthetic", "operator_supplied"]
+    source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
+    cec_cmolc_kg: float = Field(gt=0, allow_inf_nan=False, strict=True)
+    esp_target_pct: float = Field(ge=0, le=100, strict=True)
+    depth_m: float = Field(gt=0, le=3, strict=True)
+    bulk_density_t_m3: float = Field(ge=0.5, le=2.65, strict=True)
+    purity: float = Field(gt=0, le=1, strict=True)
+    exchange_efficiency_factor: float = Field(ge=1, le=2, strict=True)
+
+
 class ReclamationAssessmentRequest(BaseModel):
     tenant_id: str
     field_id: str
@@ -164,6 +177,7 @@ class ReclamationAssessmentRequest(BaseModel):
     irrigation_water_profile_approved: bool = False
     drainage_engineering_verified: bool = False
     lab_verified: bool = False
+    gypsum_scenario: GypsumScenarioInput | None = None
 
 
 class ReclamationAssessmentProduct(BaseModel):

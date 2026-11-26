@@ -6,7 +6,7 @@ import hashlib
 import math
 from statistics import fmean
 
-from land_quality import classify_salinity_sodicity
+from land_quality import classify_salinity_sodicity, gypsum_requirement
 
 from shared.contracts.soil.p3 import (
     AnalogFieldProduct,
@@ -356,6 +356,48 @@ def reconcile_reclamation_drainage_need(requested: str, stored_assessment: dict 
     }
 
 
+def _gypsum_scenario(req: ReclamationAssessmentRequest, candidate: bool) -> dict | None:
+    scenario = req.gypsum_scenario
+    if scenario is None:
+        return None
+    report = {
+        "status": "not_evaluated",
+        "estimate": None,
+        "input_basis": scenario.input_basis,
+        "source_ref": scenario.source_ref,
+        "input_quality": "caller_supplied_unverified",
+        "execution_authorized": False,
+        "local_compliance_evaluated": False,
+    }
+    if not req.lab_verified or req.esp_pct is None:
+        return {**report, "reason": "missing_declared_lab_esp"}
+    if not candidate:
+        return {**report, "reason": "no_gypsum_candidate"}
+    try:
+        result = gypsum_requirement(
+            cec_cmolc_kg=scenario.cec_cmolc_kg,
+            esp_initial_pct=req.esp_pct,
+            esp_target_pct=scenario.esp_target_pct,
+            depth_m=scenario.depth_m,
+            bulk_density_t_m3=scenario.bulk_density_t_m3,
+            purity=scenario.purity,
+            exchange_efficiency_factor=scenario.exchange_efficiency_factor,
+            esp_basis="caller_declared_lab_esp",
+        )
+        if not all(
+            math.isfinite(value)
+            for value in (
+                result.gypsum_t_per_ha,
+                result.na_to_replace_cmolc_kg,
+                result.soil_mass_t_per_ha,
+            )
+        ):
+            return {**report, "reason": "nonfinite_estimate"}
+    except (ValueError, OverflowError):
+        return {**report, "reason": "invalid_estimate_inputs"}
+    return {**report, "status": "estimated", "estimate": result.to_dict()}
+
+
 def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> ReclamationAssessmentProduct:
     severity = max(
         req.salinity_probability,
@@ -456,6 +498,10 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         # assessment must not also allow one. Added AFTER the gate above, so blocking the
         # rate does not switch off leaching or reclamation execution as a side effect.
         blocked.append("gypsum_rate")
+    gypsum_scenario = _gypsum_scenario(req, req.sodicity_probability > 0.45 or lab_sodic)
+    if gypsum_scenario is not None:
+        # An unverified planning scenario cannot authorize a rate or field execution.
+        blocked.extend(["gypsum_rate", "reclamation_execution"])
     phases = [
         {
             "phase": 1,
@@ -500,9 +546,9 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         field_id=req.field_id,
         geometry_hash=req.geometry_hash,
         assessment_version=(
-            f"{req.assessment_version}+{LAB_HB60_VERSION_SUFFIX}"
-            if lab_class
-            else req.assessment_version
+            req.assessment_version
+            + (f"+{LAB_HB60_VERSION_SUFFIX}" if lab_class else "")
+            + ("+gypsum-scenario.v1" if gypsum_scenario is not None else "")
         ),
         suitability_class=suitability,
         reclamation_priority=priority,
@@ -517,6 +563,7 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
             "water_profile_approved": req.irrigation_water_profile_approved,
             "drainage_engineering_verified": req.drainage_engineering_verified,
             **({"lab_salinity_sodicity": lab_class.to_dict()} if lab_class else {}),
+            **({"gypsum_scenario": gypsum_scenario} if gypsum_scenario is not None else {}),
         },
     )
 
