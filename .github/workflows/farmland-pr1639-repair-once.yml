@@ -1,0 +1,82 @@
+name: Farmland 1639 deterministic one-shot repair
+
+on:
+  push:
+    branches: [integration/farmland-1631-1634-20261126]
+    paths:
+      - .github/workflows/farmland-pr1639-repair-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: farmland-1639-one-shot
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install bounded formatting and generation tools
+        run: |
+          python -m pip install -c constraints-ci-tools.txt ruff==0.15.8
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Require exact live branch head and remove one-shot workflow before generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "integration/farmland-1631-1634-20261126"
+          git fetch --no-tags origin "+refs/heads/$GITHUB_REF_NAME:refs/remotes/origin/$GITHUB_REF_NAME"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$GITHUB_REF_NAME")"
+          git rm -- .github/workflows/farmland-pr1639-repair-once.yml
+      - name: Fail fast on platform route extraction source/map alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from scripts.ci.platform_route_ownership_guard import build_inventory
+          counts = build_inventory()["counts"]
+          assert counts["surface_routes"] == 627, counts
+          assert counts["mapped_routes"] == 627, counts
+          print("FAST ROUTE MAP SOURCE PROOF: PASS", counts)
+          PY
+      - name: Format only the three failing regression test files
+        run: |
+          ruff format services/sahool-platform/tests/test_nutrient_4r.py services/sahool-platform/tests/test_soil_proxy_authorization.py services/soil-service/test_soil_p3_products.py
+          ruff check .
+          ruff format --check .
+      - name: Official full generated-artifact fixed-point regeneration and verification
+        run: |
+          set -euo pipefail
+          git add -A
+          bash scripts/ci/regenerate_all_generated.sh
+          ruff check .
+          ruff format --check .
+          git diff --check
+      - name: Commit the deterministic result to integration branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "integration/farmland-1631-1634-20261126"
+          git add -A
+          git diff --cached --check
+          git diff --cached --stat
+          if git diff --cached --quiet; then
+            echo "No format or generation changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(farmland): format tests and regenerate official release artifacts"
+          git push origin HEAD:refs/heads/integration/farmland-1631-1634-20261126
