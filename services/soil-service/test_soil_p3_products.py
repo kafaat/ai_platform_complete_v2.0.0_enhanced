@@ -610,3 +610,46 @@ def test_reclamation_exchangeable_na_without_lab_claim_is_not_classified():
     assert "exchangeable_sodium_esp" not in result.provenance
     assert "lab_salinity_sodicity" not in result.provenance
     assert "gypsum_rate" in result.blocked_actions
+
+
+def _paired_gypsum_request(*, cec=20.0, observed_on=None, lab_verified=True):
+    req = _exchangeable_na_request(
+        observed_on=observed_on or datetime.now(UTC).date(),
+    )
+    scenario = _gypsum_scenario_request().gypsum_scenario.model_dump()
+    scenario["cec_cmolc_kg"] = cec
+    return ReclamationAssessmentRequest.model_validate(
+        {**req.model_dump(), "gypsum_scenario": scenario, "lab_verified": lab_verified}
+    )
+
+
+def test_paired_lab_sodium_feeds_unapproved_gypsum_planning():
+    product = build_reclamation_assessment(_paired_gypsum_request())
+    report = product.provenance["gypsum_scenario"]
+    assert report["status"] == "estimated"
+    assert report["estimate"]["gypsum_t_per_ha"] == pytest.approx(3.435, abs=0.002)
+    assert report["estimate"]["inputs"]["na_exchangeable_cmolc_kg"] == 4.0
+    assert report["estimate"]["assumptions"]["esp_basis"] == "measured_exchangeable_na"
+    assert report["sample_source_ref"] == "fixture:pivot-b/exchangeable-sodium"
+    assert report["execution_authorized"] is False
+    assert report["local_compliance_evaluated"] is False
+    assert product.provenance["exchangeable_sodium_esp"]["usable_for_gypsum_rate"] is False
+    assert {"gypsum_rate", "reclamation_execution"} <= set(product.blocked_actions)
+    assert "paired-gypsum.v1" in product.assessment_version
+
+
+@pytest.mark.parametrize(
+    "overrides, reason",
+    [
+        ({"cec": 30.0}, "cec_sample_mismatch"),
+        ({"observed_on": "2000-01-01"}, "esp_sample_not_evaluated"),
+        ({"lab_verified": False}, "missing_declared_lab_esp"),
+    ],
+)
+def test_paired_lab_sodium_does_not_estimate_without_consistent_evidence(overrides, reason):
+    product = build_reclamation_assessment(_paired_gypsum_request(**overrides))
+    report = product.provenance["gypsum_scenario"]
+    assert report["status"] == "not_evaluated"
+    assert report["estimate"] is None
+    assert report["reason"] == reason
+    assert "gypsum_rate" in product.blocked_actions
