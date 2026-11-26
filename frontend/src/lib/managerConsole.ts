@@ -30,6 +30,7 @@ export interface FeasibilityResult {
 
 /** بنود التكلفة القياسيّة — GET /api/v1/economics/cost-categories. */
 export interface CostCategoriesResult {
+  supports_well_pumping_scenario?: boolean;
   categories?: { key: string; name_ar: string }[];
   note_ar?: string;
   disabled?: boolean;

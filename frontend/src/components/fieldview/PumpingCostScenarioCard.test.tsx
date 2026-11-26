@@ -1,0 +1,106 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import PumpingCostScenarioCard from './PumpingCostScenarioCard';
+
+const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), scope: vi.fn() }));
+vi.mock('../../services/api/client', () => ({ kongApi: { post: mocks.post } }));
+vi.mock('../../lib/authStorage', () => ({ getAuthScope: mocks.scope }));
+
+vi.mock('../../services/api', () => ({ kongApi: { get: mocks.get } }));
+vi.mock('../../hooks/useAuth', () => ({ useAuthStore: vi.fn() }));
+
+function renderCard() {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(<QueryClientProvider client={client}>
+    <PumpingCostScenarioCard areaHa={50} authScope="tenant-a:user-a" />
+  </QueryClientProvider>);
+  return client;
+}
+
+function fillGrid() {
+  const fields = [
+    ['مرجع التقدير', 'fixture:pivot-a'],
+    ['الغلة المتوقعة (طن/هكتار)', '4'],
+    ['سعر الطن المتوقع (عملة تقديرك)', '300'],
+    ['حجم الضخ الموسمي (م³/هكتار)', '3000'],
+    ['عمق البئر المستخدم في التقدير (م)', '100'],
+    ['سعر الكهرباء (USD/kWh)', '0.2'],
+    ['كفاءة الضخ (0–1)', '0.8'],
+  ];
+  for (const [label, value] of fields) fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  fireEvent.change(screen.getByLabelText('نوع المدخلات'), { target: { value: 'synthetic' } });
+}
+
+const response = { data: { water_cost_scenario: {
+  status: 'estimated', currency: 'USD', scope: 'well_pumping_only', included_in_feasibility: false,
+  estimate: { total_m3: 150000, cost_low_usd: 9195, cost_mid_usd: 10215, cost_high_usd: 12255 },
+} } };
+
+describe('pumping cost scenario', () => {
+  beforeEach(() => {
+    mocks.get.mockReset().mockResolvedValue({ data: { supports_well_pumping_scenario: true } });
+    mocks.post.mockReset();
+    mocks.scope.mockReset().mockReturnValue('tenant-a:user-a');
+  });
+
+  it.each(['legacy', 'unsupported', 'error'])('hides the form for a %s API', async (mode) => {
+    if (mode === 'error') mocks.get.mockRejectedValue(new Error('unavailable'));
+    else mocks.get.mockResolvedValue({ data: mode === 'legacy' ? { categories: [] } : { supports_well_pumping_scenario: false } });
+    const client = renderCard();
+    expect(screen.queryByRole('button', { name: 'احسب تكلفة الضخ' })).toBeNull();
+    await waitFor(() => expect(mocks.get).toHaveBeenCalledWith('/api/v1/economics/cost-categories'));
+    await waitFor(() => expect(client.isFetching()).toBe(0));
+    expect(screen.queryByRole('button', { name: 'احسب تكلفة الضخ' })).toBeNull();
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+
+  it('requires explicit values and displays a separate server estimate', async () => {
+    mocks.post.mockResolvedValue(response);
+    renderCard();
+    await screen.findByRole('button', { name: 'احسب تكلفة الضخ' });
+    fireEvent.click(screen.getByText('احسب تكلفة الضخ'));
+    expect(mocks.post).not.toHaveBeenCalled();
+    fillGrid();
+    fireEvent.click(screen.getByText('احسب تكلفة الضخ'));
+    await waitFor(() => expect(screen.getByRole('status').textContent).toContain('10215'));
+    expect(mocks.post).toHaveBeenCalledWith('/api/v1/economics/feasibility', {
+      area_ha: 50, yield_t_per_ha: 4, price_per_t: 300,
+      water_cost_scenario: {
+        pumped_m3_per_ha: 3000, well_depth_m: 100, pump_type: 'grid',
+        grid_price_usd_per_kwh: 0.2, grid_efficiency: 0.8, input_basis: 'synthetic',
+        source_ref: 'fixture:pivot-a',
+      },
+    }, { expectedAuthScope: 'tenant-a:user-a' });
+    fireEvent.change(screen.getByLabelText('مصدر الطاقة'), { target: { value: 'solar' } });
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.queryByLabelText('سعر الكهرباء (USD/kWh)')).toBeNull();
+    expect(screen.getByLabelText(/قبل فاقد الغبار.*100 متر/)).toBeInTheDocument();
+  });
+
+  it('does not submit after the authenticated scope changes', async () => {
+    renderCard();
+    await screen.findByRole('button', { name: 'احسب تكلفة الضخ' });
+    fillGrid();
+    mocks.scope.mockReturnValue('tenant-b:user-b');
+    fireEvent.click(screen.getByText('احسب تكلفة الضخ'));
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+
+  it.each(['edit', 'session change'])('discards a pending response after %s', async (change) => {
+    let complete!: (value: typeof response) => void;
+    mocks.post.mockReturnValue(new Promise(resolve => { complete = resolve; }));
+    renderCard();
+    await screen.findByRole('button', { name: 'احسب تكلفة الضخ' });
+    fillGrid();
+    fireEvent.click(screen.getByText('احسب تكلفة الضخ'));
+    expect(mocks.post).toHaveBeenCalledTimes(1);
+    if (change === 'edit') {
+      fireEvent.change(screen.getByLabelText('مرجع التقدير'), { target: { value: 'fixture:pivot-b' } });
+    } else {
+      mocks.scope.mockReturnValue('tenant-b:user-b');
+    }
+    await act(async () => { complete(response); });
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+});

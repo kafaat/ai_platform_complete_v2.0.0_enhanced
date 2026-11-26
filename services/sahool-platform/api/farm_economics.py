@@ -18,6 +18,10 @@ api/farm_economics.py — دراسة الجدوى الاقتصاديّة للم�
 
 from __future__ import annotations
 
+from core.engines.water_cost import WaterCostInputs, seasonal_water_cost
+
+from api.feasibility_models import WaterCostScenario
+
 # بنود التكلفة القياسيّة (من المقال) — للإرشاد عند بناء التقدير
 _COST_CATEGORIES = [
     {"key": "land_prep", "name_ar": "إعداد التربة (حرث/تسوية/تسميد أساسي)"},
@@ -38,6 +42,7 @@ def cost_categories() -> dict:
     """بنود التكلفة القياسيّة لبناء تقدير الجدوى."""
     return {
         "categories": _COST_CATEGORIES,
+        "supports_well_pumping_scenario": True,
         "note_ar": ("قدّر كلّ بند بأسعار منطقتك. ليست كلّها تنطبق على كلّ محصول — املأ ما يخصّ حالتك."),
     }
 
@@ -136,3 +141,29 @@ def break_even_price(area_ha: float, yield_t_per_ha: float, total_cost: float) -
         ),
         "disclaimer_ar": "تقدير إرشادي — السعر الفعلي من السوق المحلّي.",
     }
+
+
+def estimate_pumping_cost(scenario: WaterCostScenario, area_ha: float) -> dict:
+    """Expose a separate USD seasonal estimate, never book or silently mix currencies."""
+    inputs = scenario.model_dump(
+        exclude={"input_basis", "source_ref", "pumped_m3_per_ha"}, exclude_none=True
+    )
+    result = seasonal_water_cost(WaterCostInputs(**inputs), scenario.pumped_m3_per_ha, area_ha)
+    envelope = {
+        "status": "not_evaluated" if "error" in result else "estimated",
+        "currency": "USD",
+        "input_basis": scenario.input_basis,
+        "source_ref": scenario.source_ref,
+        "inputs": scenario.model_dump(exclude_none=True),
+        "included_in_feasibility": False,
+        "scope": "well_pumping_only",
+        "limitations": [
+            "depth_proxy_not_measured_total_dynamic_head",
+            "not_hourly_energy_or_pump_curve_simulation",
+            "excludes_reservoir_booster_and_distribution_cost",
+            "not_verified_or_booked; no currency conversion",
+        ],
+    }
+    if "error" in result:
+        return {**envelope, "reason": result["error"]}
+    return {**envelope, "estimate": result}
