@@ -815,3 +815,51 @@ def test_load_catalog_accepts_a_str_path_and_still_checks_the_hash(tmp_path, mon
     monkeypatch.setattr(standards_registry, "FARMLAND_AUDIT_CATALOG", tampered)
     with pytest.raises(StandardsRegistryError, match="catalog_hash_mismatch"):
         load_catalog(str(tampered))
+
+def test_local_adoption_does_not_transfer_to_a_later_edition():
+    reg = StandardsRegistry()
+    reg.register(_std("v1", date(2000, 1, 1), effective_to=date(2027, 1, 1)))
+    adoption = StandardAdoption(
+        "TEST-STD", "adopted", authority="synthetic", reference="synthetic-v1",
+        adopted_on=date(2026, 1, 1),
+    )
+    reg.register_profile(ComplianceProfile("P-edition", "YE", ("TEST-STD",), adoption=(adoption,)))
+    reg.register(_std("v2", date(2027, 1, 1), upper=3.0))
+    old = evaluate_profile(reg, "P-edition", [], on=ON)
+    new = evaluate_profile(reg, "P-edition", [], on=date(2027, 2, 1))
+    assert old.legally_binding is True
+    assert new.legally_binding is False
+    assert new.standards["TEST-STD@v2"]["adoption"] == "reference_only"
+    assert new.standards["TEST-STD@v2"]["adoption_reference"] is None
+
+
+def test_multiple_editions_require_an_explicit_local_adoption_edition():
+    reg = StandardsRegistry()
+    reg.register(_std("v1", date(2000, 1, 1), effective_to=date(2020, 1, 1)))
+    reg.register(_std("v2", date(2020, 1, 1)))
+    adoption = StandardAdoption(
+        "TEST-STD", "adopted", authority="synthetic", reference="synthetic-v2",
+        adopted_on=date(2026, 1, 1),
+    )
+    with pytest.raises(StandardsRegistryError, match="adoption_version_required"):
+        reg.register_profile(
+            ComplianceProfile("P-ambiguous", "YE", ("TEST-STD",), adoption=(adoption,))
+        )
+    reg.register_profile(
+        ComplianceProfile("P-explicit", "YE", ("TEST-STD@v2",), adoption=(adoption,))
+    )
+    assert evaluate_profile(reg, "P-explicit", [], on=ON).legally_binding is True
+    reg.register_profile(
+        ComplianceProfile(
+            "P-explicit-version", "YE", ("TEST-STD",),
+            adoption=(replace(adoption, version="v2"),),
+        )
+    )
+    assert evaluate_profile(reg, "P-explicit-version", [], on=ON).legally_binding is True
+    with pytest.raises(StandardsRegistryError, match="adoption_version_outside_profile"):
+        reg.register_profile(
+            ComplianceProfile(
+                "P-conflict", "YE", ("TEST-STD@v1",),
+                adoption=(replace(adoption, version="v2"),),
+            )
+        )
