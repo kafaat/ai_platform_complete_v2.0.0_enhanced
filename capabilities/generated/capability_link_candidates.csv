@@ -1271,7 +1271,7 @@ FM-005,test,tests_v9/test_supervisor_crop_model_agriai_routing.py,3,applied
 FM-005,test,tests_v9/test_variety_catalog_reference_only_barrier.py,3,applied
 FM-005,test,tests_v9/test_variety_policy_resolution.py,3,applied
 FM-006,api,GET /api/v1/decision/economics @ services/sahool-platform/api/routers/decision_impact.py:185,2,applied
-FM-006,api,GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:49,2,applied
+FM-006,api,GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:51,2,applied
 FM-006,api,GET /api/v1/economics/cost-categories @ services/sahool-platform/api/routers/economics.py:26,4,applied
 FM-006,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554,2,applied
 FM-006,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630,2,applied
@@ -1730,6 +1730,7 @@ IRR-009,test,tests_v9/test_sar_rvi.py,3,applied
 IRR-010,api,GET /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:190,2,applied
 IRR-010,api,POST /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:96,2,applied
 IRR-010,service,services/sahool-platform/api/main.py,10,applied
+IRR-010,test,services/soil-service/test_farmland_drainage_design.py,3,applied
 OPS-001,api,GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:46,3,applied
 OPS-001,api,GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:284,4,applied
 OPS-001,api,GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:303,4,applied

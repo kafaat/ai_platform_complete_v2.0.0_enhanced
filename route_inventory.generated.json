@@ -4626,7 +4626,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/economics.py",
-    "line": 49,
+    "line": 51,
     "method": "GET",
     "path": "/api/v1/economics/break-even",
     "function": "economics_break_even_endpoint"

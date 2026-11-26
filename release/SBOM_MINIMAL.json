@@ -1525,6 +1525,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c73ea39ccad2e6942a893163b9b2e6203b4ad45b7a80bd99f3a0d3179942d0ba"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/EnergyLifecycleComparison.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b5b3b9684a7efceaa47dc261f0ce6cd8b767fb932f3e76c85f140f9b95d26ffc"
         }
       ],
@@ -1775,7 +1785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b0c0976deb6b8a2aed125571836bbc5e9768b6ed68bb984d615c68905b9c060"
+          "content": "b92406ed5605ab6dc84e7e2dfed2aedc9f0485f13483c32e3c64cd123cf50f3e"
         }
       ],
       "name": "frontend/src/components/fieldview/PumpingCostScenarioCard.tsx",
@@ -5095,7 +5105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "457a16e370e2c2c5759bcb911db817e47307e92a959c5b9b7abbff4fb964b29a"
+          "content": "b41e7c4c1b1443662f08442cefa7d6e240ba074bfb0f731a144368a568c55162"
         }
       ],
       "name": "frontend/src/lib/managerConsole.ts",
@@ -6645,6 +6655,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "aff5419889b6cab567bc1e69fbf6868120d15632d1e9cc2626cd4f5da2c71c57"
+        }
+      ],
+      "name": "frontend/src/sections/HourlyNetworkPlanning.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "12abf4f6b4454a42257e79488a764a9064489769277888ae946a788928645dfe"
+        }
+      ],
+      "name": "frontend/src/sections/HourlyNetworkPlanning.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "64853563a32e97d0596297696039ce512ebaa19b0613a00867524c1b7004bda5"
         }
       ],
@@ -7415,7 +7445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba62b289d27ceae95317b22bbd5ede6b30bafc2f92ec29fb1a5cd263ec48ab38"
+          "content": "01e7731664da142d275d326fcacced67e77ca58b67d4e3117736dc3bd5d381dd"
         }
       ],
       "name": "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx",
@@ -8155,7 +8185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc14a71a42eb9ca03a1a2b766a663e1b75435fdd5b5dd210c7c721a9371c590a"
+          "content": "c43dfc71d1ea75e3b2cf236e55dd5d328b04737766e809a85f6167b5acbed561"
         }
       ],
       "name": "frontend/src/services/api/irrigationNetworkCalculator.ts",
@@ -26255,7 +26285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "262a59d4211bca7675ccbc62ac5a790abdde11cf965c6da959e2aa757e290b7e"
+          "content": "dfe1f3f30a380b43e1d501bccb4bd0c9cafa80e9ed85237bf93e219ce015f584"
         }
       ],
       "name": "services/sahool-platform/api/crop_suitability.py",
@@ -26575,7 +26605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5dda017735cf0e6144a37b0f6222518ed4f5cfc48fdc6b8623ebaea2801f2e3"
+          "content": "0110fe38575bef6f745f005c88c25e219f6e606f6278a8c1c21150f24c180714"
         }
       ],
       "name": "services/sahool-platform/api/farm_economics.py",
@@ -26595,7 +26625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e0f74e1d0c21dec68b468efc7d2ff42d0c10b378d8fd62ace31c1fc48a6c682"
+          "content": "f0f6245f70c089df192f5d066c938f647906b3bad0ebc6af251292f54bd77cca"
         }
       ],
       "name": "services/sahool-platform/api/feasibility_models.py",
@@ -27175,7 +27205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbe76a7f127a47b1d6e69b607c742f51994442d4074788051e164ee77a2177dc"
+          "content": "be5dadaac11c92996b141a64d5423d166af89185741310d33176039088cc3300"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_engineering_workspace.py",
@@ -27255,7 +27285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43873b0d9321b3a145fdeeed4e094ce68c8cfcee732710a65e85d4902da1862e"
+          "content": "e0511d630496ce4b46f8a53c5299ea7555488da8c51ff0a5ad365cdd63b1acde"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_network.py",
@@ -28265,7 +28295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53b1a9dc95090aa31001b229d3fe2635e2739cdf0c95e5062aae9d165c24ce45"
+          "content": "7a0ca5b44d5bfa9513e9d57acdd7d9eeed9091c178ea7c4365f4dc21cdad7309"
         }
       ],
       "name": "services/sahool-platform/api/routers/economics.py",
@@ -35685,6 +35715,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "836dcaaf4af387e80e064ba4ae28c061c317bea197a72b2593ad0d423929b190"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_farmland_lifecycle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f565dab00914f0bef26f30ea1df1b1f736a1c36279b6b36ece4033f8cc02511e"
         }
       ],
@@ -39895,7 +39935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b56ebdcd368e919d95231b926c15304ab0197cee7fb00ab15ba8790ef8d2dba6"
+          "content": "836ce8e266bb16aafb7501214999ad35c9d958296bf7035b7a962953132256d2"
         }
       ],
       "name": "services/soil-service/p3_products.py",
@@ -40155,7 +40195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43f926a7ec315986e0c04404e84f9a93421fd1edf0c83da036ded932861c3e77"
+          "content": "109cf8c406ed3de719f206aa93e287de90e5f4dfba2be5313a0a4d45e1851d61"
         }
       ],
       "name": "services/soil-service/soil_science.py",
@@ -40219,6 +40259,16 @@
         }
       ],
       "name": "services/soil-service/test_canonical_soil_profile.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2a111c5d72a0b84ad002ce25df8d2c8c823bc55643c5d7756f39821fa6c4c2b1"
+        }
+      ],
+      "name": "services/soil-service/test_farmland_drainage_design.py",
       "type": "file"
     },
     {
@@ -42175,6 +42225,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0f13932eeb5d5366fbb89a00c2a1cdaaf48dcd68f2198532172bdeb3ee78ab25"
+        }
+      ],
+      "name": "shared/agronomy/suitability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
       ],
@@ -42895,6 +42955,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "30d488d35ae051fc73f2106d55561379ff39d97c644ee290ba6939702e279895"
+        }
+      ],
+      "name": "shared/contracts/soil/drainage_design.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ba2b8c9d8f555b218462932cc27817cb4e55d1eb1d26af7ac7a0249b12c5589a"
         }
       ],
@@ -42935,7 +43005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5784792a91bf7145e63b2ec68f6706fcb39ad5c6240bacd3648af8eca813ee25"
+          "content": "c100cbdeb3c4f28224cdeb423e6a95998efad8c6e47eeca21381884e313b9e94"
         }
       ],
       "name": "shared/contracts/soil/p3.py",

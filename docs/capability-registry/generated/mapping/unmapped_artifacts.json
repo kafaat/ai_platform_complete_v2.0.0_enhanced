@@ -444,6 +444,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldview/EnergyLifecycleComparison.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldview/EvidenceGraphCard.tsx",
     "kind": "web"
   },
@@ -2101,6 +2105,14 @@
   },
   {
     "path": "frontend/src/sections/GovernancePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/HourlyNetworkPlanning.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/HourlyNetworkPlanning.tsx",
     "kind": "web"
   },
   {

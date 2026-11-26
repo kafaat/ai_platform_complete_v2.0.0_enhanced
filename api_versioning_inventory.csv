@@ -573,7 +573,7 @@ sahool-platform,services/sahool-platform/api/routers/drawing_features.py,499,PAT
 sahool-platform,services/sahool-platform/api/routers/drawing_features.py,598,DELETE,/api/v1/drawing-features/{feature_id},delete_drawing_feature,versioned
 sahool-platform,services/sahool-platform/api/routers/economics.py,26,GET,/api/v1/economics/cost-categories,economics_categories_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/economics.py,32,POST,/api/v1/economics/feasibility,economics_feasibility_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/economics.py,49,GET,/api/v1/economics/break-even,economics_break_even_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/economics.py,51,GET,/api/v1/economics/break-even,economics_break_even_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/edge.py,62,POST,/api/v1/edge/sync,edge_sync_receive,versioned
 sahool-platform,services/sahool-platform/api/routers/edge.py,62,POST,/v1/edge/sync,edge_sync_receive,versioned
 sahool-platform,services/sahool-platform/api/routers/equipment.py,40,POST,/api/v1/equipment,create_equipment,versioned

@@ -2174,6 +2174,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_farmland_lifecycle.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
           "signal": "filename:test_"
         },
@@ -2226,6 +2231,11 @@
           "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
           "signal": "filename:contract_without_integration_signal"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/soil-service/test_farmland_drainage_design.py",
+          "signal": "filename:test_"
         },
         {
           "evidence_type": "unit",
@@ -2299,6 +2309,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_farmland_p1_network.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
           "signal": "pytest.mark.unit"
         },
@@ -2357,6 +2372,7 @@
         "services/sahool-platform/tests/test_farmer_agency.py",
         "services/sahool-platform/tests/test_farmer_knowledge.py",
         "services/sahool-platform/tests/test_farmland_fertilizer_integration.py",
+        "services/sahool-platform/tests/test_farmland_lifecycle.py",
         "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
         "services/sahool-platform/tests/test_farmonaut.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
@@ -2368,6 +2384,7 @@
         "services/sahool-platform/tests/test_simple_farm_book.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
         "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
+        "services/soil-service/test_farmland_drainage_design.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_farm_access_backfill_diff.py",
@@ -2376,6 +2393,7 @@
         "tests_v9/test_farm_book_receipt_field.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_farm_water_ledger_projection.py",
+        "tests_v9/test_farmland_p1_network.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
         "tests_v9/test_sim_golden.py",
         "tests_v9/test_writeops_events_emitted.py"

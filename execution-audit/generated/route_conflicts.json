@@ -1215,7 +1215,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1161,
-  "route_inventory_sha256": "6875165ad3926c69b4cc945e6518a6b14e99f69366c1c0157068a907ae1453ee",
+  "route_inventory_sha256": "4fc8773c331c3dbd91966cb9014c4064a569104cdff3dc47cb59f61ace9ef828",
   "runtime_verified": false,
   "schema_version": 1
 }

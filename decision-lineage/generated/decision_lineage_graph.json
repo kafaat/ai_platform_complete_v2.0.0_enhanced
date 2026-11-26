@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 834,
+      "evidence_count": 836,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -728,6 +728,7 @@
         "services/soil-service/routers/readings.py",
         "services/soil-service/soil_store.py",
         "services/soil-service/test_canonical_soil_profile.py",
+        "services/soil-service/test_farmland_drainage_design.py",
         "services/soil-service/test_soil_canonical_duplicate_identity.py",
         "services/soil-service/test_soil_cutover_readiness.py",
         "services/soil-service/test_soil_evidence_adapters_and_policy.py",
@@ -836,6 +837,7 @@
         "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
         "shared/contracts/remote_sensing/verification_delivery.py",
         "shared/contracts/soil/__init__.py",
+        "shared/contracts/soil/drainage_design.py",
         "shared/contracts/soil/moisture_policy.py",
         "shared/contracts/soil/observation.py",
         "shared/contracts/soil/p1.py",
@@ -882,7 +884,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 601,
+      "evidence_count": 602,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1480,6 +1482,7 @@
         "shared/contracts/forms/condition_v1.py",
         "shared/contracts/intelligence_governance.json",
         "shared/contracts/soil/__init__.py",
+        "shared/contracts/soil/drainage_design.py",
         "shared/contracts/soil/p1.py",
         "shared/contracts/soil/p3.py",
         "shared/contracts/soil/p5.py",
@@ -3324,8 +3327,8 @@
         "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/api/learning_feedback.py"
       ],
-      "source_evidence_count": 834,
-      "target_evidence_count": 601,
+      "source_evidence_count": 836,
+      "target_evidence_count": 602,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3436,7 +3439,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py"
       ],
-      "source_evidence_count": 601,
+      "source_evidence_count": 602,
       "target_evidence_count": 215,
       "static_supported": true,
       "runtime_verified": false
@@ -3797,5 +3800,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b1748966c047255dea36be2c60893db3520f04f6b936aae9e2d1eb3ca43d9386"
+  "content_sha256": "ce9c3d210903f96eb48f14ce5339db685eba6c9395ff4089765eef6bf1d3cf22"
 }

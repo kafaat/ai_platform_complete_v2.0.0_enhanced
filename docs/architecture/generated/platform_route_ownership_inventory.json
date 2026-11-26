@@ -5,9 +5,9 @@
     "mapped_routes": 627,
     "surface_routes": 627
   },
-  "inventory_sha256": "121f796ec8ce34f17df50d38254dda6cc1da3828c8642009eb441723962bb6a8",
+  "inventory_sha256": "c578eab888eb34da360332c7d1080b06008e10d721357709369d1ef5db4825b7",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "63775fc4f96002de990d781e5533d03c3be5b06e2572c00f6a153f0dcd2bdd1c",
+  "map_sha256": "8926d8d700024836a0273717ac495751cdb68b02843d1784f101730263c36a18",
   "routes": [
     {
       "classification": null,
@@ -1401,7 +1401,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/economics.py",
       "function": "economics_break_even_endpoint",
-      "line": 48,
+      "line": 50,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
