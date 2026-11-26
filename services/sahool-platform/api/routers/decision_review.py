@@ -104,8 +104,11 @@ async def get_decision_agronomic_evidence_boundary(
         result.get("authoritative") is True
         and result.get("persisted") is True
         and result.get("read_only") is True
+        and user.tenant_id is not None
+        and result.get("tenant_id") == str(user.tenant_id)
         and result.get("decision_id") == decision_id
         and isinstance(result.get("decision"), dict)
+        and result["decision"].get("decision_id") == decision_id
     )
     if not proven:
         raise HTTPException(status_code=503, detail="non-authoritative evidence rejected")

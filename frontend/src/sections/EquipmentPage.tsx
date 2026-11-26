@@ -25,6 +25,7 @@ import { Input, Select } from '../components/ds/forms';
 import { DataTable, type Column } from '../components/ds/table';
 import { equipStatusAr, equipStatusTone } from '../components/ds/status';
 import { T } from '../components/ds/tokens';
+import { EquipmentReadinessCard } from '../components/EquipmentReadinessCard';
 
 // ── أسماء عربيّة للأنواع/حالات/أنواع الصيانة ─────────────────────
 const TYPE_LABELS: Record<string, string> = {
@@ -318,6 +319,7 @@ export default function EquipmentPage() {
         </div>
       </div>
 
+      <EquipmentReadinessCard />
       {mutable && <RegisterForm />}
 
       {/* قائمة المعدّات */}
