@@ -42,6 +42,8 @@ def economics_feasibility_endpoint(
     )
     if req.water_cost_scenario is not None:
         result["water_cost_scenario"] = estimate_pumping_cost(req.water_cost_scenario, req.area_ha)
+    if req.lifecycle_scenario is not None:
+        result["lifecycle_scenario"] = req.lifecycle_scenario.evaluate()
     return result
 
 
