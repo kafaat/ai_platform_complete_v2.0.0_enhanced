@@ -332,3 +332,93 @@ def test_stored_payload_without_limitations_still_validates():
     payload = build_drainage_assessment(_drainage_req()).model_dump(mode="json")
     payload.pop("limitations")
     assert DrainageAssessmentProduct.model_validate(payload).limitations == []
+
+# Farmland Phase 2: a gypsum scenario is a diagnostic, not an approved dose.
+def _gypsum_scenario_request(**overrides):
+    payload = dict(
+        tenant_id="synthetic-tenant",
+        field_id="synthetic-pivot-b",
+        geometry_hash="synthetic-geometry",
+        salinity_probability=0.7,
+        sodicity_probability=0.7,
+        gypsum_probability=0.5,
+        stoniness_fraction=0.1,
+        compaction_risk=0.4,
+        leveling_need=0.5,
+        drainage_need="combined",
+        crop_suitability_score=0.5,
+        esp_pct=20,
+        lab_verified=True,
+        irrigation_water_profile_approved=True,
+        drainage_engineering_verified=True,
+        gypsum_scenario=dict(
+            input_basis="synthetic",
+            source_ref="fixture:pivot-b/soil-lab",
+            cec_cmolc_kg=20,
+            esp_target_pct=10,
+            depth_m=0.15,
+            bulk_density_t_m3=1.33,
+            purity=1.0,
+            exchange_efficiency_factor=1.0,
+        ),
+    )
+    payload.update(overrides)
+    return ReclamationAssessmentRequest(**payload)
+
+
+def test_gypsum_scenario_calls_existing_kernel_without_granting_authority(monkeypatch):
+    import p3_products
+
+    original = p3_products.gypsum_requirement
+    calls = []
+
+    def spy(**kwargs):
+        calls.append(kwargs)
+        return original(**kwargs)
+
+    monkeypatch.setattr(p3_products, "gypsum_requirement", spy)
+    product = build_reclamation_assessment(_gypsum_scenario_request())
+    result = product.provenance["gypsum_scenario"]
+    assert len(calls) == 1
+    assert calls[0]["esp_initial_pct"] == 20
+    assert result["status"] == "estimated"
+    assert result["estimate"]["gypsum_t_per_ha"] == pytest.approx(3.435, abs=0.002)
+    assert result["input_basis"] == "synthetic"
+    assert result["source_ref"] == "fixture:pivot-b/soil-lab"
+    assert result["execution_authorized"] is False
+    assert result["local_compliance_evaluated"] is False
+    assert "gypsum_rate" in product.blocked_actions
+    assert "reclamation_execution" in product.blocked_actions
+    assert "gypsum-scenario.v1" in product.assessment_version
+
+
+@pytest.mark.parametrize("missing", [{"esp_pct": None}, {"lab_verified": False}])
+def test_gypsum_scenario_missing_lab_inputs_is_not_evaluated(missing):
+    product = build_reclamation_assessment(_gypsum_scenario_request(**missing))
+    result = product.provenance["gypsum_scenario"]
+    assert result["status"] == "not_evaluated"
+    assert result["estimate"] is None
+    assert result["execution_authorized"] is False
+    assert "gypsum_rate" in product.blocked_actions
+
+
+def test_no_gypsum_scenario_preserves_legacy_product():
+    product = build_reclamation_assessment(_gypsum_scenario_request(gypsum_scenario=None))
+    assert "gypsum_scenario" not in product.provenance
+    assert "gypsum-scenario.v1" not in product.assessment_version
+    assert "gypsum_rate" in product.blocked_actions
+
+
+def test_gypsum_scenario_requires_explicit_source_and_physical_inputs():
+    from pydantic import ValidationError
+
+    scenario = _gypsum_scenario_request().gypsum_scenario.model_dump()
+    for key in ("source_ref", "depth_m", "purity", "esp_target_pct"):
+        with pytest.raises(ValidationError):
+            _gypsum_scenario_request(
+                gypsum_scenario={k: v for k, v in scenario.items() if k != key}
+            )
+    for key, value in (("source_ref", "   "), ("cec_cmolc_kg", float("inf")), ("purity", 0)):
+        with pytest.raises(ValidationError):
+            _gypsum_scenario_request(gypsum_scenario={**scenario, key: value})
+
