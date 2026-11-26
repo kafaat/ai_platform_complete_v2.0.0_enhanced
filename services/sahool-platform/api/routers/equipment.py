@@ -99,7 +99,7 @@ async def list_equipment(
         False,
         description=(
             "Attach the equipment_intelligence fleet summary alongside the assets. "
-            "Service verdicts stay not_evaluated while maintenance policy is unrecorded."
+            "Recorded planned service dates are evaluated; missing meter policy stays unknown."
         ),
     ),
 ):
@@ -109,17 +109,25 @@ async def list_equipment(
     this existing route rather than added as a new one, keeping the platform domain-route
     budget untouched (the INT-004A precedent).
 
-    Honesty boundary: the ``equipment`` table records no maintenance policy — there is no
-    ``service_interval_hours`` and no last-service meter baseline — so every asset comes
-    back ``not_evaluated`` with ``maintenance_policy_missing`` and
-    ``service_meter_baseline_missing``. That is the true state of the data; the summary
-    reports it rather than assuming an interval and manufacturing a service claim.
+    A pending scheduled service with a recorded date is independent evidence. The
+    meter policy and last-service meter baseline are still absent; never infer them.
+    Only planned scheduled service without a recorded completion contributes a date.
     """
     async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT equipment_id, name, type, status, operating_hours, purchase_date "
-            "FROM equipment ORDER BY type, name"
-        )
+        if summary:
+            rows = await conn.fetch(
+                "SELECT e.equipment_id, e.name, e.type, e.status, e.operating_hours, "
+                "e.purchase_date, (SELECT MIN(m.scheduled_date) "
+                "FROM equipment_maintenance m WHERE m.equipment_id = e.equipment_id "
+                "AND m.tenant_id = e.tenant_id AND m.kind = 'scheduled' "
+                "AND m.status = 'planned' AND m.performed_date IS NULL) AS next_service_date "
+                "FROM equipment e ORDER BY e.type, e.name"
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT equipment_id, name, type, status, operating_hours, purchase_date "
+                "FROM equipment ORDER BY type, name"
+            )
     assets = [
         {
             "equipment_id": r["equipment_id"],
@@ -133,6 +141,10 @@ async def list_equipment(
     ]
     if not summary:
         return assets
+    for asset, row in zip(assets, rows, strict=True):
+        scheduled = row["next_service_date"]
+        if scheduled is not None:
+            asset["next_service_date"] = scheduled.isoformat()
     return {"assets": assets, "intelligence": summarize_equipment(assets=assets).to_dict()}
 
 
