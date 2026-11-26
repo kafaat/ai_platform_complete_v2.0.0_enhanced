@@ -150,6 +150,7 @@ class StandardAdoption:
     authority: str = ""
     reference: str = ""
     adopted_on: date | None = None
+    version: str | None = None
 
 
 @dataclass(frozen=True)
@@ -190,6 +191,7 @@ class StandardsRegistry:
             self.resolve(ref)
         listed = {ref.split("@", 1)[0] for ref in profile.standards}
         seen: set[str] = set()
+        adoptions: list[StandardAdoption] = []
         for a in profile.adoption:
             if a.standard_id not in listed:
                 raise StandardsRegistryError(f"adoption_targets_unlisted_standard:{a.standard_id}")
@@ -207,7 +209,24 @@ class StandardsRegistry:
             ):
                 # datetime ⇒ يومٌ تقويميّ مُلتبِس بالمنطقة الزمنيّة؛ يُرفَض عند التسجيل لا عند العرض.
                 raise StandardsRegistryError(f"adoption_date_not_a_date:{a.standard_id}")
-        self.profiles[profile.profile_id] = profile
+            if a.status != "reference_only":
+                refs = [ref for ref in profile.standards if ref.split("@", 1)[0] == a.standard_id]
+                pinned = {ref.split("@", 1)[1] for ref in refs if "@" in ref}
+                floating = a.standard_id in refs
+                version = a.version
+                if version is None:
+                    candidates = (
+                        {s.version for s in self.versions(a.standard_id)} if floating else pinned
+                    )
+                    if len(candidates) != 1:
+                        raise StandardsRegistryError(f"adoption_version_required:{a.standard_id}")
+                    version = next(iter(candidates))
+                if not floating and version not in pinned:
+                    raise StandardsRegistryError(f"adoption_version_outside_profile:{a.standard_id}")
+                self.get(a.standard_id, version)
+                a = replace(a, version=version)
+            adoptions.append(a)
+        self.profiles[profile.profile_id] = replace(profile, adoption=tuple(adoptions))
 
     # ── الحلّ ───────────────────────────────────────────────────────────
     def versions(self, standard_id: str) -> list[Standard]:
@@ -282,16 +301,18 @@ class StandardsRegistry:
             standard = self.get(sid, ver)
         return chain
 
-    def adoption_status(self, profile_id: str, standard_id: str) -> StandardAdoption:
+    def adoption_status(
+        self, profile_id: str, standard_id: str, version: str | None = None
+    ) -> StandardAdoption:
         """قرار الاعتماد المحلّيّ للمعيار في الملفّ؛ غيابه ⇒ `reference_only` صريحاً."""
         try:
             profile = self.profiles[profile_id]
         except KeyError:
             raise StandardsRegistryError(f"unknown_profile:{profile_id}") from None
         for a in profile.adoption:
-            if a.standard_id == standard_id:
+            if a.standard_id == standard_id and (version is None or a.version == version):
                 return a
-        return StandardAdoption(standard_id, "reference_only")
+        return StandardAdoption(standard_id, "reference_only", version=version)
 
     def profile_standards(self, profile_id: str, on: date | None = None) -> list[Standard]:
         """معايير الملفّ بعد الحلّ وتطبيق التجاوزات (التشديدات) على بنودها."""
