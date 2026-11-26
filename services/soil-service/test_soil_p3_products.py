@@ -333,6 +333,7 @@ def test_stored_payload_without_limitations_still_validates():
     payload.pop("limitations")
     assert DrainageAssessmentProduct.model_validate(payload).limitations == []
 
+
 # Farmland Phase 2: a gypsum scenario is a diagnostic, not an approved dose.
 def _gypsum_scenario_request(**overrides):
     payload = dict(
@@ -423,7 +424,6 @@ def test_gypsum_scenario_requires_explicit_source_and_physical_inputs():
             _gypsum_scenario_request(gypsum_scenario={**scenario, key: value})
 
 
-
 def _capability_scenario(**overrides):
     return {
         "input_basis": "synthetic",
@@ -472,6 +472,7 @@ def test_reclamation_capability_omitted_preserves_legacy():
     product = build_reclamation_assessment(_gypsum_scenario_request(gypsum_scenario=None))
     assert "land_capability_scenario" not in product.provenance
     assert "land-capability.v1" not in product.assessment_version
+
 
 # Explicit sample provenance makes the previously unreachable ECe half usable.
 @pytest.mark.parametrize(
@@ -523,6 +524,7 @@ def test_reclamation_stale_sample_does_not_feed_gypsum_kernel(monkeypatch):
     assert product.provenance["lab_salinity_sodicity"]["sodic"] is None
     assert product.provenance["gypsum_scenario"]["reason"] == "esp_sample_not_evaluated"
     assert "gypsum_rate" in product.blocked_actions
+
 
 def _exchangeable_na_request(**overrides):
     return _gypsum_scenario_request(
@@ -594,6 +596,7 @@ def test_reclamation_exchangeable_na_and_direct_esp_cannot_be_mixed():
     payload["esp_pct"] = 3
     with pytest.raises(ValidationError):
         ReclamationAssessmentRequest.model_validate(payload)
+
 
 def test_reclamation_exchangeable_na_ratio_remains_finite():
     result = build_reclamation_assessment(

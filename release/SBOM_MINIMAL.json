@@ -1555,6 +1555,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f4152ca50238317cf7f85c492510284275f88557922aa6b730bfe4e4b6a228c2"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FertilizerScenarioCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0ea569dc804eea282b3d4b771009060aca063c225e4a04bfad6e20dcad09ce2a"
         }
       ],
@@ -1825,7 +1835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82bea0b5010de33002cf5da5a626b8503c911a048ad87ce72b24665e0d59da9e"
+          "content": "d9a5544da804228ada5ebba205e6088be14af3ac38cc2eab8401be24d422ed07"
         }
       ],
       "name": "frontend/src/components/fieldview/SoilGovernanceCard.tsx",
@@ -1839,6 +1849,26 @@
         }
       ],
       "name": "frontend/src/components/fieldview/SoilGovernanceWiring.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c4635e594985af5a9c59a0ce5b734a0120b9a95713859542ed334a1771b3948b"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SoilP3Evidence.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5165a8713b5609edbf6b39a4b3202f78ead54c6a8b49e6336e5afc0188666252"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SoilP3Evidence.tsx",
       "type": "file"
     },
     {
@@ -1875,7 +1905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4638c12853cb12d1320a7a8a4d204ee67c25a266c07109e77cd685d28fd22315"
+          "content": "12f834a48fec61dfb00ea3bacde66e552b4e74e956697881c27fd7f1b0ddbf34"
         }
       ],
       "name": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
@@ -4155,6 +4185,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "10bb640a26d1bf6b058d5608380e14ba8eff68c36a121a21deddd5ecbbec1fa4"
+        }
+      ],
+      "name": "frontend/src/lib/fertilizerScenario.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "87bd960d27f38154797fb06b5a9dbdee67032d8ac72e45abb72f787f50836bdf"
+        }
+      ],
+      "name": "frontend/src/lib/fertilizerScenario.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "69a066ca233b99410d403933dc3687c5a4ade02c5e45d9401f12a803a941382f"
         }
       ],
@@ -5565,7 +5615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bbf0a70feb9a35bcaa17cf8d1ea2134d667c0c13e16374bad7bb80053c4f5ca3"
+          "content": "fa944fe4938c866698d0c1b208fa9c284c1b155fd58b22a99dd6027c57902bea"
         }
       ],
       "name": "frontend/src/lib/waterFieldOps.ts",
@@ -25785,7 +25835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ba3c32bb98566bc8284dbfda26d38e1051de450d91da812e081005a71ce6d82"
+          "content": "240e9e3211625b7d9f7b402a3fecd66d0243896ac344ff767b0d3459623dd67c"
         }
       ],
       "name": "services/sahool-platform/api/api_models.py",
@@ -28515,7 +28565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40ef0c35c23ec318029c6c0732325618faaa95fb2766fa7feace731799b51bc2"
+          "content": "1b2c5a93951e6d21467bace9b5b0306ec7d40f71b28a7e21ba5c5851949d9b3d"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -28865,7 +28915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6128b58b793de9b5fff6ebb1cdebbcddd5e39bb10cc509db458c9776b06af9db"
+          "content": "c4b2c8162f6a852562a41fd89f60dfdd0ee8ba613e26b0285f7498b6ac3b5c63"
         }
       ],
       "name": "services/sahool-platform/api/routers/nutrients.py",
@@ -29235,7 +29285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25e76e43e178bc32567b881421292c7815f47c4770b01b9d0ed7d0149f567b9f"
+          "content": "74db779b87d3d9ba369ae7f7b5238f8767e9f7c960c218ecd07f7cac83b50bbd"
         }
       ],
       "name": "services/sahool-platform/api/routers/service_proxy.py",
@@ -37085,7 +37135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d540d0bc62a86d8c7ecf9c7302f360930cd6a11cbdb7faa8a98899b944d976b"
+          "content": "3052e7f2f6fd20196efb6006c922b7450542ca56f2b31c5ca3652d755939a761"
         }
       ],
       "name": "services/sahool-platform/tests/test_nutrient_4r.py",
@@ -38445,7 +38495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46d5110a390c943783b9e5ec26fe812e99e56b66b122f97da67dd05d344017bb"
+          "content": "73d5ed9959945d14499cf945cb54a55696df17c642f0d2d550fe1615c63c7c34"
         }
       ],
       "name": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
@@ -39455,7 +39505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37ae366082142134bdd7f7fcfec5e84633f6288ef40c6f5b1cccba12d34109c5"
+          "content": "1a522a38750d8af1bd2d874b1bd7d3536ea405ccc35e8295a70037c822ba47da"
         }
       ],
       "name": "services/sahool-platform/tests/test_zoning_grid_transport.py",
@@ -39825,7 +39875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fcedb5e65edef2748366f2c1d935e8af579dc495a32bd55f6d12ce70cfb1d9f"
+          "content": "f82b9e17cc4e590a4e08619f6094341abd2d55055596a457d45a786e63894e86"
         }
       ],
       "name": "services/soil-service/land_quality.py",
@@ -39895,7 +39945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b56ebdcd368e919d95231b926c15304ab0197cee7fb00ab15ba8790ef8d2dba6"
+          "content": "d796de31bd5155f87a266a3cbcd1bef71b25ee832e9fd9e9668b6d6986e0d610"
         }
       ],
       "name": "services/soil-service/p3_products.py",
@@ -40085,7 +40135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "919df8bc3974843eb511e8dd8e2b65c0691df90148f2021e28f8b96bf0077ff8"
+          "content": "21cdedb6a50bb5c2a7d82f9d03e92b30cf7cd4bf7b7b604e487e7f7977c4df37"
         }
       ],
       "name": "services/soil-service/routers/p3_products.py",
@@ -40325,7 +40375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c20d6b49791c94515c264b8bf79e6d52df470a15fa38918c14a557383f8f4565"
+          "content": "c0a23530e9b10864950a7f53492c0082e10e7223f741ec61c349f2774891cf54"
         }
       ],
       "name": "services/soil-service/test_soil_p3_products.py",
@@ -42935,7 +42985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5784792a91bf7145e63b2ec68f6706fcb39ad5c6240bacd3648af8eca813ee25"
+          "content": "353cd795fcf5f87e5058bd3d05019334f6bd201a95bd33e5d9435fc52cb2b923"
         }
       ],
       "name": "shared/contracts/soil/p3.py",

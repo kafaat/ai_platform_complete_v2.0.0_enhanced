@@ -364,6 +364,9 @@ def test_field_and_manual_http_contracts(monkeypatch):
     ):
         invalid = {**scenario, **changes}
         assert client.post(url, json={"fertilizer_scenario": invalid}).status_code == 422
-    assert client.post(
-        url, params={"field_id": "f"}, json={"fertilizer_scenario": scenario}
-    ).status_code == 422
+    assert (
+        client.post(
+            url, params={"field_id": "f"}, json={"fertilizer_scenario": scenario}
+        ).status_code
+        == 422
+    )

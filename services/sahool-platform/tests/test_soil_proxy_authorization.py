@@ -143,6 +143,7 @@ def test_platform_admin_can_check_health_without_accessing_soil_data(monkeypatch
     assert response.status_code == 200
     assert len(forwarded) == 1
 
+
 @pytest.mark.parametrize("product", ["drainage-assessment", "reclamation-assessment"])
 def test_p3_reads_forward_only_authenticated_scope(monkeypatch, product):
     response, forwarded = request_as(
