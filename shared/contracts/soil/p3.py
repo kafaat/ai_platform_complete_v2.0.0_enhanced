@@ -8,6 +8,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from .drainage_design import CompactionSurvey, DrainSpacingScenario, LandQualityScenario
+
 
 class MobileImageQuality(BaseModel):
     blur_score: float = Field(ge=0, le=1)
@@ -124,6 +126,12 @@ class DrainageAssessmentRequest(BaseModel):
     wadi_risk: float = Field(ge=0, le=1)
     salinity_persistence: float = Field(ge=0, le=1)
     surveyed_elevations: bool = False
+    spacing_scenario: DrainSpacingScenario | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    compaction_survey: CompactionSurvey | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class DrainageAssessmentProduct(BaseModel):
@@ -151,6 +159,9 @@ class ReclamationAssessmentRequest(BaseModel):
     field_id: str
     geometry_hash: str
     assessment_version: str = "reclamation-v1"
+    land_quality_scenario: LandQualityScenario | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     salinity_probability: float = Field(ge=0, le=1)
     sodicity_probability: float = Field(ge=0, le=1)
     gypsum_probability: float = Field(ge=0, le=1)

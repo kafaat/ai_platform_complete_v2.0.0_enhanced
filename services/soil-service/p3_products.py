@@ -317,6 +317,16 @@ def build_drainage_assessment(req: DrainageAssessmentRequest) -> DrainageAssessm
         blocked_actions=sorted(set(blocked)),
         limitations=limitations,
         provenance={
+            **(
+                {"spacing_scenario": req.spacing_scenario.assessment()}
+                if req.spacing_scenario
+                else {}
+            ),
+            **(
+                {"compaction_survey": req.compaction_survey.assessment()}
+                if req.compaction_survey
+                else {}
+            ),
             "method": "governed_multi_evidence_screening",
             "engineering_design": False,
             "requires_field_verification": True,
@@ -513,6 +523,11 @@ def build_reclamation_assessment(req: ReclamationAssessmentRequest) -> Reclamati
         confidence=min(0.95, confidence),
         provenance={
             "evidence_gate": "fail_closed",
+            **(
+                {"land_quality_scenario": req.land_quality_scenario.assessment()}
+                if req.land_quality_scenario
+                else {}
+            ),
             "lab_verified": req.lab_verified,
             "water_profile_approved": req.irrigation_water_profile_approved,
             "drainage_engineering_verified": req.drainage_engineering_verified,

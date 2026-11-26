@@ -14,6 +14,7 @@ soil-service كان يخزّن قراءات الحسّاسات فقط دون أ�
 
 from __future__ import annotations
 
+from shared.agronomy.suitability import range_score as _range_score
 from shared.soil_texture import (
     usda_texture_class,  # noqa: F401 -- re-exported for callers of soil_science
 )
@@ -58,22 +59,6 @@ CROP_PROFILES: dict[str, dict] = {
         "textures": {"loam", "sandy loam", "silt loam"},
     },
 }
-
-
-def _range_score(value: float, opt: tuple[float, float], ok: tuple[float, float]) -> float:
-    """1.0 داخل النطاق الأمثل؛ يتناقص خطّيّاً إلى 0 عند حدّ المقبول؛ 0 خارجه."""
-    lo_opt, hi_opt = opt
-    lo_ok, hi_ok = ok
-    if lo_opt <= value <= hi_opt:
-        return 1.0
-    if value < lo_opt:
-        if value <= lo_ok:
-            return 0.0
-        return (value - lo_ok) / (lo_opt - lo_ok)
-    # value > hi_opt
-    if value >= hi_ok:
-        return 0.0
-    return (hi_ok - value) / (hi_ok - hi_opt)
 
 
 def _salinity_score(ec: float, ec_max: float) -> float:

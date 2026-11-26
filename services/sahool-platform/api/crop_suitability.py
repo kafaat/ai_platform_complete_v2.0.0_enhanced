@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shared.agronomy.suitability import range_score as _score_range
+
 
 @dataclass
 class CropTolerance:
@@ -71,23 +73,6 @@ class SuitabilityScore:
             "rating_ar": self.rating_ar,
             "reasons_ar": self.reasons_ar,
         }
-
-
-def _score_range(
-    value: float, optimal: tuple[float, float], tolerable: tuple[float, float]
-) -> float:
-    """درجة 0-1: ١ داخل الأمثل، تتناقص خطّيّاً للمحتمَل، ٠ خارجه."""
-    lo_o, hi_o = optimal
-    lo_t, hi_t = tolerable
-    if lo_o <= value <= hi_o:
-        return 1.0
-    if value < lo_o:
-        if value < lo_t:
-            return 0.0
-        return (value - lo_t) / (lo_o - lo_t)
-    if value > hi_t:
-        return 0.0
-    return (hi_t - value) / (hi_t - hi_o)
 
 
 def score_crop(cond: FieldConditions, tol: CropTolerance) -> SuitabilityScore:
