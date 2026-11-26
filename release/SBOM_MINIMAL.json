@@ -1765,6 +1765,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cfa535f9db658f50c4b2025cdc34f07c8c34bda09dd88c1118b9cff3de658349"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/PumpingCostScenarioCard.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b0c0976deb6b8a2aed125571836bbc5e9768b6ed68bb984d615c68905b9c060"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/PumpingCostScenarioCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cda720bde8ca80ea274d3de5024d70f6f5e600a54a11d076573be3fcfbfc985e"
         }
       ],
@@ -3485,7 +3505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca2fc19abe5cdacdc99a94d9f4c7ca7d94b18fa997d66c850897bc5541adfe1f"
+          "content": "b48d8cb9cbd67a6e3bd211ff595f21458cbb5dc604791bb6ec8f103a65e2d0a9"
         }
       ],
       "name": "frontend/src/hooks/useManagerConsole.ts",
@@ -5075,7 +5095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32af2bef4b2b771f51ebe8d5fac458226c00178553e66327973500503bfe7bbf"
+          "content": "457a16e370e2c2c5759bcb911db817e47307e92a959c5b9b7abbff4fb964b29a"
         }
       ],
       "name": "frontend/src/lib/managerConsole.ts",
@@ -6995,7 +7015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c048ca31fddff0bff0bdec8f261e38c5c608d44091866fc487fd4d77f0b0ce8"
+          "content": "b72d4f7f807cd9e9fc5d2a40620675ef30c603790ab9d8e46ca2e2f11b52f0f2"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -26555,7 +26575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5cded62f9ca86f0ae039264a6815147538908d14704c9299168971b474f00f4"
+          "content": "b5dda017735cf0e6144a37b0f6222518ed4f5cfc48fdc6b8623ebaea2801f2e3"
         }
       ],
       "name": "services/sahool-platform/api/farm_economics.py",
@@ -26575,7 +26595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74c5e4023f821ecb4bc097a9274cab1f02d11e070ad1f13d2da1ecec82dc3017"
+          "content": "0e0f74e1d0c21dec68b468efc7d2ff42d0c10b378d8fd62ace31c1fc48a6c682"
         }
       ],
       "name": "services/sahool-platform/api/feasibility_models.py",
@@ -28245,7 +28265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c724f807274e6901931023b1f2a0715c1345c19c5d85788dd3fc0b830246204"
+          "content": "53b1a9dc95090aa31001b229d3fe2635e2739cdf0c95e5062aae9d165c24ce45"
         }
       ],
       "name": "services/sahool-platform/api/routers/economics.py",
@@ -35659,6 +35679,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_farmland_fertilizer_integration.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f565dab00914f0bef26f30ea1df1b1f736a1c36279b6b36ece4033f8cc02511e"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
       "type": "file"
     },
     {

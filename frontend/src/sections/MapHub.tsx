@@ -45,6 +45,7 @@ import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard
 import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
 import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
 import FieldEconomicsCard from '../components/fieldview/FieldEconomicsCard';
+import PumpingCostScenarioCard from '../components/fieldview/PumpingCostScenarioCard';
 import OperationsCenterCard from '../components/fieldview/OperationsCenterCard';
 import FieldWaterBrainCard from '../components/fieldview/FieldWaterBrainCard';
 import FieldScoutingCard from '../components/fieldview/FieldScoutingCard';
@@ -2883,6 +2884,14 @@ function MapHubCore() {
         <FieldEconomicsCard
           areaHa={typeof selected.area === 'number' ? selected.area : null}
           irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && drawingOwnerScope && (
+        <PumpingCostScenarioCard
+          key={JSON.stringify([drawingOwnerScope, selected.id, activeSeasonId, selected.area])}
+          authScope={drawingOwnerScope}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
         />
       )}
 

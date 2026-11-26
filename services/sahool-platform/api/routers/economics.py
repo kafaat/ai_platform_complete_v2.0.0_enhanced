@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from api.farm_economics import break_even_price, cost_categories, feasibility
+from api.farm_economics import break_even_price, cost_categories, estimate_pumping_cost, feasibility
 from api.feasibility_models import FeasibilityRequest
 from api.main import UserSchema, get_current_user
 
@@ -33,13 +33,16 @@ def economics_feasibility_endpoint(
     req: FeasibilityRequest, user: UserSchema = Depends(get_current_user)
 ):
     """جدوى المحصول: الإيراد المتوقّع + صافي الربح + الهامل + فحص السوق."""
-    return feasibility(
+    result = feasibility(
         req.area_ha,
         req.yield_t_per_ha,
         req.price_per_t,
         req.costs,
         req.total_cost,
     )
+    if req.water_cost_scenario is not None:
+        result["water_cost_scenario"] = estimate_pumping_cost(req.water_cost_scenario, req.area_ha)
+    return result
 
 
 @router.get("/api/v1/economics/break-even")

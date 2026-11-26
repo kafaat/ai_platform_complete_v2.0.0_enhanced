@@ -2282,7 +2282,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 224,
+      "evidence_count": 225,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2477,6 +2477,7 @@
         "services/sahool-platform/tests/test_decision_review_endpoint.py",
         "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
         "services/sahool-platform/tests/test_evidence_snapshot.py",
+        "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
         "services/sahool-platform/tests/test_field_bound_decision_playbook_w1_17.py",
         "services/sahool-platform/tests/test_governance_modules.py",
         "services/sahool-platform/tests/test_harvest_phi_gate.py",
@@ -3634,7 +3635,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 52,
-      "target_evidence_count": 224,
+      "target_evidence_count": 225,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3674,7 +3675,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 224,
+      "source_evidence_count": 225,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3796,5 +3797,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "1208bd1d37fa95a90b65067d53a1e6e49aabab3247d9bb8ce5ca8e89cff17321"
+  "content_sha256": "b1748966c047255dea36be2c60893db3520f04f6b936aae9e2d1eb3ca43d9386"
 }

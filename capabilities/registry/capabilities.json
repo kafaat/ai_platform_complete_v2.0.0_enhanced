@@ -747,7 +747,7 @@
       "services": [],
       "apis": [
         "GET /api/v1/decision/economics @ services/sahool-platform/api/routers/decision_impact.py:185",
-        "GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:46",
+        "GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:49",
         "GET /api/v1/economics/cost-categories @ services/sahool-platform/api/routers/economics.py:26",
         "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554",
         "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630",
@@ -768,6 +768,7 @@
       "mobile_consumers": [],
       "tests": [
         "services/sahool-platform/tests/test_cost_governance.py",
+        "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
         "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
         "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
         "services/sahool-platform/tests/test_water_cost_numeric_contract.py",
@@ -816,7 +817,7 @@
           "path": "migrations/v276_task_cost_trace.down.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=15, tests=12, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=15, tests=13, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
