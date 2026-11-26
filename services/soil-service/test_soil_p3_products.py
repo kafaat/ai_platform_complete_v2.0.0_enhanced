@@ -422,3 +422,53 @@ def test_gypsum_scenario_requires_explicit_source_and_physical_inputs():
         with pytest.raises(ValidationError):
             _gypsum_scenario_request(gypsum_scenario={**scenario, key: value})
 
+
+
+def _capability_scenario(**overrides):
+    return {
+        "input_basis": "synthetic",
+        "source_ref": "fixture:pivot-a/survey-and-soil",
+        "slope_pct": 1.0,
+        "effective_depth_cm": 120.0,
+        "ece_ds_m": 1.0,
+        "ec_method": "saturation_extract_25c",
+        "esp_pct": 3.0,
+        "drainage_class": "well",
+        **overrides,
+    }
+
+
+@pytest.mark.parametrize(
+    "scenario, expected",
+    [(_capability_scenario(), "I"), (_capability_scenario(esp_pct=30), "VI")],
+)
+def test_reclamation_capability_reuses_indicative_kernel(scenario, expected):
+    req = _gypsum_scenario_request(gypsum_scenario=None, land_capability_scenario=scenario)
+    product = build_reclamation_assessment(req)
+    diagnostic = product.provenance["land_capability_scenario"]
+    assert diagnostic["result"]["capability_class"] == expected
+    assert diagnostic["result"]["standard"] == "USDA-AH210-INDICATIVE@v1"
+    assert diagnostic["result"]["calibrated_for_region"] is False
+    assert diagnostic["inputs"] == scenario
+    assert diagnostic["execution_authorized"] is False
+    assert diagnostic["local_compliance_evaluated"] is False
+    assert "reclamation_execution" in product.blocked_actions
+    assert "land-capability.v1" in product.assessment_version
+
+
+@pytest.mark.parametrize("missing", [{"esp_pct": None}, {"ec_method": None}])
+def test_reclamation_capability_missing_factor_is_incomplete(missing):
+    req = _gypsum_scenario_request(
+        gypsum_scenario=None, land_capability_scenario=_capability_scenario(**missing)
+    )
+    diagnostic = build_reclamation_assessment(req).provenance["land_capability_scenario"]
+    assert diagnostic["status"] == "incomplete"
+    assert diagnostic["result"]["capability_class"] is None
+    assert diagnostic["result"]["complete"] is False
+    assert diagnostic["execution_authorized"] is False
+
+
+def test_reclamation_capability_omitted_preserves_legacy():
+    product = build_reclamation_assessment(_gypsum_scenario_request(gypsum_scenario=None))
+    assert "land_capability_scenario" not in product.provenance
+    assert "land-capability.v1" not in product.assessment_version
