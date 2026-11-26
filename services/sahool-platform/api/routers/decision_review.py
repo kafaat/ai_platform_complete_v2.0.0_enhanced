@@ -81,11 +81,8 @@ async def get_decision_agronomic_evidence_boundary(
     decision_id: str,
     user: UserSchema = Depends(require_permission(Permission.DECISION_APPROVE)),
 ):
-    """Phase E — الدليل الزراعيّ الكامل خلف قرار واحد (سياق/تاريخ/manifest/نباتيّ).
-
-    قراءة آمِرة فقط: decision-service يملك الحقيقة؛ mirror/SoR-off ⇒ 503 هناك ويُمرَّر
-    هنا (fail-closed — لا "لا يوجد دليل" زائف). المراجِع يرى الدليل قبل approve/reject،
-    لذلك الصلاحيّة نفسها ``DECISION_APPROVE``. لا تحويل ولا تخليق للحمولة."""
+    """Phase E — الدليل الزراعيّ الكامل (سياق/تاريخ/manifest/نباتيّ)؛ decision-service يملك الحقيقة.
+    قراءة فقط، mirror/SoR-off ⇒ 503؛ DECISION_APPROVE قبل approve/reject؛ لا تحويل ولا تخليق."""
     from api.decision_service_client import (
         get_decision_agronomic_evidence as ds_get_decision_evidence,
     )
