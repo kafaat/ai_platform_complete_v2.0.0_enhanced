@@ -27175,7 +27175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f7c9a92c1f3984429da879c666ee031bc6ab20892cc0b575b0acf448f603ad9"
+          "content": "dbe76a7f127a47b1d6e69b607c742f51994442d4074788051e164ee77a2177dc"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_engineering_workspace.py",

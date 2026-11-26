@@ -314,3 +314,87 @@ def test_reservoir_forecast_preserves_small_real_shortfall(required_volume_m3):
     assert result.status == "fail"
     assert "RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME" in result.blocking_constraints
     assert result.reservoir_balance["forecast_end_volume_m3"] is None
+
+
+@pytest.mark.parametrize(
+    "well_rates,evaporation,seepage,required_volume,feasible",
+    [
+        ([220.2], 0.2, 0, 11500, True),
+        ([73.4, 73.4, 73.4], 0.2, 0, 11500, True),
+        ([220.2], 0.1, 0.1, 11500, True),
+        ([220.3], 0.1, 0.2, 11500, True),
+        ([220.2], 0.2, 0, math.nextafter(11500, -math.inf), True),
+        ([220.2], 0.2, 0, math.nextafter(11500, math.inf), False),
+        ([220.2], 0.2, 0, 11500.00000001, False),
+    ],
+    ids=[
+        "decimal-inflow-and-evaporation",
+        "same-inflow-split-across-three-wells",
+        "split-passive-losses",
+        "distinct-evaporation-and-seepage",
+        "adjacent-float-below-reserve-demand",
+        "adjacent-float-above-reserve-demand",
+        "small-real-shortfall",
+    ],
+)
+def test_reservoir_decimal_rates_preserve_exact_reserve_boundary(
+    well_rates, evaporation, seepage, required_volume, feasible
+):
+    req = base_request()
+    req.required_gross_volume_m3 = required_volume
+    req.wells = [
+        WellSupplyInput(well_id=f"w{i}", available_flow_m3_h=rate)
+        for i, rate in enumerate(well_rates)
+    ] + [WellSupplyInput(well_id="disabled", available_flow_m3_h=900, enabled=False)]
+    req.reservoir = ReservoirInput(
+        reservoir_id="r1",
+        capacity_m3=1000,
+        current_volume_m3=1000,
+        minimum_operating_volume_m3=500,
+        evaporation_loss_m3_h=evaporation,
+        seepage_loss_m3_h=seepage,
+    )
+    result = calculate_reservoir_booster_network(req)
+    assert result.status == ("pass" if feasible else "fail")
+    assert result.reservoir_balance["forecast_end_volume_m3"] == (500 if feasible else None)
+    assert (
+        "RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME" in result.blocking_constraints
+    ) is (not feasible)
+
+
+@pytest.mark.parametrize("feasible", [True, False], ids=["exact-reserve", "real-shortfall"])
+def test_reservoir_boundary_uses_original_selected_machine_rates(feasible):
+    pivots = [
+        PivotMachineInput(
+            pivot_id=f"p{i}",
+            name=f"Pivot {i}",
+            field_id="field-a",
+            radius_m=50,
+            design_flow_m3_h=rate,
+            required_inlet_pressure_bar=0,
+        )
+        for i, rate in enumerate([10.1, 10.2])
+    ]
+    req = base_request(pivots=pivots, requested=[p.pivot_id for p in pivots])
+    req.required_gross_volume_m3 = 1015 if feasible else math.nextafter(1015, math.inf)
+    req.wells = [WellSupplyInput(well_id="w1", available_flow_m3_h=10.5)]
+    req.reservoir = ReservoirInput(
+        reservoir_id="r1",
+        capacity_m3=1000,
+        current_volume_m3=1000,
+        minimum_operating_volume_m3=500,
+        evaporation_loss_m3_h=0.2,
+    )
+    result = calculate_reservoir_booster_network(req)
+    assert result.reservoir_balance["forecast_end_volume_m3"] == (500 if feasible else None)
+    assert (
+        "RESERVOIR_VOLUME_INSUFFICIENT_FOR_REQUESTED_RUNTIME" in result.blocking_constraints
+    ) is (not feasible)
+
+
+def test_reservoir_rejects_overflow_in_displayed_inflow_even_for_a_short_run():
+    req = base_request()
+    req.required_gross_volume_m3 = 1e-300
+    req.wells = [WellSupplyInput(well_id=f"w{i}", available_flow_m3_h=1e308) for i in range(2)]
+    with pytest.raises(ValueError, match="reservoir projection exceeds numeric range"):
+        calculate_reservoir_booster_network(req)

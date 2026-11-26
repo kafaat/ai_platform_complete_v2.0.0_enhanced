@@ -9415,3 +9415,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 - **الحالة:** open — ينتظر قرار المالك في الجدول المرجعيّ (المقترح: Maas–Hoffman / FAO-29 الجدول 4).
 - **المصدر:** موجود أربع مرّات عبر خدمتين ([`docs/farmland/PHASE2_BASELINE_main_35c305c2.md`](../../docs/farmland/PHASE2_BASELINE_main_35c305c2.md))؛ قياس `api/crop_suitability.py` مقابل `soil_science.py`: 30 من 168 خلافَ صنف و10 انقلابات صالح/غير صالح (نخيل التمر عند pH 6.5: «excellent» مقابل «unsuitable»؛ حدّ ECe للذرة البيضاء 6.5 مقابل 8.0 مقابل Maas–Hoffman 6.8).
+
+
+## IRRIGATION-RESERVOIR-DECIMAL-RESERVE-01 — تقريب معدلات التدفق يغيّر قرار الحد المطابق للاحتياطي
+
+- **الحالة:** fixed في شيفرة المتابعة باختبارات سلوكية؛ قبول الرأس المنشور وCI يُسجّلان في إيصال المتابعة، ولا قبول تشغيل إنتاجي ضمن هذا الحكم.
+- **المصدر:** ملاحظة Devin على #1621 (التعليق 4701730253) بعد دمجه في `75943311dd1b9ffabf2d147db9eb27a5efccd978`؛ `services/sahool-platform/api/irrigation_engineering_workspace.py:1042-1044` على ذلك الرأس يطبّق سماحية ULP بعد طرح المعدلات وضرب مدة التشغيل.
+- **الشاهد المقيس على الأساس:** 1000 م³ حاليًا و500 م³ احتياطيًا، طلب 11500 م³، بوستر 230 م³/ساعة، بئر 220.2 وتبخر 0.2؛ النهاية العشرية 500، لكن النسخة المدموجة أعادت None وحاجب نقص الماء. حالة المختبر المستقلة FAILED بتأكيد واحد، دون أخطاء أو تخطٍ وبمصدر ثابت.
+- **العلاج وحدّه:** جمع كل معدل أصلي كنسبة دقيقة من تمثيله العشري، ومقارنة الميزان المضروب في التدفق الموجب قبل القسمة أو التقريب. هذا يلغي سماحية تُخفي عجزًا حقيقيًا؛ تبقى الحسابات الهيدروليكية والطاقة كما هي، ويُحفظ رفض تجاوز مجال الأعداد في المجاميع المعروضة.
+- **اختبارات المتابعة:** `tests_v9/test_irrx1_8_reservoir_booster_optional_pivot.py`، حالات `test_reservoir_decimal_rates_preserve_exact_reserve_boundary` و`test_reservoir_boundary_uses_original_selected_machine_rates` و`test_reservoir_rejects_overflow_in_displayed_inflow_even_for_a_short_run`. قياس التطوير: 24 نجاحًا دون تخطٍ؛ لا يُستبدل به إيصال الرأس النهائي.
