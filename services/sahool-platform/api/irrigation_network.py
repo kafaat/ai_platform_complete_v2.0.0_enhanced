@@ -361,6 +361,7 @@ def simulate_hours(req, duty_flow, required_head):
         storage = end
     return {
         "basis": "hourly_fixed_duty_planning",
+        "status": "unmet_demand" if any(h["unmet_m3"] > 0 for h in rows) else "demand_met",
         "source_ref": plan.source_ref,
         "execution_authorized": False,
         "required_tdh_m": required_head,

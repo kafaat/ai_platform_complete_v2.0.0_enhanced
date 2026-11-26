@@ -1077,6 +1077,10 @@ def calculate_reservoir_booster_network(
     requested_ids = req.requested_machine_ids or (req.requested_pivot_ids if legacy_mode else [])
     selected = [m for m in enabled if m.machine_id in requested_ids] if requested_ids else []
 
+    if req.hourly_scenario and (
+        len(selected) > 1 or any(m.field_id != req.field_id for m in selected)
+    ):
+        raise ValueError("hourly serial main supports one field and one terminal machine")
     machine_mode = "selected" if selected else "none"
     duty_rates_m3_h = (
         [m.design_flow_m3_h for m in selected] if selected else [req.booster.design_flow_m3_h]

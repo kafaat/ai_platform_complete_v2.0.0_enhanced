@@ -39,7 +39,7 @@ def request_for(field, season):
     req["segments"][0].update(from_node=field + "-pond", to_node=field)
     req["hourly_scenario"] = dict(
         source_ref="synthetic design",
-        start_at="2026-01-01T00:00:00Z",
+        start_at="2026-07-01T00:00:00Z" if season == "summer" else "2026-01-01T00:00:00Z",
         curve=[
             dict(flow_m3_h=100, head_m=100, efficiency=0.8),
             dict(flow_m3_h=250, head_m=85, efficiency=0.75),
@@ -130,4 +130,11 @@ def test_network_export_has_serial_main_and_demand_in_lps():
     assert float(line.split()[2]) == pytest.approx(200 / 3.6)
     data["segments"][0]["from_node"] = "other-pond"
     with pytest.raises(ValueError, match="serial main"):
+        run(data)
+
+
+def test_hourly_main_rejects_mismatched_terminal_field():
+    data = request_for("north", "winter")
+    data["pivots"][0]["field_id"] = "south"
+    with pytest.raises(ValueError, match="one field"):
         run(data)
