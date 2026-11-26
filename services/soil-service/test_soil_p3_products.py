@@ -472,3 +472,54 @@ def test_reclamation_capability_omitted_preserves_legacy():
     product = build_reclamation_assessment(_gypsum_scenario_request(gypsum_scenario=None))
     assert "land_capability_scenario" not in product.provenance
     assert "land-capability.v1" not in product.assessment_version
+
+# Explicit sample provenance makes the previously unreachable ECe half usable.
+@pytest.mark.parametrize(
+    "method, expected",
+    [("saturation_extract_25c", True), ("soil_water_1_5", None)],
+)
+def test_reclamation_lab_sample_uses_registered_measurement_method(method, expected):
+    req = _gypsum_scenario_request(
+        gypsum_scenario=None,
+        ec_lab_ds_m=8,
+        esp_pct=3,
+        salinity_probability=0.1,
+        sodicity_probability=0.1,
+        lab_sample={
+            "source_ref": "fixture:pivot-b/lab-sample",
+            "observed_on": datetime.now(UTC).date(),
+            "ec_method": method,
+        },
+    )
+    product = build_reclamation_assessment(req)
+    diagnostic = product.provenance["lab_salinity_sodicity"]
+    assert diagnostic["saline"] is expected
+    assert diagnostic["freshness"] == "enforced"
+    assert any(i["type"] == "leaching_candidate" for i in product.interventions) == (
+        expected is True
+    )
+    assert product.provenance["lab_sample"]["local_compliance_evaluated"] is False
+    assert "reclamation_execution" in product.blocked_actions
+    assert "leaching_requirement" in product.blocked_actions
+    assert "lab-sample.v1" in product.assessment_version
+
+
+def test_reclamation_stale_sample_does_not_feed_gypsum_kernel(monkeypatch):
+    import p3_products
+
+    def unexpected(**kwargs):
+        pytest.fail("stale ESP must not feed gypsum calculation")
+
+    monkeypatch.setattr(p3_products, "gypsum_requirement", unexpected)
+    req = _gypsum_scenario_request(
+        ec_lab_ds_m=8,
+        lab_sample={
+            "source_ref": "fixture:pivot-b/stale-lab",
+            "observed_on": "2000-01-01",
+            "ec_method": "saturation_extract_25c",
+        },
+    )
+    product = build_reclamation_assessment(req)
+    assert product.provenance["lab_salinity_sodicity"]["sodic"] is None
+    assert product.provenance["gypsum_scenario"]["reason"] == "esp_sample_not_evaluated"
+    assert "gypsum_rate" in product.blocked_actions
