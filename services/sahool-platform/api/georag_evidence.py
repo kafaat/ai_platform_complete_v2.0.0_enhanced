@@ -13,9 +13,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import urllib.error
-import urllib.request
+import os
 from typing import Any
+
+import httpx
+from fastapi import HTTPException
 
 SCHEMA = "sahool.georag_evidence.v1"
 GLOBAL_REFERENCE_TENANT = "__global__"
@@ -85,7 +87,7 @@ def _classify(ann: Any, tenant_id: str, field_id: str, field_geom) -> tuple[str 
         g = parse_geometry(scope["geometry"])
         if g is None:
             return "annotation_geometry_invalid", ""
-        if not g.intersects(field_geom):
+        if not g.relate_pattern(field_geom, "T********"):
             return "geometry_disjoint", ""
         return None, "geometry_intersects"
     if scope.get("field_id") == field_id:
@@ -120,13 +122,18 @@ def scope_annotations(
         reasons.append("no_annotations")
     if annotations and not admitted:
         reasons.append("no_annotation_in_scope")
+    spatial = field_geom is not None and any(
+        ann["spatial_match"] != "general_reference" for ann in admitted
+    )
+    if admitted and not spatial and field_geom is not None:
+        reasons.append("no_spatial_annotation")
     body = {
         "schema": SCHEMA,
         "tenant_id": tenant_id,
         "field_id": field_id,
         "zone_id": zone_id,
         "field_geometry_digest": geometry_digest(field_geometry),
-        "status": "evidence_available" if admitted else "evidence_required",
+        "status": "evidence_available" if spatial and not retrieval_error else "evidence_required",
         "annotations": admitted,
         "rejected": rejected,
         "reason_codes": sorted(set(reasons)),
@@ -164,7 +171,7 @@ def not_supplied_envelope(reason: str) -> dict[str, Any]:
 
 
 def fetch_annotations(
-    base_url: str,
+    base_url: str | None = None,
     *,
     tenant_id: str,
     field_id: str,
@@ -176,26 +183,49 @@ def fetch_annotations(
     timeout_s: float = 5.0,
 ) -> tuple[list[dict], str | None]:
     """POST rag-retrieval ``/v1/search``; any failure → ([], reason) — never raises."""
-    req = urllib.request.Request(
-        base_url.rstrip("/") + "/v1/search",
-        data=json.dumps(
-            {
+    if base_url is None:
+        base_url = os.getenv("RAG_RETRIEVAL_URL", "http://sahool-rag-retrieval:8000")
+    try:
+        response = httpx.post(
+            base_url.rstrip("/") + "/v1/search",
+            json={
                 "tenant_id": tenant_id,
                 "field_id": field_id,
                 "query": query,
                 "crop": crop,
                 "region": region,
                 "final_k": final_k,
-            }
-        ).encode(),
-        headers={"Content-Type": "application/json", "X-Tenant-Id": tenant_id, **(headers or {})},
-        method="POST",
+            },
+            headers={"X-Tenant-Id": tenant_id, **(headers or {})},
+            timeout=timeout_s,
+            follow_redirects=False,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except (httpx.HTTPError, ValueError):
+        return [], _UNAVAILABLE
+    rows = payload.get("annotations") if isinstance(payload, dict) else None
+    return (rows, None) if isinstance(rows, list) else ([], _UNAVAILABLE)
+
+
+async def field_at_point(
+    conn, tenant_id: str, longitude: float, latitude: float
+) -> tuple[str, dict]:
+    """Resolve a unique stored field polygon under the authenticated tenant transaction."""
+    rows = await conn.fetch(
+        """SELECT field_id, ST_AsGeoJSON(geom, 15) AS geometry
+             FROM fields
+            WHERE tenant_id = $1::uuid
+              AND GeometryType(geom) IN ('POLYGON', 'MULTIPOLYGON')
+              AND ST_IsValid(geom)
+              AND ST_Covers(geom, ST_SetSRID(ST_MakePoint($2, $3), 4326))
+            LIMIT 2""",
+        tenant_id,
+        longitude,
+        latitude,
     )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout_s) as resp:  # noqa: S310
-            rows = json.loads(resp.read()).get("annotations")
-    except (urllib.error.URLError, OSError, ValueError, TimeoutError):
-        return [], _UNAVAILABLE
-    if not isinstance(rows, list):
-        return [], _UNAVAILABLE
-    return rows, None
+    if not rows:
+        raise HTTPException(404, "georag_point_outside_fields")
+    if len(rows) != 1:
+        raise HTTPException(409, "georag_point_matches_multiple_fields")
+    return rows[0]["field_id"], json.loads(rows[0]["geometry"])

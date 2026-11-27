@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7772,
+    "files_scanned": 7773,
     "files_by_kind": {
       "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2259,
-      "tests": 2723,
+      "tests": 2724,
       "web": 587
     },
     "unmapped_artifacts": 3705,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4226,
+      "python_functional": 4227,
       "raw": 3546
     },
-    "test_dependency_files": 2076,
-    "test_dependency_edges": 5620,
-    "test_dependency_bounded_files": 1194,
+    "test_dependency_files": 2077,
+    "test_dependency_edges": 5625,
+    "test_dependency_bounded_files": 1195,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -6220,6 +6220,14 @@
             "path:field workspace",
             "content:field workspace"
           ]
+        },
+        {
+          "path": "tests_v9/test_p2_georag_decision.py",
+          "score": 9,
+          "signals": [
+            "content:field boundary",
+            "content:field geometry"
+          ]
         }
       ],
       "governance": [
@@ -6393,7 +6401,7 @@
         "events": 62,
         "web": 3,
         "mobile": 2,
-        "tests": 17,
+        "tests": 18,
         "governance": 1,
         "other_evidence": 18
       },
@@ -21456,19 +21464,19 @@
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:244",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:247",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:412",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:465",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:305",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:536",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:592",
           "score": 8
         },
         {
@@ -23372,19 +23380,19 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:244",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:247",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:412",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:465",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:305",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:536",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:592",
           "score": 8
         }
       ],
@@ -42360,6 +42368,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_crop_inference.py",
       "kind": "tests"
     },
@@ -46833,10 +46845,6 @@
     },
     {
       "path": "tests_v9/test_p1_main_decomposition_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_p2_georag_decision.py",
       "kind": "tests"
     },
     {
@@ -62801,6 +62809,39 @@
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
           "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 17
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 17
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 18
+        },
+        {
+          "source": "services/sahool-platform/api/routers/crop_twin.py",
+          "kind": "import",
+          "line": 18
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 19
         }
       ],
       "unresolved": []

@@ -634,7 +634,12 @@ class RetrievedAnnotation:
             "chunk_id": self.chunk.chunk_id,
             "document_id": self.chunk.document_id,
             "tenant_id": self.chunk.tenant_id,
-            "spatial_scope": self.chunk.metadata.get("spatial_scope"),
+            "spatial_scope": self.chunk.metadata.get(
+                "spatial_scope",
+                {"field_id": self.chunk.metadata["field_id"]}
+                if self.chunk.metadata.get("field_id")
+                else None,
+            ),
             "source_type": self.chunk.source_type,
             "source_class": self.chunk.metadata.get("source_class"),
             "publisher": self.chunk.metadata.get("publisher"),

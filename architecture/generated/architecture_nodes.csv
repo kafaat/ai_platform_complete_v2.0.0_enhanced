@@ -27,10 +27,10 @@ knowledge-graph,service,2,0,False,services/knowledge-graph
 local-ai-rag,service,1,1,False,services/local-ai-rag
 mcp-servers,service,0,3,False,services/mcp_servers
 model-registry-adapter,service,0,2,False,services/model-registry-adapter
-platform,service,8,30,False,services/sahool-platform
+platform,service,8,31,False,services/sahool-platform
 production-preflight,compose-service,3,0,False,
 qdrant-seed,service,0,0,True,services/qdrant-seed
-rag-retrieval,service,1,0,False,services/rag-retrieval
+rag-retrieval,service,2,0,False,services/rag-retrieval
 raster-service,service,9,2,False,services/raster-service
 raster-tiler-service,service,2,0,False,services/raster-tiler-service
 realtime-agent,service,2,0,False,services/realtime-agent

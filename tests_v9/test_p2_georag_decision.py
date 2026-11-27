@@ -180,8 +180,14 @@ def test_decision_without_georag_fails_closed():
 
 
 def test_decision_with_georag_carries_scope_and_no_authority():
-    ev = _scope([_ann(scope={"geometry": INSIDE})])
-    d = _decide(georag_evidence=ev, field_geometry=FIELD, zone_id="z1")
+    ev = scope_annotations(
+        [_ann(scope={"geometry": INSIDE})],
+        tenant_id=T,
+        field_id="f1",
+        field_geometry=FIELD,
+        zone_id="z1",
+    )
+    d = _decide(georag_evidence=ev, field_geometry=FIELD, zone_id="z1", tenant_id=T, field_id="f1")
     assert d["georag_evidence"]["status"] == "evidence_available"
     s = d["decision_scope"]
     assert s["georag_grounded"] is True and s["zone_id"] == "z1" and s["geometry_digest"]
@@ -251,7 +257,7 @@ def test_http_round_trip_into_decision(server):
     assert err is None and _H.seen["path"] == "/v1/search"
     assert _H.seen["body"]["tenant_id"] == T and _H.seen["body"]["field_id"] == "f1"
     ev = scope_annotations(anns, tenant_id=T, field_id="f1", field_geometry=FIELD, zone_id=None)
-    d = _decide(georag_evidence=ev, field_geometry=FIELD)
+    d = _decide(georag_evidence=ev, field_geometry=FIELD, tenant_id=T, field_id="f1")
     assert d["decision_scope"]["georag_grounded"] is True
     assert d["georag_evidence"]["annotations"][0]["chunk_id"] == "k1"
 
@@ -270,3 +276,34 @@ def test_unreachable_service_fails_closed():
         "http://127.0.0.1:9", tenant_id=T, field_id="f1", query="q", timeout_s=1
     )
     assert anns == [] and err == "georag_retrieval_unavailable"
+
+
+@pytest.mark.parametrize("difference", ["field", "geometry", "tenant", "zone", "missing_geometry"])
+def test_spatial_evidence_is_bound_to_the_decision_context(difference):
+    ev = _scope([_ann(scope={"geometry": INSIDE})])
+    context = {"field_id": "f1", "tenant_id": T, "field_geometry": FIELD, "zone_id": None}
+    overrides = {
+        "field": {"field_id": "f2"},
+        "geometry": {"field_geometry": FAR},
+        "tenant": {"tenant_id": "tenant-b"},
+        "zone": {"zone_id": "different"},
+        "missing_geometry": {"field_geometry": None},
+    }
+    assert _decide(georag_evidence=ev, **context)["decision_scope"]["georag_grounded"]
+    decision = _decide(georag_evidence=ev, **(context | overrides[difference]))
+    assert not decision["decision_scope"]["georag_grounded"]
+    assert not decision["georag_evidence"]["annotations"]
+
+
+def test_general_reference_alone_does_not_ground_a_field_decision():
+    ev = _scope([_ann(tenant="__global__", source_class="official_reference", publisher="p")])
+    assert ev["annotations"][0]["spatial_match"] == "general_reference"
+    assert ev["status"] == "evidence_required"
+
+
+def test_touching_field_boundary_does_not_ground_the_neighbor():
+    adjacent = {
+        "type": "Polygon",
+        "coordinates": [[[44.01, 15], [44.02, 15], [44.02, 15.01], [44.01, 15.01], [44.01, 15]]],
+    }
+    assert _scope([_ann(scope={"geometry": adjacent})])["status"] == "evidence_required"

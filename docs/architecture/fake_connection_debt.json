@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "ac870c36c9309985708802f884110557521e1f55",
+  "measured_on": "edde616977d74e67d05838e2d8182e0a23758a12",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -22,6 +22,7 @@
     "services/raster-service/test_registry_writes_owner_api.py",
     "services/sahool-platform/tests/test_absent_reading_is_not_zero_at_the_edge.py",
     "services/sahool-platform/tests/test_break_glass.py",
+    "services/sahool-platform/tests/test_crop_georag_point_pg.py",
     "services/sahool-platform/tests/test_crop_stress_ingestion.py",
     "services/sahool-platform/tests/test_crop_stress_memory_service.py",
     "services/sahool-platform/tests/test_crop_stress_store.py",
