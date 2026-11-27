@@ -294,9 +294,28 @@ export default function EquipmentPage() {
   const equipment = data ?? [];
   const selected = equipment.find(e => e.equipment_id === selectedId) ?? null;
 
+  function toggleHistory(equipmentId: string) {
+    setSelectedId(current => current === equipmentId ? null : equipmentId);
+  }
+
   type EquipmentRow = Equipment & Record<string, unknown>;
   const columns: Column<EquipmentRow>[] = [
-    { key: 'name', label: 'الاسم', render: (eq) => <span style={{ fontWeight: 600 }}>{eq.name}</span> },
+    {
+      key: 'name', label: 'الاسم',
+      render: (eq) => (
+        <button
+          type="button"
+          aria-expanded={selectedId === eq.equipment_id}
+          className="cursor-pointer rounded-sm font-semibold underline decoration-dotted underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+          onClick={event => {
+            event.stopPropagation();
+            toggleHistory(eq.equipment_id);
+          }}
+        >
+          {eq.name}
+        </button>
+      ),
+    },
     { key: 'type', label: 'النوع', render: (eq) => <span style={{ color: T.muted }}>{TYPE_LABELS[eq.type] ?? eq.type}</span> },
     { key: 'status', label: 'الحالة', render: (eq) => <StatusBadge status={eq.status} /> },
     {
@@ -346,7 +365,7 @@ export default function EquipmentPage() {
             columns={columns}
             rows={equipment as EquipmentRow[]}
             rowKey={(eq) => eq.equipment_id}
-            onRowClick={(eq) => setSelectedId(eq.equipment_id === selectedId ? null : eq.equipment_id)}
+            onRowClick={eq => toggleHistory(eq.equipment_id)}
           />
         )}
       </Card>
