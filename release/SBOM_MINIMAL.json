@@ -25865,7 +25865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "240e9e3211625b7d9f7b402a3fecd66d0243896ac344ff767b0d3459623dd67c"
+          "content": "04d78283c32058f22d4913e51860908c0c07d5d50b4ffb665f033849e80cd000"
         }
       ],
       "name": "services/sahool-platform/api/api_models.py",
@@ -37165,7 +37165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3052e7f2f6fd20196efb6006c922b7450542ca56f2b31c5ca3652d755939a761"
+          "content": "d879fb7ca2a9a932eb76b8357379e6e472d9a98bd0b663d8197b8fcba0336254"
         }
       ],
       "name": "services/sahool-platform/tests/test_nutrient_4r.py",
