@@ -9,7 +9,17 @@ export type NetworkIrrigationSystemType =
   | 'drip'
   | 'valve_network';
 
+export interface HourlyNetworkPlan {
+  unmet_m3: number; required_tdh_m: number; constraints: string[]; epanet_duty_inp: string;
+  hours: Array<{at: string; pv_kw: number; delivered_m3: number; end_storage_m3: number; spill_m3: number; energy_used_kwh: number}>;
+}
 export interface IrrigationNetworkInput {
+  hourlyScenario?: {
+    source_ref: string; start_at: string;
+    curve: Array<{flow_m3_h:number;head_m:number;efficiency:number}>;
+    pv: {capacity_kwp:number;derate:number;temperature_coefficient_per_c:number};
+    hours: Array<{demand_m3:number;well_inflows_m3_h:Record<string,number>;irradiance_w_m2:number;ambient_temp_c:number}>;
+  };
   tenantId: string;
   fieldId: string;
   seasonId?: string | null;
@@ -56,7 +66,7 @@ export interface IrrigationNetworkResult {
   selected_machines: Array<Record<string, unknown>>;
   pivot_mode: 'selected' | 'none';
   selected_pivots: Array<Record<string, unknown>>;
-  reservoir_balance: Record<string, number | null>;
+  reservoir_balance: Record<string, unknown> & {hourly_scenario?: HourlyNetworkPlan};
   booster: Record<string, number | null>;
   segments: Array<Record<string, unknown>>;
   scenarios: Array<Record<string, unknown>>;
@@ -92,6 +102,7 @@ export async function calculateReservoirBoosterNetwork(input: IrrigationNetworkI
   }] : [];
 
   const { data } = await kongApi.post('/api/v1/irrigation/engineering/network-calculate', {
+    ...(input.hourlyScenario && { hourly_scenario: input.hourlyScenario }),
     tenant_id: input.tenantId,
     field_id: input.fieldId,
     season_id: input.seasonId ?? null,

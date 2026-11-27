@@ -16,8 +16,16 @@
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from dataclasses import dataclass
+from datetime import UTC, timedelta
+from itertools import pairwise
+from typing import Annotated
+
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, model_validator
+
+from api.canonical_energy_microgrid_capability import _pv_power_kw
 
 _KINDS = (
     "well",
@@ -201,3 +209,210 @@ def check_network_feasibility(nodes: list[NetworkNode], edges: list[NetworkEdge]
         "thresholds_estimated": True,  # عتبات الجدوى (سعة/إنتاجيّة/ضغط) تقديريّة غير معايَرة
         "warnings_ar": warnings_ar,
     }
+
+
+Source = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=512)]
+Rate = Annotated[float, Field(ge=0, le=1e8)]
+Positive = Annotated[float, Field(gt=0, le=1e8)]
+
+
+class PlanningInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+
+class PumpingTest(PlanningInput):
+    source_ref: Source
+    duration_min: Positive
+    static_level_m: Rate
+    pumping_level_m: Positive
+    discharge_m3_h: Positive
+
+    @model_validator(mode="after")
+    def positive_drawdown(self):
+        if self.pumping_level_m <= self.static_level_m:
+            raise ValueError("pumping test requires positive drawdown below static level")
+        return self
+
+    def result(self):
+        drawdown = self.pumping_level_m - self.static_level_m
+        capacity = self.discharge_m3_h / drawdown
+        if not math.isfinite(capacity):
+            raise ValueError("pumping test outside numeric range")
+        return {
+            **self.model_dump(),
+            "drawdown_m": drawdown,
+            "specific_capacity_m3_h_per_m": capacity,
+            "sustainable_yield_m3_h": None,
+        }
+
+
+class CurvePoint(PlanningInput):
+    flow_m3_h: Rate
+    head_m: Positive
+    efficiency: float = Field(gt=0, le=1)
+
+
+class SolarArray(PlanningInput):
+    capacity_kwp: Positive
+    derate: float = Field(gt=0, le=1)
+    temperature_coefficient_per_c: float = Field(ge=-0.02, le=0)
+
+
+class ScenarioHour(PlanningInput):
+    demand_m3: Rate
+    well_inflows_m3_h: dict[str, Rate] = Field(max_length=256)
+    irradiance_w_m2: float = Field(ge=0, le=1600)
+    ambient_temp_c: float = Field(ge=-90, le=70)
+
+
+class HourlyScenario(PlanningInput):
+    source_ref: Source
+    start_at: AwareDatetime
+    curve: list[CurvePoint] = Field(min_length=2, max_length=128)
+    pv: SolarArray
+    hours: list[ScenarioHour] = Field(min_length=1, max_length=8784)
+
+    @model_validator(mode="after")
+    def validate_profile(self):
+        for a, b in pairwise(self.curve):
+            if b.flow_m3_h <= a.flow_m3_h or b.head_m > a.head_m:
+                raise ValueError("curve needs increasing flow and non-increasing head")
+        if self.start_at.year > 9997:
+            raise ValueError("simulation start outside timestamp range")
+        return self
+
+    def duty_point(self, flow):
+        for a, b in pairwise(self.curve):
+            if a.flow_m3_h <= flow <= b.flow_m3_h:
+                fraction = (flow - a.flow_m3_h) / (b.flow_m3_h - a.flow_m3_h)
+                return a.head_m + fraction * (b.head_m - a.head_m), a.efficiency + fraction * (
+                    b.efficiency - a.efficiency
+                )
+        raise ValueError("design duty outside supplied pump curve")
+
+
+def simulate_hours(req, duty_flow, required_head):
+    """Constant in-hour rates. Dispatch only an available fixed-speed duty point."""
+    plan = req.hourly_scenario
+    if not math.isclose(
+        math.fsum(h.demand_m3 for h in plan.hours),
+        req.required_gross_volume_m3,
+        rel_tol=1e-9,
+        abs_tol=1e-9,
+    ):
+        raise ValueError("hourly demand must sum to required gross volume")
+    head, eff = plan.duty_point(duty_flow)
+    pump_kw = 9.80665 * (duty_flow / 3600) * head / (eff * req.booster.motor_efficiency)
+    if not math.isfinite(pump_kw) or pump_kw <= 0:
+        raise ValueError("pump power outside numeric range")
+    limits = []
+    if head < required_head:
+        limits.append("pump_head_below_tdh")
+    if duty_flow > req.booster.design_flow_m3_h or (
+        req.booster.design_head_m is not None and required_head > req.booster.design_head_m
+    ):
+        limits.append("booster_design_exceeded")
+    if (
+        req.booster.installed_motor_power_kw is not None
+        and pump_kw > req.booster.installed_motor_power_kw
+    ):
+        limits.append("motor_power_exceeded")
+    wells = {w.well_id: (w.available_flow_m3_h if w.enabled else 0) for w in req.wells}
+    tank = req.reservoir
+    storage = tank.current_volume_m3
+    rows = []
+    for index, h in enumerate(plan.hours):
+        if h.well_inflows_m3_h.keys() != wells.keys() or any(
+            rate > wells[key] for key, rate in h.well_inflows_m3_h.items()
+        ):
+            raise ValueError(
+                "hourly inflows must identify each well and respect its available flow"
+            )
+        pv_kw = _pv_power_kw(
+            irradiance_w_m2=h.irradiance_w_m2,
+            ambient_temp_c=h.ambient_temp_c,
+            pv_capacity_kwp=plan.pv.capacity_kwp,
+            system_derate=plan.pv.derate,
+            temperature_coefficient_per_c=plan.pv.temperature_coefficient_per_c,
+        )
+        inflow = math.fsum(h.well_inflows_m3_h.values())
+        available = storage + inflow
+        losses = min(available, tank.evaporation_loss_m3_h + tank.seepage_loss_m3_h)
+        usable = max(0, available - losses - tank.minimum_operating_volume_m3)
+        delivered = min(h.demand_m3, duty_flow, usable) if not limits and pv_kw >= pump_kw else 0.0
+        remainder = available - losses - delivered
+        spill = max(0, remainder - tank.capacity_m3)
+        end = min(tank.capacity_m3, remainder)
+        rows.append(
+            {
+                "at": (plan.start_at.astimezone(UTC) + timedelta(hours=index)).isoformat(),
+                "start_storage_m3": storage,
+                "inflow_m3": inflow,
+                "loss_m3": losses,
+                "spill_m3": spill,
+                "end_storage_m3": end,
+                "demand_m3": h.demand_m3,
+                "delivered_m3": delivered,
+                "unmet_m3": h.demand_m3 - delivered,
+                "pv_kw": pv_kw,
+                "energy_used_kwh": pump_kw * (delivered / duty_flow),
+            }
+        )
+        storage = end
+    return {
+        "basis": "hourly_fixed_duty_planning",
+        "status": "unmet_demand" if any(h["unmet_m3"] > 0 for h in rows) else "demand_met",
+        "source_ref": plan.source_ref,
+        "execution_authorized": False,
+        "required_tdh_m": required_head,
+        "pump_head_m": head,
+        "pump_kw": pump_kw,
+        "constraints": limits,
+        "hours": rows,
+        "unmet_m3": math.fsum(h["unmet_m3"] for h in rows),
+        "epanet_duty_inp": epanet_duty_model(req, duty_flow, head),
+        "pumping_tests": {w.well_id: w.pumping_test.result() for w in req.wells if w.pumping_test},
+    }
+
+
+def epanet_duty_model(req, flow_m3_h, pump_head_m):
+    """EPANET 2.2 input for the serial delivery main at one fixed duty point."""
+    previous = req.reservoir.reservoir_id
+    visited = {previous}
+    elevation = 0.0
+    junctions = []
+    pipes = []
+    for idx, segment in enumerate(req.segments, 1):
+        if segment.from_node != previous or segment.to_node in visited:
+            raise ValueError("hourly scenario needs one continuous serial main from the reservoir")
+        previous = segment.to_node
+        visited.add(previous)
+        elevation += segment.elevation_change_m
+        demand = flow_m3_h / 3.6 if idx == len(req.segments) else 0
+        junctions.append(f"J{idx} {elevation:.12g} {demand:.12g}")
+        velocity = (flow_m3_h / 3600) / (math.pi * (segment.internal_diameter_mm / 1000) ** 2 / 4)
+        loss_k = 2 * 9.80665 * segment.minor_loss_m / velocity**2
+        inlet = "R" if idx == 1 else f"J{idx - 1}"
+        pipes.append(
+            f"P{idx} {inlet} J{idx} {segment.length_m:.12g} {segment.internal_diameter_mm:.12g} {segment.hazen_williams_c:.12g} {loss_k:.12g} OPEN"
+        )
+    source_head = pump_head_m - req.booster.suction_loss_m
+    return "\n".join(
+        [
+            "[TITLE]",
+            "SAHOOL fixed-duty serial delivery main",
+            "[JUNCTIONS]",
+            *junctions,
+            "[RESERVOIRS]",
+            f"R {source_head:.12g}",
+            "[PIPES]",
+            *pipes,
+            "[OPTIONS]",
+            "UNITS LPS",
+            "HEADLOSS H-W",
+            "[TIMES]",
+            "DURATION 0",
+            "[END]",
+            "",
+        ]
+    )

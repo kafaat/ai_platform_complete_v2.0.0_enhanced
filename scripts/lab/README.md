@@ -101,6 +101,7 @@ list, the runner's reading of `ci.yml` or the test files drift apart):
 42. Governed learning proposals are reviewed under RLS (G14, real-PG)
 43. Weather save refuses a point outside the field (G1, real-PG)
 44. Farm ledger deducts a named inventory batch once (G6, real-PG)
+45. Equipment maintenance schedule (real-PG, restricted role)
 
 The raster step loads `scripts.raster_pg.required_cases`, which requires all seven
 live cases without skips, failures or duplicates. It validates the JUnit path

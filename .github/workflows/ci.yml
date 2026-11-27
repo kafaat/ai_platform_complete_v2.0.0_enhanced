@@ -1970,6 +1970,13 @@ jobs:
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_farm_ledger_inventory_deduction_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
+      - name: Equipment maintenance schedule (real-PG, restricted role)
+        env:
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          EQUIPMENT_SCHEDULE_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_equipment_schedule_wiring.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+
       # Live coverage (#1427 follow-up, extended by CI-LIVE-PG-COVERAGE-UNREPORTED-01): every
       # certification step after the shared run appends to .coverage.integration-auth with
       # --cov-append. The auth and platform steps measure their app; the others measure
@@ -1998,6 +2005,7 @@ jobs:
           --require-file services/auth/routers/invitations.py
           --require-file services/auth/session_tokens.py
           --require-file services/sahool-platform/api/routers/security_audit.py
+          --require-file services/sahool-platform/api/routers/equipment.py
           --require-file services/vegetation-analysis-service/anomaly_store_pg.py
           --require-file services/soil-service/plan_copy_store.py
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0

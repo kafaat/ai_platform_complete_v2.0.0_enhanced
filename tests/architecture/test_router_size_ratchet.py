@@ -54,7 +54,7 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # lifecycle features are built in one expression (Wave 0 #1498).
     # → 3886 (2026-11-16, W1-03): the legacy soil_lab_tests write bodies were frozen to a 410 Gone
     # pointing at /api/v1/lab/* (soil_lab_results is the single canonical store; routes kept).
-    "services/sahool-platform/api/routers/fields.py": 3886,
+    "services/sahool-platform/api/routers/fields.py": 3885,
     # 3022 → 3013 (W1-22, 2026-11-16): the delegated-breaker state moved to weather_service_client
     # and the probe reuses _get_weather_sample_cached instead of a copy of it.
     # 3013 → 3004 (wave 3 #1587): G1 added its save gate here; the gate and the runtime smoke plan

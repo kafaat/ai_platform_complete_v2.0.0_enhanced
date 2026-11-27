@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **2286**
+- Python files parsed: **2290**
 - FastAPI-style route handlers: **1100**
-- Static function-call edges: **124970**
-- Dead-code candidates: **693**
+- Static function-call edges: **125318**
+- Dead-code candidates: **694**
 - Duplicate function groups: **67**
 - Automatic deletions: **0**
 
@@ -32,7 +32,7 @@
 | `raster-service` | `_clean_runtime_state` | function | `services/raster-service/test_job_truth_receipts_and_fencing.py` | 77 |
 | `sahool-platform` | `_extract_ec` | function | `services/sahool-platform/api/field_state_projection.py` | 281 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 71 |
-| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1147 |
+| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1146 |
 | `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
 | `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 435 |

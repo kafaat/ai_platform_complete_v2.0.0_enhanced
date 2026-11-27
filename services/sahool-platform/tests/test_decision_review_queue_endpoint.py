@@ -110,3 +110,40 @@ async def test_scoped_queue_proves_the_requested_scope(
         with pytest.raises(HTTPException) as exc:
             await request
         assert exc.value.status_code == 503
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "tenant,inner_id,allowed",
+    [
+        (str(_USER.tenant_id), "decision-1", True),
+        ("00000000-0000-0000-0000-000000000003", "decision-1", False),
+        (None, "decision-1", False),
+        (str(_USER.tenant_id), "decision-2", False),
+        (str(_USER.tenant_id), None, False),
+    ],
+)
+async def test_agronomic_evidence_proves_tenant_and_decision(
+    monkeypatch, tenant, inner_id, allowed
+):
+    from api import decision_service_client
+
+    async def fake(decision_id, *, tenant_id=None):
+        assert tenant_id == str(_USER.tenant_id)
+        return {
+            "authoritative": True,
+            "persisted": True,
+            "read_only": True,
+            "tenant_id": tenant,
+            "decision_id": decision_id,
+            "decision": {"decision_id": inner_id},
+        }
+
+    monkeypatch.setattr(decision_service_client, "get_decision_agronomic_evidence", fake)
+    request = mod.get_decision_agronomic_evidence_boundary("decision-1", user=_USER)
+    if allowed:
+        assert (await request)["decision"]["decision_id"] == "decision-1"
+    else:
+        with pytest.raises(HTTPException) as exc:
+            await request
+        assert exc.value.status_code == 503

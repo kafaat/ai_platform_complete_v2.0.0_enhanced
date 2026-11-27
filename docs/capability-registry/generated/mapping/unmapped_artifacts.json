@@ -180,6 +180,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/EquipmentReadinessCard.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/FieldDetailPanel.tsx",
     "kind": "web"
   },
@@ -444,11 +448,19 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/fieldview/EnergyLifecycleComparison.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/fieldview/EvidenceGraphCard.tsx",
     "kind": "web"
   },
   {
     "path": "frontend/src/components/fieldview/EvidenceHistoryCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/FertilizerScenarioCard.tsx",
     "kind": "web"
   },
   {
@@ -530,6 +542,14 @@
   {
     "path": "frontend/src/components/fieldview/SoilGovernanceWiring.static.test.ts",
     "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldview/SoilP3Evidence.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldview/SoilP3Evidence.tsx",
+    "kind": "web"
   },
   {
     "path": "frontend/src/components/fieldview/SpecialtyCropsCard.tsx",
@@ -1288,6 +1308,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/equipmentReadiness.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/equipmentReadiness.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/escapeHtml.ts",
     "kind": "web"
   },
@@ -1309,6 +1337,14 @@
   },
   {
     "path": "frontend/src/lib/featureFlags.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fertilizerScenario.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fertilizerScenario.ts",
     "kind": "web"
   },
   {
@@ -2101,6 +2137,14 @@
   },
   {
     "path": "frontend/src/sections/GovernancePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/HourlyNetworkPlanning.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/HourlyNetworkPlanning.tsx",
     "kind": "web"
   },
   {

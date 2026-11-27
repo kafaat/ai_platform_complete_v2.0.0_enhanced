@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { emptyHourlyDraft, HourlyInputs, hourlyPayload, HourlySummary } from './HourlyNetworkPlanning';
 import { Network } from 'lucide-react';
 import { useTenantId } from '../hooks/useAuth';
 import {
@@ -32,6 +33,8 @@ export default function ReservoirBoosterNetworkCalculator({ fieldId, seasonId }:
 function ReservoirNetworkForm({ tenantId, fieldId, seasonId }: {tenantId:ReturnType<typeof useTenantId>;fieldId:string;seasonId?:string|null}) {
   const [systemType,setSystemType]=useState<NetworkIrrigationSystemType>('none');
   const [busy,setBusy]=useState(false); const [error,setError]=useState<string|null>(null); const [result,setResult]=useState<IrrigationNetworkResult|null>(null);
+  const [hourly,setHourly]=useState(false);
+  const [hourlyValues,setHourlyValues]=useState(emptyHourlyDraft);
   const [f,setF]=useState({volume:'11000',well1:'80',well2:'80',well3:'80',reservoirCapacity:'4000',reservoirCurrent:'3500',reservoirMinimum:'500',reservoirEvaporation:'0',reservoirSeepage:'0',boosterFlow:'230',boosterHead:'70',boosterMotor:'60',boosterPumpEfficiency:'0.78',boosterMotorEfficiency:'0.92',pipeLength:'1000',diameter:'250',c:'140',elevation:'8',minorLoss:'5',safety:'5',systemName:'نظام الري 1',systemFlow:'230',systemPressure:'3.2',radius:'399',arc:'360',machineLength:'400',travelLength:'1000',hoseLength:'400',hoseDiameter:'110',zoneCount:'8',concurrentZones:'2',emitterCount:'12000',emitterFlow:'4',sprinklerCount:'40',sprinklerFlow:'5.75',wettedArea:'50'});
   // Any edit invalidates the previous result (+ its digest); clear it so nothing stale shows.
   const invalidate=()=>{if(result)setResult(null);if(error)setError(null);};
@@ -42,8 +45,10 @@ function ReservoirNetworkForm({ tenantId, fieldId, seasonId }: {tenantId:ReturnT
   async function run(){
     if(!tenantId){setError('هوية المستأجر غير متاحة.');return;}
     setBusy(true);setError(null);setResult(null);
+    let hourlyScenario;
+    try { if(hourly) hourlyScenario=hourlyPayload(hourlyValues,fieldId); } catch(e) {setError(e instanceof Error ? e.message : 'تعذر قراءة الساعات');setBusy(false);return;}
     try{setResult(await calculateReservoirBoosterNetwork({
-      tenantId,fieldId,seasonId,requiredGrossVolumeM3:num(f.volume),wellFlowsM3h:[num(f.well1),num(f.well2),num(f.well3)],
+      ...(hourlyScenario && {hourlyScenario}),tenantId,fieldId,seasonId,requiredGrossVolumeM3:num(f.volume),wellFlowsM3h:[num(f.well1),num(f.well2),num(f.well3)],
       reservoirCapacityM3:num(f.reservoirCapacity),reservoirCurrentM3:num(f.reservoirCurrent),reservoirMinimumM3:num(f.reservoirMinimum),
       reservoirEvaporationM3h:num(f.reservoirEvaporation),reservoirSeepageM3h:num(f.reservoirSeepage),
       boosterFlowM3h:num(f.boosterFlow),boosterHeadM:num(f.boosterHead),boosterMotorKw:num(f.boosterMotor),boosterPumpEfficiency:num(f.boosterPumpEfficiency),boosterMotorEfficiency:num(f.boosterMotorEfficiency),
@@ -74,7 +79,10 @@ function ReservoirNetworkForm({ tenantId, fieldId, seasonId }: {tenantId:ReturnT
       {systemType==='drip'&&<><F label="عدد النقاطات" value={f.emitterCount} onChange={v=>set('emitterCount',v)}/><F label="تصريف النقاط" value={f.emitterFlow} onChange={v=>set('emitterFlow',v)} unit="لتر/ساعة"/></>}
       {systemType==='sprinkler'&&<><F label="عدد الرشاشات" value={f.sprinklerCount} onChange={v=>set('sprinklerCount',v)}/><F label="تصريف الرشاش" value={f.sprinklerFlow} onChange={v=>set('sprinklerFlow',v)} unit="م³/ساعة"/></>}
       </div></div>}<button disabled={busy} onClick={run} className="w-full rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 disabled:opacity-50">{busy?'جارٍ الحساب…':'احسب الشبكة'}</button>{error&&<p className="rounded-lg border border-rose-800 bg-rose-950/30 p-2 text-xs text-rose-300">{error}</p>}</div>
+      <div className="space-y-2 lg:col-span-4"><label><input type="checkbox" checked={hourly} onChange={e=>{setHourly(e.target.checked);invalidate();}}/> محاكاة البوستر الشمسي ساعة بساعة</label>
+        {hourly && <HourlyInputs value={hourlyValues} onChange={v=>{setHourlyValues(v);invalidate();}}/>}</div>
     </fieldset>
+    {result?.reservoir_balance.hourly_scenario && <HourlySummary plan={result.reservoir_balance.hourly_scenario}/>}
     {result&&<div className="mt-5 border-t border-slate-800 pt-4"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5 text-sm"><div className="rounded-xl bg-slate-900 p-3">الحالة: <b>{result.status}</b></div><div className="rounded-xl bg-slate-900 p-3">النظام: <b>{result.machine_mode==='none'?'غير مضاف':String(result.selected_machines[0]?.system_type ?? 'مضاف')}</b></div><div className="rounded-xl bg-slate-900 p-3">صافي البركة: <b>{show(result.reservoir_balance.net_change_m3_h)} م³/ساعة</b></div><div className="rounded-xl bg-slate-900 p-3">الضغط المطلوب: <b>{show(result.booster.required_pressure_bar)} bar</b></div><div className="rounded-xl bg-slate-900 p-3">قدرة البوستر: <b>{show(result.booster.input_power_kw)} kW</b></div></div>{Object.prototype.hasOwnProperty.call(result.reservoir_balance, 'forecast_end_volume_m3') && <section aria-label="توقع موازنة الخزان" className="mt-3 space-y-2 rounded-xl border border-slate-700 p-3 text-sm">
       <h3 className="font-semibold text-cyan-300">توقع موازنة الخزان</h3>
       <div className="grid gap-2 sm:grid-cols-3">
