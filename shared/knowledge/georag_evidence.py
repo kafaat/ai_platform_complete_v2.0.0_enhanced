@@ -38,7 +38,7 @@ def _coords_finite(node: Any) -> bool:
 
 def parse_geometry(geom: Any):
     """GeoJSON Polygon/MultiPolygon → valid non-empty shapely geometry, else None."""
-    if not isinstance(geom, dict) or geom.get("type") not in {"Polygon", "MultiPolygon"}:
+    if not isinstance(geom, dict) or geom.get("type") not in ("Polygon", "MultiPolygon"):
         return None
     if not _coords_finite(geom.get("coordinates")):
         return None
@@ -73,10 +73,12 @@ def _classify(
     is_global = ann_tenant == GLOBAL_REFERENCE_TENANT
     if not is_global and ann_tenant != tenant_id:
         return "tenant_scope_mismatch", ""
-    if any(not str(ann.get(k) or "").strip() for k in _PROVENANCE):
+    if any(not isinstance(ann.get(k), str) or not ann[k].strip() for k in _PROVENANCE):
         return "provenance_incomplete", ""
     scope = ann.get("spatial_scope")
-    if not isinstance(scope, dict) or not scope:
+    if scope is not None and not isinstance(scope, dict):
+        return "spatial_scope_invalid", ""
+    if not scope:
         if is_global:
             return None, "general_reference"
         return "spatial_scope_missing", ""
