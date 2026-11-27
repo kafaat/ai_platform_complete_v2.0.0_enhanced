@@ -629,10 +629,10 @@
         "POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:180",
         "POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:215",
         "POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31",
-        "POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:245",
-        "POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:413",
-        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303",
-        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:537",
+        "POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:248",
+        "POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:467",
+        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:306",
+        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:594",
         "POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3203",
         "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:469"
       ],
@@ -663,6 +663,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_crop_decision_endpoint.py",
+        "services/sahool-platform/tests/test_crop_georag_point_pg.py",
         "services/sahool-platform/tests/test_crop_inference.py",
         "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py",
         "services/sahool-platform/tests/test_crop_intelligence_canonical_inputs.py",
@@ -674,8 +675,7 @@
         "services/sahool-platform/tests/test_crop_intelligence_spectral_state.py",
         "services/sahool-platform/tests/test_crop_introduction.py",
         "services/sahool-platform/tests/test_crop_market_gap.py",
-        "services/sahool-platform/tests/test_crop_operations.py",
-        "services/sahool-platform/tests/test_crop_policy_engine.py"
+        "services/sahool-platform/tests/test_crop_operations.py"
       ],
       "runtime": {
         "metrics": [],
@@ -726,7 +726,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 28
+        "tests": 29
       }
     },
     {
@@ -755,7 +755,7 @@
         "GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:70",
         "GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147",
         "GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:214",
-        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:537",
+        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:594",
         "POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32",
         "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:471",
         "POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:145",
@@ -4931,7 +4931,7 @@
         "services/decision-service/main.py"
       ],
       "apis": [
-        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303",
+        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:306",
         "POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:116",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:889"
       ],

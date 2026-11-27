@@ -18,8 +18,12 @@
 
 from __future__ import annotations
 
+import os
+
+import asyncpg
 from core.crop_intelligence import build_canonical_spectral_state
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
 from api.crop_decision_bridge import submit_crop_decision_candidate
@@ -28,10 +32,11 @@ from api.data_quality import assess_data_quality
 from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.decision_sor_mode import crop_twin_direct_decision_enabled
 from api.economic_state import economic_state
+from api.georag_evidence import fetch_annotations, field_at_point, scope_annotations
 from api.irrigation_method import gross_irrigation_mm, method_profile
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.irrigation_policy import PolicyContext, resolve_policy
-from api.main import UserSchema, get_current_user
+from api.main import UserSchema, get_current_user, tenant_connection
 from api.season_simulation import crop_gdd_policy
 from api.soil_water import soil_water_params
 from api.unified_decision import unified_decision
@@ -56,8 +61,6 @@ from api.canonical_spectral_state import resolve_canonical_spectral_state  # noq
 def compose_server_authoritative_spectral_enabled() -> bool:
     """راية تفعيل جلب الطيف الحاكم خادميّاً (افتراض معطَّل — سلوك التشغيل بلا تغيير
     حتى يُفعِّلها المشغّل). عند التعطيل يبقى المسار كما هو (مدخلات العميل للمعاينة)."""
-    import os
-
     return os.getenv("COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED", "0").strip().lower() in {
         "1",
         "true",
@@ -360,15 +363,64 @@ async def crop_decision_candidate_endpoint(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+class GeoRAGPointQuery(BaseModel):
+    longitude: float = Field(ge=-180, le=180, strict=True)
+    latitude: float = Field(ge=-90, le=90, strict=True)
+    query: str = Field(min_length=1, max_length=1000, pattern=r"\S")
+
+
 class CropDecisionRequest(CropTwinComposeRequest):
     """طلب القرار الموحّد = طلب التركيب + سياسة الريّ وقيوده."""
 
+    georag: GeoRAGPointQuery | None = None
     policy: str = "water_saving"
     max_application_mm: float | None = None
     season_budget_mm: float | None = None
     water_price_per_m3: float | None = None
     yield_value_per_ha: float | None = None
     decision_id: str | None = None  # نَسَب: يُمرَّر لإعادة استخدام السلسلة، أو يُسَكّ جديداً
+
+
+async def _preview_spatial_context(req: CropDecisionRequest, user: UserSchema):
+    """Resolve the point before field-dependent composition; release the DB before retrieval."""
+    if req.georag is None:
+        return req, {}
+    if not user.tenant_id:
+        raise HTTPException(403, "georag_tenant_required")
+    tenant_id = str(user.tenant_id)
+    try:
+        async with tenant_connection(user) as conn:
+            field_id, geometry = await field_at_point(
+                conn, tenant_id, req.georag.longitude, req.georag.latitude
+            )
+    except (asyncpg.PostgresError, OSError, TimeoutError) as exc:
+        raise HTTPException(503, "georag_field_lookup_unavailable") from exc
+    if req.field_id is not None and req.field_id != field_id:
+        raise HTTPException(422, "georag_point_field_mismatch")
+    token = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if token:
+        annotations, error = await run_in_threadpool(
+            fetch_annotations,
+            tenant_id=tenant_id,
+            field_id=field_id,
+            query=req.georag.query,
+            headers={"X-Agent-Token": token},
+        )
+    else:
+        annotations, error = [], "georag_retrieval_unavailable"
+    evidence = scope_annotations(
+        annotations,
+        tenant_id=tenant_id,
+        field_id=field_id,
+        field_geometry=geometry,
+        retrieval_error=error,
+    )
+    return req.model_copy(update={"field_id": field_id}), {
+        "field_id": field_id,
+        "tenant_id": tenant_id,
+        "field_geometry": geometry,
+        "georag_evidence": evidence,
+    }
 
 
 async def compose_crop_decision(
@@ -381,6 +433,7 @@ async def compose_crop_decision(
     الاقتصاد مؤجَّل (economic_state=not_configured محجوز، لا مُختلق). نقيّ بلا قاعدة؛
     الإدامة في الغلاف async (crop_decision_endpoint) خلف علم تشغيليّ.
     """
+    req, spatial_context = await _preview_spatial_context(req, user)
     st = await _compose_state(req, tenant_id=str(user.tenant_id) if user.tenant_id else None)
     kc_of = st["kc_of"]
 
@@ -399,7 +452,7 @@ async def compose_crop_decision(
         yield_value_per_ha=req.yield_value_per_ha,
     )
 
-    decision = unified_decision(st["twin"], plan.to_dict(), st["quality"])
+    decision = unified_decision(st["twin"], plan.to_dict(), st["quality"], **spatial_context)
     did = ensure_decision_id(req.decision_id)
     decision["field_id"] = req.field_id
     decision["dynamic_kc"] = round(st["dyn_kc"], 3)
@@ -460,6 +513,7 @@ async def compose_profit_aware_decision(
     غالٍ ⇒ profit_max...). يحسب economic_state من ماء الخطّة (م³/ها) والتسميد المتبقّي
     والأسعار المُمرَّرة. صدق: لا أسعار مُختلقة — الغائب يظهر missing_inputs/partial.
     """
+    req, spatial_context = await _preview_spatial_context(req, user)
     st = await _compose_state(req, tenant_id=str(user.tenant_id) if user.tenant_id else None)
     kc_of = st["kc_of"]
 
@@ -515,7 +569,9 @@ async def compose_profit_aware_decision(
     )
     econ["fertilizer_cost_status"] = "unavailable_no_nutrient_to_product_conversion"
 
-    decision = unified_decision(st["twin"], plan_dict, st["quality"], economic=econ)
+    decision = unified_decision(
+        st["twin"], plan_dict, st["quality"], economic=econ, **spatial_context
+    )
     did = ensure_decision_id(req.decision_id)
     decision["field_id"] = req.field_id
     decision["dynamic_kc"] = round(st["dyn_kc"], 3)

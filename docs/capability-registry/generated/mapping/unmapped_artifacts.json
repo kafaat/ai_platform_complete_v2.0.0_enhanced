@@ -8840,6 +8840,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_crop_inference.py",
     "kind": "tests"
   },
@@ -13313,10 +13317,6 @@
   },
   {
     "path": "tests_v9/test_p1_main_decomposition_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_p2_georag_decision.py",
     "kind": "tests"
   },
   {

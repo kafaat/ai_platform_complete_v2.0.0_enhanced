@@ -353,6 +353,8 @@ def unified_decision(
     planned_rates: list[dict] | None = None,
     as_applied: list[dict] | None = None,
     yield_samples: list[dict] | None = None,
+    field_id: str | None = None,
+    tenant_id: str | None = None,
     georag_evidence: dict | None = None,
     field_geometry: dict | None = None,
     zone_id: str | None = None,
@@ -469,16 +471,30 @@ def unified_decision(
 
     # GeoRAG: annotation-only, spatially scoped, fail-closed. A forged or unsupplied
     # envelope never grounds the decision; nothing here grants execution authority.
+    state_field = (field_state or {}).get("field_id")
+    decision_field = field_id or state_field
+    geometry_hash = geometry_digest(field_geometry)
     if georag_evidence is None:
         georag = not_supplied_envelope("georag_not_supplied")
     elif not envelope_valid(georag_evidence):
         georag = not_supplied_envelope("georag_envelope_invalid")
+    elif (
+        not decision_field
+        or not tenant_id
+        or not geometry_hash
+        or (state_field and state_field != decision_field)
+        or georag_evidence.get("tenant_id") != tenant_id
+        or georag_evidence.get("field_id") != decision_field
+        or georag_evidence.get("zone_id") != zone_id
+        or georag_evidence.get("field_geometry_digest") != geometry_hash
+    ):
+        georag = not_supplied_envelope("georag_decision_scope_mismatch")
     else:
         georag = georag_evidence
     decision_scope = {
-        "field_id": (field_state or {}).get("field_id") if isinstance(field_state, dict) else None,
+        "field_id": decision_field,
         "zone_id": zone_id,
-        "geometry_digest": geometry_digest(field_geometry),
+        "geometry_digest": geometry_hash,
         "georag_grounded": georag["status"] == "evidence_available",
         "georag_evidence_digest": georag["evidence_digest"],
         "direct_execution_permitted": False,
