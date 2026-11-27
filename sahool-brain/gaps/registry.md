@@ -9431,3 +9431,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 |---|---|---|---|
 | IRR-MPC-PUMP-REST-INTERVAL-01 | إمكان إعادة تشغيل المضخة قبل انقضاء مدة التوقف بعد الدورة | `704014c77`، `tests_v9/test_hourly_energy_aware_irrigation_mpc.py:166` و`:182` | fixed في المرشح المحلي عند `704014c77`؛ اختُبر حد إعادة التشغيل ورفض المدة غير الصالحة. |
 | API-VERSION-TWO-STAGE-REGISTRATION-01 | غياب تسجيل المسار بصيغة استدعاء مسجل ثم تمرير المعالج عن راتشت الإصدار | `cdb551338`، `tests_v9/test_api_versioning_policy_guard.py:1432` و`:1449` | fixed في المرشح المحلي عند `cdb551338`؛ يغطي الشاهد سقف المسارات القديمة وهوية المعالج والبادئة. |
+
+## IRRIGATION-AQUIFER-ALLOCATION-UNVERIFIED-01 — أداء البئر لا يثبت تخصيص المورد الجوفي
+
+- **الحالة:** open — يحجب مرشح #1649 التشغيل دون تخصيص مستقل؛ سلطة التحقق من الدليل وتوزيع المورد المشترك غير منفذين، فلا يُغلق #1648 بالحجب وحده.
+- **المصدر:** #1648 على main@`5037c4f9279673c1ebe997cee58c40325f7bee40` واحتواء #1649 عند `2d4ddb45506443495f1b4587fe73bdcb737a5a68`؛ `services/sahool-platform/api/canonical_well_capability.py`. شهادة الضخ وبيانات JSONB الذاتية لا تثبتان سلطة الكاتب أو حصة مستقلة لكل بئر.
+- **الاحتواء:** حفظ القياسات والهيدروليك مع حد تشغيلي صفري، ورفض اللقطات القديمة في المحول. يقرأ `api/irrigation_source_binding.py::aquifer_allocation_blocker` الربط الفعال والرسم المحفوظ للمستأجر والحقل والموسم الحالي؛ بذلك لا يعيد غياب الربط أو انتهاءه المسار اليومي إلى تشغيل بئر غير مخصص.
+- **الشواهد:** `services/sahool-platform/tests/test_canonical_well_capability.py` و`services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py` و`tests_v9/test_h51_field_source_binding_pg.py`. شاهد ASGI يستخدم بدائل نقل معلنة؛ PG يقيس المخطط وعزل الدور المقيد بإيصال مستقل.
+- **شرط الإغلاق:** جهة دليل قابلة للتحقق وصلاحيات كتابة مفروضة، نطاق مستأجر/مورد/بئر وصلاحية زمنية، وحصص تمنع منح حد المورد نفسه لكل بئر، ثم اختبار المصدر والتخزين والمسارين اليومي والساعي والجسر على الرأس المنشور وبواباته.

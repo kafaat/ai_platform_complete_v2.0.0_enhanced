@@ -9428,10 +9428,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_irrigation_scenario_value.py",
     "kind": "tests"
   },

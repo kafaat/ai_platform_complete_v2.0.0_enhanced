@@ -69,9 +69,15 @@ ORDER BY a.priority, a.water_source_id
 
 
 async def aquifer_allocation_blocker(
-    conn: Any, field_id: str, *, tenant_id: str, start: datetime, end: datetime
+    conn: Any,
+    field_id: str,
+    *,
+    tenant_id: str,
+    start: datetime,
+    end: datetime,
+    season_id: str | None = None,
 ) -> str | None:
-    """Check every well binding overlapping the planning interval, including other blend components."""
+    """Block unresolved well allocation, including a current-season persisted well graph."""
     import asyncpg
 
     try:
@@ -92,6 +98,23 @@ async def aquifer_allocation_blocker(
             end,
             str(tenant_id),
         )
+        if has_well is False and season_id is not None:
+            # A well graph survives missing/expired source assignments. Daily MPC
+            # must not regain eligibility by losing that separate binding row.
+            has_well = await conn.fetchval(
+                """
+                SELECT COALESCE((
+                    SELECT well_id IS NOT NULL
+                    FROM canonical_irrigation_capability_graphs
+                    WHERE tenant_id::text = $1 AND field_id = $2 AND season_id = $3
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                ), FALSE)
+                """,
+                str(tenant_id),
+                field_id,
+                season_id,
+            )
     except (asyncpg.PostgresError, asyncpg.InterfaceError, OSError, TimeoutError):
         return "water_source_binding_unresolved"
     if has_well is None:

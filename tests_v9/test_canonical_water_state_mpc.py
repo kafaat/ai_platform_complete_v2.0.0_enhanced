@@ -387,6 +387,7 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
     from api.canonical_water_state import resolve_canonical_water_state
 
     aquifer_checks = []
+    season_graph_checks = []
 
     class FieldConnection(FakeConn):
         async def fetchval(self, sql, *args):
@@ -396,7 +397,12 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
                 assert (field_id, tenant_id) == ("fld-1", "tenant-1")
                 assert end - start == timedelta(days=1)
                 aquifer_checks.append(field_id)
-                return False
+                return False  # This field has no overlapping well binding.
+            if "FROM canonical_irrigation_capability_graphs" in sql:
+                assert args == ("tenant-1", "fld-1", "sea-1")
+                assert len(snapshots) == 1
+                season_graph_checks.append(args)
+                return False  # No well graph exists in this canonical season.
             return await super().fetchval(sql, *args)
 
         async def fetchrow(self, sql, *args):
@@ -425,6 +431,8 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
     async def observe_resolution(connection, *, tenant_id, field_id, horizon_days):
         assert connection is conn
         assert (tenant_id, field_id, horizon_days) == ("tenant-1", "fld-1", 1)
+        assert aquifer_checks == ["fld-1"]
+        assert season_graph_checks == []
         snapshot = await resolve_canonical_water_state(
             connection, tenant_id=tenant_id, field_id=field_id, horizon_days=horizon_days
         )
@@ -436,7 +444,8 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
     request = route.RecommendationRequest(horizon_days=1)
     out = asyncio.run(route.irrigation_mpc_recommendation("fld-1", request, user=user))
 
-    assert aquifer_checks == ["fld-1"]
+    assert aquifer_checks == ["fld-1", "fld-1"]
+    assert season_graph_checks == [("tenant-1", "fld-1", "sea-1")]
     (snapshot,) = snapshots
     assert out["mode"] == "operational"
     provenance = out["facts_provenance"]

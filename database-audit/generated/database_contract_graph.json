@@ -2573,7 +2573,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/irrigation_runtime_orchestrator.py"
+        "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+        "services/sahool-platform/api/irrigation_source_binding.py"
       ],
       "code_writers": [],
       "created_in": "v175_unified_irrigation_capability_graph.sql",
@@ -4212,6 +4213,7 @@
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_idempotency_server_contract.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_nl_sql_policy.py",
@@ -7123,6 +7125,7 @@
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_field_twin_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_ledger_currency_governance_context.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
@@ -7926,6 +7929,7 @@
         "services/sahool-platform/api/water_ledger_compute.py",
         "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
       ],
       "code_writers": [

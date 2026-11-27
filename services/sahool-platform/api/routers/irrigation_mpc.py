@@ -258,12 +258,24 @@ async def _source_canonical_water(
         )
         if blocker:
             return {"status": "blocked", "reason": blocker, "field_id": field_id}
-        return await resolve_canonical_water_state(
+        canonical = await resolve_canonical_water_state(
             conn,
             tenant_id=user.tenant_id,
             field_id=field_id,
             horizon_days=horizon_days,
         )
+        if isinstance(canonical, CanonicalWaterState):
+            blocker = await aquifer_allocation_blocker(
+                conn,
+                field_id,
+                tenant_id=user.tenant_id,
+                start=now,
+                end=now + timedelta(days=horizon_days),
+                season_id=canonical.season_id,
+            )
+            if blocker:
+                return {"status": "blocked", "reason": blocker, "field_id": field_id}
+        return canonical
 
 
 class SimulateRequest(MpcPlanRequest):
