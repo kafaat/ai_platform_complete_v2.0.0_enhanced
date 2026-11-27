@@ -26,7 +26,10 @@ from typing import Any
 
 from core.irrigation_water_analysis import BLEND_ION_FIELDS, compute_blend_water_quality
 
-from api.canonical_well_capability import DECISION_GRADE_SAMPLE_QUALITIES
+from api.canonical_well_capability import (
+    AQUIFER_ALLOCATION_UNVERIFIED,
+    DECISION_GRADE_SAMPLE_QUALITIES,
+)
 
 # Sorted for a deterministic bound parameter (list, not set — asyncpg binds text[]).
 DECISION_GRADE_SAMPLE_QUALITY_LIST = sorted(DECISION_GRADE_SAMPLE_QUALITIES)
@@ -60,6 +63,60 @@ LIMIT 1
 ANY_SAMPLE_EXISTS_SQL = """
 SELECT EXISTS(SELECT 1 FROM irrigation_water_quality_samples WHERE water_source_id = $1)
 """
+
+
+async def aquifer_allocation_blocker(
+    conn: Any,
+    field_id: str,
+    *,
+    tenant_id: str,
+    start: datetime,
+    end: datetime,
+    season_id: str | None = None,
+) -> str | None:
+    """Block unresolved well allocation, including a current-season persisted well graph."""
+    import asyncpg
+
+    try:
+        has_well = await conn.fetchval(
+            """
+            SELECT CASE WHEN current_setting('app.current_tenant', true) = $4::text
+            THEN EXISTS (
+                SELECT 1 FROM field_irrigation_source_assignments a
+                JOIN irrigation_water_sources s
+                  ON (s.id, s.tenant_id) = (a.water_source_id, a.tenant_id)
+                WHERE a.tenant_id = ($4::text)::uuid AND a.field_id = $1
+                  AND a.status = 'active' AND s.source_type = 'well'
+                  AND a.valid_from < $3 AND (a.valid_to IS NULL OR a.valid_to > $2)
+            ) END
+            """,
+            field_id,
+            start,
+            end,
+            str(tenant_id),
+        )
+        if has_well is False and season_id is not None:
+            # A well graph survives missing/expired source assignments. Daily MPC
+            # must not regain eligibility by losing that separate binding row.
+            has_well = await conn.fetchval(
+                """
+                SELECT COALESCE((
+                    SELECT well_id IS NOT NULL
+                    FROM canonical_irrigation_capability_graphs
+                    WHERE tenant_id::text = $1 AND field_id = $2 AND season_id = $3
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                ), FALSE)
+                """,
+                str(tenant_id),
+                field_id,
+                season_id,
+            )
+    except (asyncpg.PostgresError, asyncpg.InterfaceError, OSError, TimeoutError):
+        return "water_source_binding_unresolved"
+    if has_well is None:
+        return "water_source_binding_unresolved"
+    return AQUIFER_ALLOCATION_UNVERIFIED if has_well else None
 
 
 def _float(value: Any) -> float | None:

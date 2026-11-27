@@ -6162,7 +6162,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 98,
+    "line": 102,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/plan",
     "function": "irrigation_mpc_plan"
@@ -6170,7 +6170,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 165,
+    "line": 169,
     "method": "GET",
     "path": "/api/v1/irrigation/mpc/capabilities",
     "function": "irrigation_mpc_capabilities"
@@ -6178,7 +6178,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 296,
+    "line": 322,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/simulate",
     "function": "irrigation_mpc_simulate"
@@ -6186,7 +6186,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 329,
+    "line": 355,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
     "function": "irrigation_mpc_recommendation"
@@ -6194,7 +6194,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 553,
+    "line": 579,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
     "function": "irrigation_mpc_hourly_recommendation"
@@ -6202,7 +6202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 594,
+    "line": 620,
     "method": "POST",
     "path": "/api/v1/irrigation/executions/reconcile",
     "function": "reconcile_irrigation_execution"

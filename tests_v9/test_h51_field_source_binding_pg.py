@@ -242,3 +242,233 @@ def test_h51_field_source_binding_live_pg() -> None:
             await admin.close()
 
     asyncio.run(_run())
+
+
+@pytest.mark.asyncio
+async def test_shared_aquifer_blocks_both_pivots_and_leaves_other_sources_available():
+    from api.irrigation_source_binding import aquifer_allocation_blocker
+
+    admin = await _connect(ADMIN_URL)
+    app = await _connect(APP_URL)
+    try:
+        await _assert_app_role_restricted(app)
+        tenant, other = str(uuid4()), str(uuid4())
+        fields = [f"pivot-{uuid4()}" for _ in range(2)]
+        now = datetime.now(UTC)
+        for i in range(6):
+            src = await _seed_source(admin, tenant, ec_limit=None)
+            await admin.execute(
+                """UPDATE irrigation_water_sources SET evidence =
+                   jsonb_build_object('aquifer_safe_yield', jsonb_build_object(
+                       'aquifer_id','synthetic-aquifer','sustainable_abstraction_lps',30,
+                       'issuer','source-self-report','status','approved','water_source_id',id))
+                   WHERE id=$1""",
+                src,
+            )
+            await _bind(admin, tenant, fields[i % 2], src)
+        canal = await _seed_source(admin, tenant, ec_limit=None)
+        await admin.execute(
+            "UPDATE irrigation_water_sources SET source_type='canal' WHERE id=$1", canal
+        )
+        canal_field = f"canal-{uuid4()}"
+        await _bind(admin, tenant, canal_field, canal)
+        future = f"future-{uuid4()}"
+        await _bind(admin, tenant, future, src, valid_from_days=-1)
+        await app.execute("SELECT set_config('app.current_tenant',$1,false)", tenant)
+
+        async def reason(field, days=3, scope=tenant):
+            return await aquifer_allocation_blocker(
+                app, field, tenant_id=scope, start=now, end=now + timedelta(days=days)
+            )
+
+        for field in fields:
+            assert len(await resolve_active_bindings(app, field, now=now)) == 3
+            assert await reason(field) == "AQUIFER_ALLOCATION_UNVERIFIED"
+        assert await reason(canal_field) is None
+        assert await reason(future, days=0.5) is None
+        assert await reason(future, days=3) == "AQUIFER_ALLOCATION_UNVERIFIED"
+        assert await reason(fields[0], scope=other) == "water_source_binding_unresolved"
+        await app.execute("SELECT set_config('app.current_tenant',$1,false)", other)
+        assert await reason(fields[0], scope=other) is None
+    finally:
+        await app.close()
+        await admin.close()
+
+
+@pytest.mark.asyncio
+async def test_operational_http_well_gate_precedes_daily_submit_and_hourly_persistence(monkeypatch):
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from api import irrigation_runtime_orchestrator as runtime
+    from api import main as platform
+    from api.routers import irrigation_mpc as route
+    from fastapi import FastAPI
+    from httpx import ASGITransport, AsyncClient
+
+    tenant = str(uuid4())
+    admin = await _connect(ADMIN_URL)
+    pool = await asyncpg.create_pool(APP_URL, min_size=1, max_size=2, statement_cache_size=0)
+    fields = [f"pivot-{uuid4()}" for _ in range(2)]
+    try:
+        async with pool.acquire() as conn:
+            await _assert_app_role_restricted(conn)
+        for field in fields:
+            await admin.execute(
+                "INSERT INTO fields (field_id, name, tenant_id) VALUES ($1, $1, $2::uuid)",
+                field,
+                tenant,
+            )
+        for i in range(6):
+            source = await _seed_source(admin, tenant, ec_limit=None)
+            await _bind(admin, tenant, fields[i % 2], source)
+
+        monkeypatch.setattr(platform, "_DB_POOL", pool)
+        monkeypatch.setattr(route, "bridge_enabled", lambda: True)
+        emit = AsyncMock(side_effect=AssertionError("blocked decision reached the bridge"))
+        persist = AsyncMock(side_effect=AssertionError("blocked well schedule reached persistence"))
+        monkeypatch.setattr(route, "emit_mpc_candidate", emit)
+        monkeypatch.setattr(runtime, "_persist_schedule", persist)
+        app = FastAPI()
+        app.include_router(route.router)
+        app.dependency_overrides[route.get_current_user] = lambda: SimpleNamespace(
+            tenant_id=tenant, user_id=1, role="owner"
+        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            for field in fields:
+                for endpoint, payload in (
+                    ("recommendation", {"submit": True}),
+                    ("hourly-recommendation", {"persist": True}),
+                ):
+                    response = await client.post(
+                        f"/api/v1/fields/{field}/irrigation/mpc/{endpoint}", json=payload
+                    )
+                    assert response.status_code == 200
+                    result = response.json()
+                    assert result["status"] == "blocked"
+                    assert result["reason"] == "AQUIFER_ALLOCATION_UNVERIFIED"
+                    assert "decision" not in result and "actions" not in result
+        emit.assert_not_awaited()
+        persist.assert_not_awaited()
+    finally:
+        await pool.close()
+        await admin.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("binding_state", ["missing", "expired"])
+async def test_current_season_well_graph_remains_blocked_without_active_assignment(binding_state):
+    """Exercise the persisted-graph fallback SQL and tenant scope on the real v175 schema."""
+    from api.irrigation_source_binding import aquifer_allocation_blocker
+
+    admin = await _connect(ADMIN_URL)
+    app = await _connect(APP_URL)
+    try:
+        await _assert_app_role_restricted(app)
+        schema = await app.fetchrow(
+            "SELECT c.relrowsecurity, c.relforcerowsecurity, a.attnotnull "
+            "FROM pg_class c JOIN pg_attribute a ON a.attrelid=c.oid "
+            "WHERE c.oid='canonical_irrigation_capability_graphs'::regclass "
+            "AND a.attname='well_id'"
+        )
+        assert schema is not None and all(schema.values()), (
+            "the real graph must retain FORCE RLS and its non-null well column"
+        )
+        tenant, other = str(uuid4()), str(uuid4())
+        field, season = f"persisted-{uuid4()}", f"season-{uuid4()}"
+        source = await _seed_source(admin, tenant, ec_limit=None)
+        project = await admin.fetchval(
+            "SELECT project_id FROM irrigation_water_sources WHERE id=$1", source
+        )
+        well, pump, machine, controller, energy = (uuid4() for _ in range(5))
+        await admin.execute(
+            "INSERT INTO irrigation_wells(id,tenant_id,water_source_id,name) "
+            "VALUES($1,$2,$3,'h51-persisted')",
+            well,
+            tenant,
+            source,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_pumps(id,tenant_id,project_id,name,pump_type) "
+            "VALUES($1,$2,$3,'h51-persisted','submersible')",
+            pump,
+            tenant,
+            project,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_machines(id,tenant_id,project_id,name,machine_type) "
+            "VALUES($1,$2,$3,'h51-persisted','center_pivot')",
+            machine,
+            tenant,
+            project,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_controllers(id,tenant_id,project_id,name,provider) "
+            "VALUES($1,$2,$3,'h51-persisted','synthetic')",
+            controller,
+            tenant,
+            project,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_energy_systems(id,tenant_id,project_id,name,system_type) "
+            "VALUES($1,$2,$3,'h51-persisted','grid')",
+            energy,
+            tenant,
+            project,
+        )
+        # The well exists only in the relational column, not in the historic JSON payload.
+        await admin.execute(
+            """INSERT INTO canonical_irrigation_capability_graphs
+               (tenant_id,project_id,field_id,season_id,well_id,pump_id,machine_id,
+                controller_id,energy_system_id,capability_id,status,operational_eligible,
+                maximum_flow_lps,maximum_daily_depth_mm,maximum_safe_depth_mm_event,
+                terminal_pressure_bar,capability_digest,payload)
+               VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'verified',true,
+                      30,20,10,2,$11,'{}'::jsonb)""",
+            tenant,
+            project,
+            field,
+            season,
+            well,
+            pump,
+            machine,
+            controller,
+            energy,
+            str(uuid4()),
+            "a" * 64,
+        )
+        if binding_state == "expired":
+            await _bind(admin, tenant, field, source, valid_from_days=2, valid_to_days=-1)
+        now = datetime.now(UTC)
+        await app.execute("SELECT set_config('app.current_tenant',$1,false)", tenant)
+        assert await resolve_active_bindings(app, field, now=now) == []
+
+        async def reason(*, scope=tenant, requested_season=season):
+            return await aquifer_allocation_blocker(
+                app,
+                field,
+                tenant_id=scope,
+                start=now,
+                end=now + timedelta(days=3),
+                season_id=requested_season,
+            )
+
+        assert await reason() == "AQUIFER_ALLOCATION_UNVERIFIED"
+        assert await reason(requested_season=f"other-{season}") is None
+        assert await reason(scope=other) == "water_source_binding_unresolved"
+        await app.execute("SELECT set_config('app.current_tenant',$1,false)", other)
+        # This separate read contains no tenant predicate, so the assertion exercises RLS.
+        assert (
+            await app.fetchval(
+                "SELECT count(*) FROM canonical_irrigation_capability_graphs "
+                "WHERE field_id=$1 AND season_id=$2",
+                field,
+                season,
+            )
+            == 0
+        )
+        assert await reason(scope=other) is None
+        assert await reason() == "water_source_binding_unresolved"
+    finally:
+        await app.close()
+        await admin.close()

@@ -29,7 +29,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -38,7 +38,11 @@ from api.canonical_water_state import CanonicalWaterState, resolve_canonical_wat
 from api.canonical_well_capability import evaluate_water_salinity_gate
 from api.irrigation_mpc import ForecastDay
 from api.irrigation_runtime_orchestrator import orchestrate_irrigation_recommendation
-from api.irrigation_source_binding import resolve_active_bindings, summarize_blend_water_quality
+from api.irrigation_source_binding import (
+    aquifer_allocation_blocker,
+    resolve_active_bindings,
+    summarize_blend_water_quality,
+)
 from api.lexicographic_irrigation_mpc import solve_lexicographic_irrigation
 from api.lexicographic_mpc_bridge import bridge_enabled, emit_mpc_candidate
 from api.main import UserSchema, get_current_user, tenant_connection
@@ -244,12 +248,34 @@ async def _source_canonical_water(
     ببصماتها، فلا يُركَّب قرارٌ من مصادر التقطت لحظاتٍ مختلفة.
     """
     async with tenant_connection(user) as conn:
-        return await resolve_canonical_water_state(
+        now = datetime.now(UTC)
+        blocker = await aquifer_allocation_blocker(
+            conn,
+            field_id,
+            tenant_id=user.tenant_id,
+            start=now,
+            end=now + timedelta(days=horizon_days),
+        )
+        if blocker:
+            return {"status": "blocked", "reason": blocker, "field_id": field_id}
+        canonical = await resolve_canonical_water_state(
             conn,
             tenant_id=user.tenant_id,
             field_id=field_id,
             horizon_days=horizon_days,
         )
+        if isinstance(canonical, CanonicalWaterState):
+            blocker = await aquifer_allocation_blocker(
+                conn,
+                field_id,
+                tenant_id=user.tenant_id,
+                start=now,
+                end=now + timedelta(days=horizon_days),
+                season_id=canonical.season_id,
+            )
+            if blocker:
+                return {"status": "blocked", "reason": blocker, "field_id": field_id}
+        return canonical
 
 
 class SimulateRequest(MpcPlanRequest):

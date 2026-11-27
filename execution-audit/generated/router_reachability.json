@@ -1414,7 +1414,7 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.irrigation_mpc",
       "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
       "route_count": 6,
@@ -2511,7 +2511,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 64,
+  "include_edge_count": 65,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2776,7 +2776,16 @@
     },
     {
       "expression": "route.router",
-      "line": 173,
+      "line": 178,
+      "module": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "route.router",
+      "line": 461,
       "module": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
       "prefix": null,
       "resolved": false,
@@ -3090,7 +3099,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f2812e33558ac9510f9049dbc1c356dc9f372b036009a92fcc120c2d3cfed2da",
+  "inventory_sha256": "e9af100b19a0bd98eb83fc52e46c392be52770579394cb718a153f2d1ff2d4ca",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -4386,7 +4395,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.irrigation_mpc",
       "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
       "route_count": 6,
@@ -5491,7 +5500,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 58,
+  "unresolved_include_count": 59,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5704,7 +5713,15 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-      "line": 173,
+      "line": 178,
+      "module": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator",
+      "source": null,
+      "target_expression": "route.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "line": 461,
       "module": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator",
       "source": null,
       "target_expression": "route.router"
