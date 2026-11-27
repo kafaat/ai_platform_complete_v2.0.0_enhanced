@@ -1,0 +1,28 @@
+name: Verify aquifer-ci-witness source objects
+on:
+  push:
+    branches: [ci/verify-aquifer-ci-witness-b65d56c0]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify the candidate parents and content and retain only on the transfer branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '5e3c83367815a1858348aefca7e96b64124978be3d7d4dd1a016ccabfb542085  candidate.pack' | sha256sum --check --strict
+          git fetch --no-tags --depth=1 origin c161582d56887313762b6ad479354e7de805d2f9
+          git index-pack --stdin --fix-thin < candidate.pack
+          test "$(git show -s --format=%P b65d56c078e9210e5fd9002a7b767206f36dd7b4)" = "c161582d56887313762b6ad479354e7de805d2f9"
+          test "$(git rev-parse b65d56c078e9210e5fd9002a7b767206f36dd7b4^{tree})" = "edbd10b5862ed5e6990c5dc7116141fa9ae16cbf"
+          git ls-tree -r b65d56c078e9210e5fd9002a7b767206f36dd7b4 >/dev/null
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          retained=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p b65d56c078e9210e5fd9002a7b767206f36dd7b4 -m "Retain verified source [skip ci]")
+          git push origin "$retained:refs/heads/ci/verify-aquifer-ci-witness-b65d56c0"
