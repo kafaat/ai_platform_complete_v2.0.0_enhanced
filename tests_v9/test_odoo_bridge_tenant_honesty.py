@@ -192,7 +192,8 @@ async def test_push_unresolved_supplier_marks_failed_not_partner_1(monkeypatch):
 # (ب) مورّد + منتج محلولان ⇒ دفع صحيح (partner_id الحقيقيّ، لا 1)
 # ══════════════════════════════════════════════════════════════
 @pytest.mark.asyncio
-async def test_push_resolved_supplier_pushes_correctly(monkeypatch):
+@pytest.mark.parametrize("audit_fails", [False, True])
+async def test_push_resolved_supplier_pushes_correctly(monkeypatch, audit_fails):
     mod = _load_main(monkeypatch)
     order = {
         "order_id": "PO-2",
@@ -207,7 +208,17 @@ async def test_push_resolved_supplier_pushes_correctly(monkeypatch):
     odoo = FakeOdoo(partners=[{"id": 42}], products=[{"id": 77}])
     _wire(mod, monkeypatch, conn=conn, odoo=odoo)
 
-    await mod.sync_procurement_orders_to_odoo()
+    if audit_fails:
+
+        async def fail_success_audit(direction, entity, odoo_id, sahool_id, status, details=""):
+            assert status == "success"
+            raise RuntimeError("audit unavailable")
+
+        monkeypatch.setattr(mod, "log_sync_record", fail_success_audit)
+        with pytest.raises(RuntimeError, match="audit unavailable"):
+            await mod.sync_procurement_orders_to_odoo()
+    else:
+        await mod.sync_procurement_orders_to_odoo()
 
     pos = [v for model, v in odoo.created if model == "purchase.order"]
     lines = [v for model, v in odoo.created if model == "purchase.order.line"]
@@ -219,6 +230,7 @@ async def test_push_resolved_supplier_pushes_correctly(monkeypatch):
     assert lines[0]["product_id"] != 1
     # عُلِّم synced لا failed.
     assert any("odoo_sync_status='synced'" in q for q, _ in conn.executes)
+    assert not any("odoo_sync_status='failed'" in q for q, _ in conn.executes)
 
 
 # ══════════════════════════════════════════════════════════════

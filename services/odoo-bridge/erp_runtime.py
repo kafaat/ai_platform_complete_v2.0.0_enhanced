@@ -582,141 +582,99 @@ async def sync_procurement_orders_to_odoo():
                ORDER BY created_at LIMIT 50"""
         )
 
-        for row in rows:
-            try:
-                # 1. Find or create partner in Odoo
-                # 2. Create purchase.order
-                # 3. Create purchase.order.line for each item
+    audit_failure = None
+    for row in rows:
+        order_id = row["order_id"]
+        try:
+            # Read just before resolving this order. Its producer may still edit later orders.
+            async with pool.acquire() as conn:
                 items = await conn.fetch(
-                    "SELECT * FROM procurement_order_items WHERE order_id=$1", row["order_id"]
+                    "SELECT * FROM procurement_order_items WHERE order_id=$1", order_id
                 )
-                if not items:
-                    continue
+            if not items:
+                continue
 
-                # صدق: لا تُلفّق تطابق مورّد/منتج. حُلّ كلّ ربط من Odoo فعليّاً؛
-                # إن تعذّر ربط حقيقيّ، لا تدفع أمر شراء مُزيَّفاً مربوطاً بشريك/منتج
-                # عشوائيّ (partner_id=1 / prod_id=1 السابقان كانا يخترعان تطابقاً
-                # خاطئاً-لكن-معقولاً صامتاً). نفشل صريحاً ونعلّم الأمر failed ونتابع.
-                #
-                # ١) حُلّ المورّد (partner) من Odoo. لا مصدر مورّد على مستوى الأمر
-                #    هنا، لكن لكي لا نُلفّق partner عشوائيّاً نُلزم وجود مفتاح صريح:
-                #    procurement_orders.supplier_id (إن وُجد) أو procurement_order_items
-                #    عبر اسم المورّد. غياب أيّ ربط ⇒ فشل صريح لا partner_id=1.
-                supplier_name = items[0].get("supplier") if items else None
-                supplier_id = None
-                if supplier_name:
-                    partner_rows = await odoo.search_read(
-                        "res.partner",
-                        [["name", "ilike", supplier_name], ["supplier_rank", ">", 0]],
-                        ["id"],
-                        limit=1,
-                    )
-                    supplier_id = partner_rows[0]["id"] if partner_rows else None
+            supplier_name = items[0].get("supplier")
+            partners = []
+            if supplier_name:
+                partners = await odoo.search_read(
+                    "res.partner",
+                    [["name", "ilike", supplier_name], ["supplier_rank", ">", 0]],
+                    ["id"],
+                    limit=1,
+                )
+            supplier_id = partners[0]["id"] if partners else None
+            if not supplier_id:
+                raise ValueError(
+                    "لا مورّد قابل للحلّ في Odoo "
+                    f"(supplier={supplier_name!r}) — لن يُدفع أمر شراء مُلفَّق"
+                )
 
-                if not supplier_id:
-                    reason = (
-                        "لا مورّد قابل للحلّ في Odoo "
-                        f"(supplier={supplier_name!r}) — لن يُدفع أمر شراء مُلفَّق"
-                    )
-                    await conn.execute(
-                        "UPDATE procurement_orders SET odoo_sync_status='failed', "
-                        "odoo_sync_error=$1 WHERE order_id=$2",
-                        reason[:500],
-                        row["order_id"],
-                    )
-                    await log_sync_record(
-                        "sahool_to_odoo",
-                        "purchase.order",
-                        None,
-                        str(row["order_id"]),
-                        "failed",
-                        reason[:500],
-                    )
-                    logger.error(f"PO {row['order_id']} غير مدفوع: {reason}")
-                    continue
-
-                # ٢) حُلّ كلّ منتج فعليّاً قبل أيّ كتابة في Odoo. أيّ منتج غير قابل
-                #    للحلّ ⇒ فشل صريح للأمر كلّه (لا prod_id=1 مُلفَّق).
-                resolved_lines = []
-                unresolved_item = None
-                for it in items:
-                    prod_domain = [["name", "ilike", it["item_name"]]]
-                    prods = await odoo.search_read("product.product", prod_domain, ["id"], limit=1)
-                    if not prods:
-                        unresolved_item = it["item_name"]
-                        break
-                    resolved_lines.append((prods[0]["id"], it))
-
-                if unresolved_item is not None:
-                    reason = (
-                        f"لا منتج قابل للحلّ في Odoo (item={unresolved_item!r}) — "
+            # Resolve every product before the first Odoo write.
+            resolved_lines = []
+            for item in items:
+                products = await odoo.search_read(
+                    "product.product", [["name", "ilike", item["item_name"]]], ["id"], limit=1
+                )
+                if not products:
+                    raise ValueError(
+                        f"لا منتج قابل للحلّ في Odoo (item={item['item_name']!r}) — "
                         "لن يُدفع أمر شراء مُلفَّق"
                     )
-                    await conn.execute(
-                        "UPDATE procurement_orders SET odoo_sync_status='failed', "
-                        "odoo_sync_error=$1 WHERE order_id=$2",
-                        reason[:500],
-                        row["order_id"],
-                    )
-                    await log_sync_record(
-                        "sahool_to_odoo",
-                        "purchase.order",
-                        None,
-                        str(row["order_id"]),
-                        "failed",
-                        reason[:500],
-                    )
-                    logger.error(f"PO {row['order_id']} غير مدفوع: {reason}")
-                    continue
+                resolved_lines.append((products[0]["id"], item))
 
-                # ٣) كلّ الروابط حقيقيّة — ادفع أمر الشراء وأسطره (السلوك دون تغيير
-                #    عند توفّر ربط حقيقيّ).
-                po_vals = {
-                    "partner_id": supplier_id,  # مورّد محلول فعليّاً (لا default=1)
-                    "origin": f"SAHOOL-{row['order_id']}",
-                    "notes": row.get("notes", "") + "\nSynced from SAHOOL",
-                    "date_order": row["created_at"].isoformat()
-                    if row["created_at"]
-                    else datetime.now(UTC).isoformat(),
+            po_vals = {
+                "partner_id": supplier_id,
+                "origin": f"SAHOOL-{order_id}",
+                "notes": row.get("notes", "") + "\nSynced from SAHOOL",
+                "date_order": row["created_at"].isoformat()
+                if row["created_at"]
+                else datetime.now(UTC).isoformat(),
+            }
+            po_id = await odoo.create("purchase.order", po_vals)
+            for prod_id, item in resolved_lines:
+                line_vals = {
+                    "order_id": po_id,
+                    "product_id": prod_id,
+                    "product_qty": float(item["quantity"]),
+                    "price_unit": float(item.get("unit_cost_usd", 0) or 0),
+                    "name": item["item_name"],
                 }
-                po_id = await odoo.create("purchase.order", po_vals)
+                await odoo.create("purchase.order.line", line_vals)
 
-                for prod_id, it in resolved_lines:
-                    line_vals = {
-                        "order_id": po_id,
-                        "product_id": prod_id,
-                        "product_qty": float(it["quantity"]),
-                        "price_unit": float(it.get("unit_cost_usd", 0) or 0),
-                        "name": it["item_name"],
-                    }
-                    await odoo.create("purchase.order.line", line_vals)
-
-                # Update SAHOOL
+            async with pool.acquire() as conn:
                 await conn.execute(
                     "UPDATE procurement_orders SET odoo_sync_status='synced', odoo_document_id=$1 WHERE order_id=$2",
                     str(po_id),
-                    row["order_id"],
+                    order_id,
                 )
-                await log_sync_record(
-                    "sahool_to_odoo", "purchase.order", po_id, str(row["order_id"]), "success"
-                )
-                logger.info(f"PO synced to Odoo: {po_id}")
-
-            except Exception as e:
+        except Exception as exc:
+            details = str(exc)[:500]
+            async with pool.acquire() as conn:
                 await conn.execute(
                     "UPDATE procurement_orders SET odoo_sync_status='failed', odoo_sync_error=$1 WHERE order_id=$2",
-                    str(e)[:500],
-                    row["order_id"],
+                    details,
+                    order_id,
                 )
-                await log_sync_record(
-                    "sahool_to_odoo",
-                    "purchase.order",
-                    None,
-                    str(row["order_id"]),
-                    "failed",
-                    str(e)[:500],
-                )
-                logger.error(f"PO sync failed {row['order_id']}: {e}")
+            status = "failed"
+            po_id = None
+            logger.error("PO sync failed %s: %s", order_id, details)
+        else:
+            status = "success"
+            details = ""
+            logger.info("PO synced to Odoo: %s", po_id)
+
+        # A failure writing the separate audit event must not make a confirmed PO retryable.
+        try:
+            await log_sync_record(
+                "sahool_to_odoo", "purchase.order", po_id, str(order_id), status, details
+            )
+        except Exception as exc:
+            logger.error("PO %s %s audit write failed: %s", order_id, status, type(exc).__name__)
+            audit_failure = exc
+
+    if audit_failure is not None:
+        raise audit_failure
 
 
 # ══════════════════════════════════════════════════════════════
