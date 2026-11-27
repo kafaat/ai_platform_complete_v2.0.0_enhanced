@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import re
+import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "capabilities/registry/capabilities.json"
@@ -96,3 +98,26 @@ def test_decision_chain_is_explicit():
     }
     for cid, dep in expected.items():
         assert dep in by_id[cid]["dependencies"]
+
+
+def test_committed_traceability_reports_match_authoritative_view():
+    from scripts.ci import capability_traceability_report as report
+
+    committed = report.OUT
+    expected = {
+        "CAPABILITY_TRACEABILITY_REPORT.md",
+        "capability_traceability.csv",
+        "capability_traceability_summary.json",
+    }
+    with tempfile.TemporaryDirectory() as folder:
+        generated = Path(folder)
+        with patch.object(report, "OUT", generated):
+            assert report.main() == 0
+        assert {path.name for path in generated.iterdir()} == expected
+        drift = [
+            name
+            for name in sorted(expected)
+            if not (committed / name).is_file()
+            or (committed / name).read_bytes() != (generated / name).read_bytes()
+        ]
+    assert not drift, f"Run python scripts/ci/capability_traceability_report.py to refresh {drift}"

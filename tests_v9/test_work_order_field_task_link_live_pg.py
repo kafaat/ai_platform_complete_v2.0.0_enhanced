@@ -527,6 +527,40 @@ def test_task_pages_cover_every_task_in_a_batch(monkeypatch):
             seen.extend(row["task_id"] for row in page["tasks"])
         assert len(seen) == len(records)
         assert len(set(seen)) == len(records)
-        assert set(seen) == expected
+        assert seen == sorted(expected)
+
+    asyncio.run(_with_world(monkeypatch, scenario))
+
+
+@pytest.mark.parametrize("collection", ["activities", "alerts"])
+def test_field_activity_and_alert_pages_cover_a_timestamp_tie(monkeypatch, collection):
+    async def scenario(w):
+        w.act_as("a")
+        field = w.fields["a"]
+        if collection == "activities":
+            url = f"/api/v1/fields/{field}/activities"
+            key = "activity_id"
+            insert = (
+                "INSERT INTO activities (activity_id, tenant_id, field_id, activity_type)"
+                " SELECT $2 || '-' || n, $1::uuid, $2, 'scouting' FROM generate_series(1, 31) n"
+                " RETURNING activity_id"
+            )
+        else:
+            url = "/api/v1/alerts"
+            key = "alert_id"
+            insert = (
+                "INSERT INTO alerts (alert_id, tenant_id, field_id, alert_type, severity)"
+                " SELECT $2 || '-' || n, $1::uuid, $2, 'other', 'info' FROM generate_series(1, 31) n"
+                " RETURNING alert_id"
+            )
+        rows = await w.owner.fetch(insert, w.tenants["a"], field)
+        expected = {row[key] for row in rows}
+        seen = []
+        for offset in range(0, len(rows), 4):
+            response = await w.client.get(url, params={"limit": 4, "offset": offset})
+            assert response.status_code == 200, response.text
+            seen.extend(row[key] for row in response.json())
+        assert len(set(seen)) == len(expected)
+        assert seen == sorted(expected)
 
     asyncio.run(_with_world(monkeypatch, scenario))

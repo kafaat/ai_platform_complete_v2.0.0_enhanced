@@ -1536,7 +1536,7 @@
       "function": "compose_crop_twin",
       "method": "POST",
       "path": "/api/v1/crop-twin/compose",
-      "line": 244,
+      "line": 248,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/compose::compose_crop_twin"
@@ -1546,7 +1546,7 @@
       "function": "crop_decision_candidate_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
-      "line": 302,
+      "line": 306,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision-candidate::crop_decision_candidate_endpoint",
@@ -1557,7 +1557,7 @@
       "function": "profit_aware_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
-      "line": 536,
+      "line": 616,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision/profit-aware::profit_aware_decision_endpoint"
@@ -1567,7 +1567,7 @@
       "function": "crop_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
-      "line": 412,
+      "line": 489,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision::crop_decision_endpoint"
