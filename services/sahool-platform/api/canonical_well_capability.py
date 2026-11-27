@@ -46,6 +46,63 @@ def is_decision_grade_sample_quality(quality: Any) -> bool:
     return isinstance(quality, str) and quality in DECISION_GRADE_SAMPLE_QUALITIES
 
 
+AQUIFER_SAFE_YIELD_EVIDENCE_KEY = "aquifer_safe_yield"
+AQUIFER_SAFE_YIELD_EVIDENCE_REQUIRED = "AQUIFER_SAFE_YIELD_EVIDENCE_REQUIRED"
+AQUIFER_SAFE_YIELD_EVIDENCE_INVALID = "AQUIFER_SAFE_YIELD_EVIDENCE_INVALID"
+AQUIFER_EVIDENCE_ACCEPTED_STATUSES = frozenset({"certified", "approved"})
+
+
+def evaluate_aquifer_safe_yield_evidence(
+    *,
+    tenant_id: str,
+    water_source_id: str,
+    water_source: dict[str, Any],
+    now: datetime,
+) -> dict[str, Any]:
+    """Fail-closed verdict on independent aquifer-level sustainable-abstraction evidence.
+
+    A pumping test measures the WELL's hydraulic behaviour; it does not prove the aquifer
+    can sustain that abstraction. The only accepted proof is the existing JSONB
+    ``evidence["aquifer_safe_yield"]`` object on the water source (no schema change), which must
+    carry: evidence_id, aquifer_id, issuer, status certified|approved, tenant_id and
+    water_source_id equal to the resource being evaluated, an unexpired ``valid_until``, a
+    parseable ``assessed_at`` not in the future, and a positive finite
+    ``sustainable_abstraction_lps``. No limit is ever inferred or defaulted.
+    """
+    raw = (water_source.get("evidence") or {}).get(AQUIFER_SAFE_YIELD_EVIDENCE_KEY)
+    if not raw:
+        return {"limit_lps": None, "blockers": [AQUIFER_SAFE_YIELD_EVIDENCE_REQUIRED], "ref": {}}
+    ev = raw if isinstance(raw, dict) else {}
+    limit = _number(ev.get("sustainable_abstraction_lps"))
+    valid_until = _timestamp(ev.get("valid_until"))
+    assessed_at = _timestamp(ev.get("assessed_at"))
+    ok = (
+        bool(ev)
+        and all(str(ev.get(k) or "").strip() for k in ("evidence_id", "aquifer_id", "issuer"))
+        and str(ev.get("status") or "") in AQUIFER_EVIDENCE_ACCEPTED_STATUSES
+        and str(ev.get("tenant_id") or "") == str(tenant_id)
+        and str(ev.get("water_source_id") or "") == water_source_id
+        and limit is not None
+        and limit > 0
+        and valid_until is not None
+        and valid_until > now
+        and assessed_at is not None
+        and assessed_at <= now
+    )
+    if not ok:
+        return {"limit_lps": None, "blockers": [AQUIFER_SAFE_YIELD_EVIDENCE_INVALID], "ref": {}}
+    return {
+        "limit_lps": limit,
+        "blockers": [],
+        "ref": {
+            "aquifer_safe_yield_evidence_id": str(ev["evidence_id"]),
+            "aquifer_id": str(ev["aquifer_id"]),
+            "aquifer_safe_yield_issuer": str(ev["issuer"]),
+            "aquifer_safe_yield_valid_until": valid_until.isoformat(),  # type: ignore[union-attr]
+        },
+    }
+
+
 def _digest(payload: Any) -> str:
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
     return hashlib.sha256(raw).hexdigest()
@@ -96,7 +153,9 @@ class CanonicalWellCapability:
     drawdown_m: float
     specific_capacity_lps_per_m: float
     recovery_rate_m_h: float | None
-    sustainable_flow_lps: float
+    sustainable_flow_lps: float  # well-hydraulic limit only; NOT an aquifer safe yield
+    well_hydraulic_flow_lps: float
+    aquifer_safe_yield_lps: float | None
     water_ec_ds_m: float | None
     maximum_allowed_ec_ds_m: float | None
     minimum_rest_hours: float
@@ -265,13 +324,19 @@ def build_canonical_well_capability(
 
     # Convert the remaining legal daily volume into an average 24-hour flow cap.
     allocation_flow_cap = remaining_daily / 86.4
+    aquifer = evaluate_aquifer_safe_yield_evidence(
+        tenant_id=tenant_id, water_source_id=source_id, water_source=water_source, now=now
+    )
+    aquifer_limit = aquifer["limit_lps"]
     maximum_flow = min(sustainable_flow, allocation_flow_cap)
+    if aquifer_limit is not None:
+        maximum_flow = min(maximum_flow, aquifer_limit)
 
     min_rest_hours = _number(well.get("minimum_rest_hours")) or 0.0
     recovery_rate = _number(pumping_test.get("recovery_rate_m_h"))
     max_drawdown = _number(well.get("maximum_drawdown_m"))
     limitations: list[str] = []
-    blockers: list[str] = []
+    blockers: list[str] = list(aquifer["blockers"])
     if measurement_age_h > MAX_MEASUREMENT_AGE_HOURS:
         blockers.append("WELL_MEASUREMENT_STALE")
     if pumping_test_age_days > MAX_PUMPING_TEST_AGE_DAYS:
@@ -302,6 +367,7 @@ def build_canonical_well_capability(
     evidence = {
         "water_source_evidence": water_source.get("evidence") or {},
         "well_evidence": well.get("evidence") or {},
+        **aquifer["ref"],
         "pumping_test_id": str(pumping_test.get("pumping_test_id") or pumping_test.get("id") or ""),
         "measurement_id": str(
             latest_measurement.get("measurement_id") or latest_measurement.get("id") or ""
@@ -335,6 +401,8 @@ def build_canonical_well_capability(
         "specific_capacity_lps_per_m": round(tested_flow / drawdown, 6),
         "recovery_rate_m_h": None if recovery_rate is None else round(recovery_rate, 4),
         "sustainable_flow_lps": round(sustainable_flow, 6),
+        "well_hydraulic_flow_lps": round(sustainable_flow, 6),
+        "aquifer_safe_yield_lps": aquifer_limit,
         "water_ec_ds_m": water_ec,
         "maximum_allowed_ec_ds_m": maximum_ec,
         "minimum_rest_hours": round(min_rest_hours, 4),

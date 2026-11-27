@@ -26125,7 +26125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b922a7f8c64f2e76e8c6bc18429ede85f85d91c38ede33cda17a631d8959fca4"
+          "content": "3ecc13c3a89c7d603f56c2826e49851d9af831184693fb234670b69f22ff1c51"
         }
       ],
       "name": "services/sahool-platform/api/canonical_well_capability.py",
@@ -34475,7 +34475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e28d448518f1e398e6bd39ad8473279c2a332db37e00aa3e79ae1066ba4ea642"
+          "content": "a1a1cb6793f92b5a601d5314f03b2d105f7c7e37c0046ac5c517084442e96f9f"
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_well_capability.py",
