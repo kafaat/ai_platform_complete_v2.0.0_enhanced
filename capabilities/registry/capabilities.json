@@ -4654,7 +4654,9 @@
         "POST /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:40",
         "POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:152"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/equipment-history-keyboard.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/equipment/data/equipment_api.dart",
         "mobile/sahool_app/lib/features/equipment/data/equipment_models.dart",
@@ -4700,7 +4702,7 @@
           "path": "services/sahool-platform/api/machinery_export.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=5, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=5, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

@@ -245,6 +245,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e1d3cab06088e15a846fd938db3103a8d793509408a32d63a672c57fcb896680"
+        }
+      ],
+      "name": "frontend/e2e/equipment-history-keyboard.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9be5da53d7acebf9631d716464b97cf61f5a426b96d0e303eed4b4f4670ab77e"
         }
       ],
@@ -6305,7 +6315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae70de7e6a731c24ec44a08d45fa6b473d1d88aff4b7a13138e2be6732175b29"
+          "content": "447c43f03b96d59da0019257ce04e6acba15202b0f2e0ffc5ad7f4ed5b80b9d4"
         }
       ],
       "name": "frontend/src/sections/EquipmentPage.tsx",

@@ -7974,6 +7974,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "frontend/e2e/equipment-history-keyboard.spec.ts",
         "tests_v9/test_equipment_schedule_wiring.py"
       ],
       "learning_linked": false,
@@ -7983,6 +7984,11 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "frontend/e2e/equipment-history-keyboard.spec.ts",
+          "signal": "filename:e2e"
+        },
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_equipment_schedule_wiring.py",
