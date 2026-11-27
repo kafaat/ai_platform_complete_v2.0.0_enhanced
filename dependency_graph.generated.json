@@ -1,5 +1,5 @@
 {
-  "edge_count": 1150,
+  "edge_count": 1154,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2062,6 +2062,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/irrigation_source_binding.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://canonical_irrigation_capability_graphs",
+      "to": "db://canonical_irrigation_capability_graphs",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3832,6 +3842,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -5352,6 +5372,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://seasons",
+      "to": "db://seasons",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_ledger_currency_governance_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -5743,6 +5773,16 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://water_ledger",
+      "to": "db://water_ledger",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -11520,7 +11560,7 @@
     "CALLS": 47,
     "CONSUMES": 4,
     "EMITS": 3,
-    "READS": 621,
+    "READS": 625,
     "ROUTES_TO": 82,
     "WRITES": 393
   },
@@ -11537,8 +11577,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 1015,
-      "resolved": 1014,
+      "observed": 1019,
+      "resolved": 1018,
       "unresolved_component_paths": 0
     }
   }

@@ -2511,7 +2511,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 65,
+  "include_edge_count": 66,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2785,7 +2785,16 @@
     },
     {
       "expression": "route.router",
-      "line": 176,
+      "line": 178,
+      "module": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "route.router",
+      "line": 467,
       "module": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
       "prefix": null,
       "resolved": false,
@@ -3099,7 +3108,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "d8f18c9c5989c4e135ccc88374bd8245bb24c0c107a83da8fa3650d3672d3166",
+  "inventory_sha256": "5be98e4c96eae5e597cfc284d9805ee4d7db95f1e16aa482567ccfb63ed4f489",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -5500,7 +5509,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 59,
+  "unresolved_include_count": 60,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5721,7 +5730,15 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-      "line": 176,
+      "line": 178,
+      "module": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator",
+      "source": null,
+      "target_expression": "route.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "line": 467,
       "module": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator",
       "source": null,
       "target_expression": "route.router"

@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7789,
+    "files_scanned": 7790,
     "files_by_kind": {
       "backend": 1325,
       "database": 362,
       "governance": 92,
       "mobile": 429,
       "other": 2261,
-      "tests": 2730,
+      "tests": 2731,
       "web": 590
     },
     "unmapped_artifacts": 3711,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4234,
+      "python_functional": 4235,
       "raw": 3555
     },
-    "test_dependency_files": 2079,
-    "test_dependency_edges": 5647,
-    "test_dependency_bounded_files": 1196,
+    "test_dependency_files": 2080,
+    "test_dependency_edges": 5650,
+    "test_dependency_bounded_files": 1197,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -13750,15 +13750,15 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:566",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:578",
           "score": 9
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:342",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:354",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:607",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:619",
           "score": 9
         },
         {
@@ -13770,7 +13770,7 @@
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:309",
+          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:321",
           "score": 9
         }
       ],
@@ -32028,7 +32028,19 @@
           "score": 9
         },
         {
+          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:192",
+          "score": 8
+        },
+        {
           "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:207",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:194",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:193",
           "score": 8
         },
         {
@@ -32273,6 +32285,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "score": 8,
+          "signals": [
+            "content:forecast",
+            "content:Weather forecast",
+            "dedup:Weather forecast=weather forecast"
+          ]
+        },
+        {
           "path": "tests_v9/test_v13_refinements.py",
           "score": 8,
           "signals": [
@@ -32383,10 +32404,10 @@
         "backend": 14,
         "routes": 20,
         "database": 6,
-        "events": 28,
+        "events": 31,
         "web": 9,
         "mobile": 1,
-        "tests": 17,
+        "tests": 18,
         "governance": 0,
         "other_evidence": 9
       },
@@ -43026,10 +43047,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/sahool-platform/tests/test_irrigation_scenario_value.py",
       "kind": "tests"
     },
@@ -46219,6 +46236,10 @@
     },
     {
       "path": "tests_v9/test_generated_write_targets.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_georag_metadata_boundary.py",
       "kind": "tests"
     },
     {
@@ -67039,22 +67060,32 @@
         {
           "source": "services/sahool-platform/api/__init__.py",
           "kind": "import",
-          "line": 10
+          "line": 11
+        },
+        {
+          "source": "services/sahool-platform/api/canonical_water_state.py",
+          "kind": "import",
+          "line": 402
+        },
+        {
+          "source": "services/sahool-platform/api/decision_service_client.py",
+          "kind": "import",
+          "line": 403
         },
         {
           "source": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
           "kind": "import",
-          "line": 10
+          "line": 11
         },
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 151
+          "line": 153
         },
         {
           "source": "services/sahool-platform/api/routers/irrigation_mpc.py",
           "kind": "import",
-          "line": 151
+          "line": 153
         }
       ],
       "unresolved": []
@@ -81004,17 +81035,17 @@
         {
           "source": "services/weather-service/canonical_weather_state.py",
           "kind": "import",
-          "line": 537
+          "line": 546
         },
         {
           "source": "services/weather-service/et0.py",
           "kind": "import",
-          "line": 538
+          "line": 547
         },
         {
           "source": "services/weather-service/open_meteo.py",
           "kind": "import",
-          "line": 539
+          "line": 548
         }
       ],
       "unresolved": [
@@ -81091,19 +81122,19 @@
           "import": "api.canonical_water_state"
         },
         {
-          "line": 453,
+          "line": 462,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 454,
+          "line": 463,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 534,
+          "line": 543,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 570,
+          "line": 579,
           "import": "api.canonical_water_state"
         }
       ]
@@ -87552,6 +87583,19 @@
           "call": "spec_from_file_location"
         }
       ]
+    },
+    {
+      "test": "tests_v9/test_georag_metadata_boundary.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "shared/knowledge/georag_evidence.py",
+          "kind": "import",
+          "line": 7
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "tests_v9/test_geospatial.py",
