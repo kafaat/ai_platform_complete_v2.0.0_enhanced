@@ -396,20 +396,21 @@ def test_hosted_browser_install_uses_ubuntu_sources_and_restores_apt(tmp_path, i
     (root / "lists/partial").mkdir(parents=True)
     (sources / "ubuntu.sources").write_text(
         "Types: deb\nURIs: https://archive.ubuntu.com/ubuntu\nSuites: noble\n"
-        "Components: main\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n"
+        "Components: main\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n",
+        encoding="utf-8",
     )
     (sources / "microsoft.list").write_text(
-        "deb https://packages.microsoft.com/ubuntu/24.04/prod noble main\n"
+        "deb https://packages.microsoft.com/ubuntu/24.04/prod noble main\n", encoding="utf-8"
     )
     config = tmp_path / "apt.conf"
-    config.write_text(f'Dir::Etc "{root}";\nDir::State::lists "{root}/lists";\n')
+    config.write_text(f'Dir::Etc "{root}";\nDir::State::lists "{root}/lists";\n', encoding="utf-8")
     env = {
         "APT_CONFIG": str(config),
         "RUNNER_ENVIRONMENT": "github-hosted",
         "PW_APT_ROOT": str(root),
     }
     probe = ["apt-get", "--print-uris", "update"]
-    before = subprocess.check_output(probe, env={**os.environ, **env}, text=True)
+    before = subprocess.check_output(probe, env={**os.environ, **env}, encoding="utf-8")
     assert "packages.microsoft.com" in before and "archive.ubuntu.com" in before
     _fake_bin(tmp_path, succeed_on=1)
     _script_with(
@@ -423,5 +424,5 @@ def test_hosted_browser_install_uses_ubuntu_sources_and_restores_apt(tmp_path, i
     assert "archive.ubuntu.com" in proc.stdout
     assert "packages.microsoft.com" not in proc.stdout
     assert (proc.returncode == 0) == (install_rc == 0)
-    assert subprocess.check_output(probe, env={**os.environ, **env}, text=True) == before
+    assert subprocess.check_output(probe, env={**os.environ, **env}, encoding="utf-8") == before
     assert list((root / "apt.conf.d").iterdir()) == []
