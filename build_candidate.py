@@ -49,7 +49,14 @@ def read_state() -> dict:
 
 
 def git(*args: str, cwd: Path = SOURCE, data: bytes | None = None) -> bytes:
-    return subprocess.check_output(["git", *args], cwd=cwd, input=data)
+    try:
+        return subprocess.check_output(["git", *args], cwd=cwd, input=data)
+    except subprocess.CalledProcessError as exc:
+        # stderr is already inherited; diff --check writes its diagnosis to stdout.
+        if exc.output:
+            sys.stderr.write(exc.output.decode("utf-8", errors="replace"))
+            sys.stderr.flush()
+        raise
 
 
 def gt(*args: str, cwd: Path = SOURCE) -> str:
@@ -172,6 +179,49 @@ def apply_brain_updates() -> dict:
     return receipt
 
 
+def configure_csv_whitespace_policy() -> None:
+    """Honor the pinned CSV byte policy in this fresh clone's private Git metadata."""
+    policy = file_bytes(".gitattributes")
+    require(policy == git("show", f"{CONFIG['main']}:.gitattributes"),
+            "Repository attributes differ from pinned main")
+    require(any(line.split() == [b"*.csv", b"-text"] for line in policy.splitlines()),
+            "Pinned repository does not preserve generator-owned CSV line endings")
+    attributes = SOURCE / ".git" / "info" / "attributes"
+    require(attributes.parent.is_dir() and not attributes.is_symlink(),
+            "Expected private attributes in the fresh owned clone")
+    require(attributes.parent.resolve().is_relative_to((SOURCE / ".git").resolve()),
+            "Private Git attributes escape the owned clone")
+    existed = attributes.exists()
+    original = attributes.read_bytes() if existed else b""
+    require(not original.strip(), "Unexpected inherited private Git attributes; review required")
+    rule = "blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol"
+    content = f"*.csv whitespace={rule}\n".encode()
+    attributes.write_bytes(content)
+    csv = gt("check-attr", "whitespace", "--", "__inspection_policy_probe.csv")
+    other = gt("check-attr", "whitespace", "--", "__inspection_policy_probe.py")
+    require(csv.endswith(": " + rule) and other.endswith(": unspecified"),
+            "Private whitespace policy must affect CSV only")
+    write_json("whitespace-policy.json", {
+        "status": "APPLIED",
+        "repository_policy_commit": CONFIG["main"],
+        "repository_policy_path": ".gitattributes",
+        "repository_policy_sha256": sha256(policy),
+        "repository_policy_reason": "CRLF-PHANTOM-ARTIFACT-DRIFT-01: CSV bytes retain their generator's LF or CRLF.",
+        "scope": "Fresh owned SOURCE clone .git/info/attributes; *.csv only.",
+        "attributes_relative_path": ".git/info/attributes",
+        "original_attributes_existed": existed,
+        "original_attributes_sha256": sha256(original),
+        "applied_rule": content.decode().rstrip("\n"),
+        "applied_attributes_sha256": sha256(content),
+        "retained_checks": ["blank-at-eol", "blank-at-eof", "space-before-tab"],
+        "csv_line_ending_recognition": "cr-at-eol",
+        "non_csv_check_attr": other,
+        "git_diff_check_command": ["git", "diff", "--cached", "--check"],
+        "source_or_generated_bytes_modified": False,
+        "production_accepted": False,
+    })
+
+
 def prepare() -> None:
     verify_transport()
     require(not SOURCE.exists() and not OUT.exists(), "Use a fresh attempt; previous source/evidence must be preserved")
@@ -197,6 +247,7 @@ def prepare() -> None:
     git("remote", "set-url", "origin", f"https://github.com/{CONFIG['repository']}.git")
     git("update-ref", "refs/remotes/origin/main", CONFIG["main"])
     require(gt("rev-parse", "--is-shallow-repository") == "false", "Complete candidate Git history required")
+    configure_csv_whitespace_policy()
     applied = run_logged(["git", "apply", "--index", "--binary", str(patch_path)], "reconstruct-6a4")
     require(applied["returncode"] == 0, "Exact reconstruction failed")
     require(gt("write-tree") == CONFIG["reconstructed_tree"], "Reconstructed tree is not the reviewed 6a4 candidate")
@@ -400,7 +451,8 @@ def retain() -> None:
     names = ("verified-source.json", "build-state.json", "generation-receipt.json", "preflight-receipt.json",
              "source-overlay.patch.gz", "source-overlay-manifest.json", "functional-review-final.json",
              "exact-reconstruction.json", "merge-review.json", "brain-update-receipt.json",
-             "generation-allowed-paths.json", "capability-impact.json", "capability-impact-validated.json", "source-pr-body.md")
+             "generation-allowed-paths.json", "whitespace-policy.json", "capability-impact.json",
+             "capability-impact-validated.json", "source-pr-body.md")
     for name in names:
         shutil.copyfile(OUT / name, WORK / name)
         git("add", "--", name, cwd=WORK)

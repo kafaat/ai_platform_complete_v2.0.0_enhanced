@@ -26,6 +26,9 @@ jobs:
       - name: Verify exact recovered tree and merge over pinned main
         shell: bash
         run: python build_candidate.py prepare
+      - name: Verify scoped CSV whitespace policy with actual Git controls
+        shell: bash
+        run: python csv_whitespace_controls.py --receipt "$RUNNER_TEMP/inspection-build-evidence/csv-whitespace-controls-receipt.json"
       - name: Install project requirements and isolate temporary outputs
         shell: bash
         run: |
