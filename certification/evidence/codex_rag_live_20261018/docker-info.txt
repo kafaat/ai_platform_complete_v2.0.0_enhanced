@@ -1,4 +1,0 @@
-BLOCKED_BY_ENVIRONMENT
-Command: docker info
-Exit: 127
-/bin/bash: line 56: docker: command not found

@@ -1,8 +1,0 @@
-{
-  "baseline_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
-  "files": {
-    "services/sahool-platform/api/phase_runtime_store.py": "dd57e3fdb9d156649b3ded4f4e45decf2c011341",
-    "migrations/MANIFEST.txt": "4838026b2ed6a8dbd6337fcda29e86d64ca9402a",
-    "scripts_v9/run_migrations.sql": "46ddac2d5d579f74041b75de4ea587ceeed7574e"
-  }
-}
