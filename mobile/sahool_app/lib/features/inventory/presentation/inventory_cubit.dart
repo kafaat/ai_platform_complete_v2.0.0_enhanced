@@ -48,7 +48,12 @@ class InventoryLoaded extends InventoryState {
   /// فشل آخر تحديث بينما البيانات المعروضة من [fetchedAt].
   final ApiException? refreshError;
 
-  int get lowStockCount => items.where((i) => i.lowStock).length;
+  bool get hasUnknownStock => items.any((item) => item.lowStock == null);
+
+  int? get lowStockCount {
+    final confirmed = items.where((item) => item.lowStock == true).length;
+    return confirmed == 0 && hasUnknownStock ? null : confirmed;
+  }
 
   bool get isFiltered => category != null || lowOnly || query.trim().isNotEmpty;
 
@@ -56,7 +61,7 @@ class InventoryLoaded extends InventoryState {
     final q = query.trim().toLowerCase();
     return items.where((i) {
       if (category != null && i.category != category) return false;
-      if (lowOnly && !i.lowStock) return false;
+      if (lowOnly && i.lowStock != true) return false;
       if (q.isNotEmpty && !i.name.toLowerCase().contains(q)) return false;
       return true;
     }).toList();

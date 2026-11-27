@@ -12,7 +12,12 @@ class InventoryApi {
   final ApiClient _client;
 
   Future<List<Map<String, dynamic>>> getInventoryItems() async =>
-      asJsonList(await _client.get('/api/v1/inventory/items'));
+      asJsonList(
+        await _client.get(
+          '/api/v1/inventory/items',
+          query: {'unit_breakdown': true},
+        ),
+      );
 
   Future<List<Map<String, dynamic>>> getExpiringBatches({
     int days = 30,

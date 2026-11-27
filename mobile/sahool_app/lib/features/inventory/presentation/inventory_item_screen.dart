@@ -248,28 +248,35 @@ class _ItemViewState extends State<_ItemView> {
         SectionCard(
           title: item.categoryLabel,
           icon: inventoryCategoryIcon(item.category),
-          trailing: item.lowStock
-              ? const StatusChip(
-                  label: 'مخزون منخفض',
-                  tone: StatusTone.danger,
-                  icon: Icons.trending_down_rounded,
-                )
-              : (item.reorderLevel == null
-                    ? null
-                    : const StatusChip(
-                        label: 'كافٍ',
-                        tone: StatusTone.success,
-                      )),
+          trailing: switch (item.lowStock) {
+            true => const StatusChip(
+              label: 'مخزون منخفض',
+              tone: StatusTone.danger,
+              icon: Icons.trending_down_rounded,
+            ),
+            false when item.reorderLevel != null => const StatusChip(
+              label: 'كافٍ',
+              tone: StatusTone.success,
+            ),
+            false => null,
+            null => const StatusChip(
+              label: 'تعذّر تقييم حدّ الطلب',
+              tone: StatusTone.neutral,
+            ),
+          },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              MetricTile(
-                label: 'الكمّيّة المتوفّرة',
-                value: item.totalQuantity,
-                unit: item.unit.isEmpty ? null : item.unit,
-                decimals: 2,
-                icon: Icons.inventory_2_outlined,
-              ),
+              if (item.totalQuantity == null && item.quantitiesByUnit.isNotEmpty)
+                Text('الكميّات حسب الوحدة: ${item.quantityBreakdown}')
+              else
+                MetricTile(
+                  label: 'الكمّيّة المتوفّرة',
+                  value: item.totalQuantity,
+                  unit: item.unit.isEmpty ? null : item.unit,
+                  decimals: 2,
+                  icon: Icons.inventory_2_outlined,
+                ),
               const SizedBox(height: SahoolSpacing.sm),
               Text(
                 item.reorderLevel == null

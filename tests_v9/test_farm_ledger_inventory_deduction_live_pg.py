@@ -387,3 +387,104 @@ def test_preview_with_every_flag_on_writes_nothing(monkeypatch):
         assert (await live.stock(), await live.operations()) == (10.0, 0)
 
     _run(monkeypatch, case, flag=True)
+
+
+def test_item_stock_converts_metric_batches_and_preserves_legacy_rows(monkeypatch):
+    async def case(live, _router):
+        import httpx
+        from api import main
+
+        monkeypatch.setitem(
+            main.app.dependency_overrides, main.get_current_user, lambda: _user(live.tenant)
+        )
+        await live.owner.execute(
+            "UPDATE inventory_items SET reorder_level = 3 WHERE item_id = $1", live.item_id
+        )
+        await live.owner.execute(
+            "UPDATE inventory_batches SET quantity = 1 WHERE batch_id = $1", live.batch_id
+        )
+        path = "/api/v1/inventory/items"
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=main.app), base_url="http://test"
+        ) as client:
+            batch = await client.post(
+                f"{path}/{live.item_id}/batches", json={"quantity": 1000, "unit": "g"}
+            )
+            assert batch.status_code == 201, batch.text
+            for params in ({}, {"unit_breakdown": True}):
+                result = await client.get(path, params=params)
+                assert result.status_code == 200, result.text
+                (item,) = result.json()
+                assert (
+                    item["item_id"],
+                    item["total_quantity"],
+                    item["unit"],
+                    item["low_stock"],
+                ) == (live.item_id, 2.0, "kg", True)
+                if params:
+                    assert {q["unit"]: q["quantity"] for q in item["quantities_by_unit"]} == {
+                        "kg": 1,
+                        "g": 1000,
+                    }
+            stored = await live.owner.fetchrow(
+                "SELECT quantity, unit FROM inventory_batches WHERE batch_id = $1",
+                batch.json()["batch_id"],
+            )
+            assert (stored["quantity"], stored["unit"]) == (1000, "g")
+
+    _run(monkeypatch, case, flag=False)
+
+
+def test_item_stock_discloses_incompatible_units_without_guessing(monkeypatch):
+    async def case(live, _router):
+        import httpx
+        from api import main
+
+        monkeypatch.setitem(
+            main.app.dependency_overrides, main.get_current_user, lambda: _user(live.tenant)
+        )
+        path = "/api/v1/inventory/items"
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=main.app), base_url="http://test"
+        ) as client:
+            # A supplier's sack has no known mass. Preserve that record, including for older data.
+            batch = await client.post(
+                f"{path}/{live.item_id}/batches", json={"quantity": 1, "unit": "كيس"}
+            )
+            assert batch.status_code == 201, batch.text
+            legacy = await client.get(path)
+            assert legacy.status_code == 409
+            assert legacy.json()["detail"]["code"] == "inventory_unit_conversion_unavailable"
+            assert legacy.json()["detail"]["item_id"] == live.item_id
+            result = await client.get(path, params={"unit_breakdown": True})
+            assert result.status_code == 200, result.text
+            (item,) = result.json()
+            assert item["total_quantity"] is None and item["low_stock"] is None
+            assert {q["unit"]: q["quantity"] for q in item["quantities_by_unit"]} == {
+                "kg": 10,
+                "كيس": 1,
+            }
+
+    _run(monkeypatch, case, flag=False)
+
+
+def test_item_stock_sums_inherited_and_unlisted_units_and_empty_items(monkeypatch):
+    async def case(live, _router):
+        from api.routers.inventory import list_inventory_items
+
+        await live.owner.execute(
+            "UPDATE inventory_items SET unit='كيس' WHERE item_id=$1", live.item_id
+        )
+        await live.owner.execute(
+            "UPDATE inventory_batches SET unit=NULL WHERE batch_id=$1", live.batch_id
+        )
+        items = await list_inventory_items(_user(live.tenant), unit_breakdown=True)
+        assert len(items) == 1 and items[0]["total_quantity"] == 10
+        assert items[0]["quantities_by_unit"] == [{"unit": "كيس", "quantity": 10}]
+
+        await live.owner.execute("DELETE FROM inventory_batches WHERE batch_id=$1", live.batch_id)
+        (item,) = await list_inventory_items(_user(live.tenant), unit_breakdown=True)
+        assert item["total_quantity"] == 0 and item["low_stock"] is False
+        assert item["quantities_by_unit"] == []
+
+    _run(monkeypatch, case, flag=False)

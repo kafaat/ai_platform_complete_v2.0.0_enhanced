@@ -129,6 +129,29 @@ void main() {
     expect(metric('دفعات قاربت الانتهاء', 2), findsOneWidget);
   });
 
+  testWidgets('mixed-unit stock is visible and its reorder status is unknown', (t) async {
+    await pumpScreen(t, okAdapter(itemsBody: [
+      {
+        ...items.first,
+        'total_quantity': null,
+        'low_stock': null,
+        'quantities_by_unit': [
+          {'unit': 'kg', 'quantity': 2},
+          {'unit': 'L', 'quantity': 1.25},
+        ],
+      },
+    ], expBody: const []));
+    await settle(t);
+    expect(find.textContaining('المتوفّر: 2 kg · 1.25 L'), findsOneWidget);
+    expect(find.byWidgetPredicate((widget) => widget is MetricTile &&
+        widget.label == 'مخزون منخفض مؤكّد' && widget.value == null), findsOneWidget);
+    expect(find.text('تعذّر تقييم حدّ الطلب'), findsOneWidget);
+    expect(find.text('كافٍ'), findsNothing);
+    await t.tap(find.text('منخفض فقط'));
+    await t.pump();
+    expect(find.byKey(const ValueKey('item:inv_1')), findsNothing);
+  });
+
   testWidgets('low-only filter and search narrow the list honestly', (t) async {
     await pumpScreen(t, okAdapter(expBody: const []));
     await settle(t);

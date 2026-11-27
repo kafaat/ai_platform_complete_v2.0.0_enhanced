@@ -738,10 +738,10 @@ sahool-platform,services/sahool-platform/api/routers/internal_service.py,192,POS
 sahool-platform,services/sahool-platform/api/routers/introduction.py,29,GET,/api/v1/introduction/candidates,introduction_candidates_endpoint
 sahool-platform,services/sahool-platform/api/routers/introduction.py,35,GET,/api/v1/introduction/card,introduction_card_endpoint
 sahool-platform,services/sahool-platform/api/routers/introduction.py,41,POST,/api/v1/introduction/field-fit,introduction_field_fit_endpoint
-sahool-platform,services/sahool-platform/api/routers/inventory.py,41,POST,/api/v1/inventory/items,create_inventory_item
-sahool-platform,services/sahool-platform/api/routers/inventory.py,92,GET,/api/v1/inventory/items,list_inventory_items
-sahool-platform,services/sahool-platform/api/routers/inventory.py,123,POST,/api/v1/inventory/items/{item_id}/batches,add_inventory_batch
-sahool-platform,services/sahool-platform/api/routers/inventory.py,187,GET,/api/v1/inventory/expiring,list_expiring_batches
+sahool-platform,services/sahool-platform/api/routers/inventory.py,44,POST,/api/v1/inventory/items,create_inventory_item
+sahool-platform,services/sahool-platform/api/routers/inventory.py,95,GET,/api/v1/inventory/items,list_inventory_items
+sahool-platform,services/sahool-platform/api/routers/inventory.py,139,POST,/api/v1/inventory/items/{item_id}/batches,add_inventory_batch
+sahool-platform,services/sahool-platform/api/routers/inventory.py,203,GET,/api/v1/inventory/expiring,list_expiring_batches
 sahool-platform,services/sahool-platform/api/routers/ipm.py,25,GET,/api/v1/ipm/pests,ipm_pests_endpoint
 sahool-platform,services/sahool-platform/api/routers/ipm.py,31,GET,/api/v1/ipm/plan,ipm_plan_endpoint
 sahool-platform,services/sahool-platform/api/routers/ipm.py,37,GET,/api/v1/ipm/crop-pests,ipm_crop_pests_endpoint

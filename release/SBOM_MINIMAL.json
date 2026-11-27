@@ -275,6 +275,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3e39527bd1825284b6be6232d89d30d7f43cdcc32a73d3ed3e0e52aaff4fc480"
+        }
+      ],
+      "name": "frontend/e2e/inventory-units.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "51acff61d0fc8071d057670c1a5befe90f99d818862690922dc3e6fc58f6be70"
         }
       ],
@@ -6835,7 +6845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8588821c9915e6511c0bf63968c64f65870d3b65825437c2074f1fd1c317d65"
+          "content": "6fad2bfa021fc41b45005c37fb7a54ce256676cb03c51bf08539c282bf0c2afa"
         }
       ],
       "name": "frontend/src/sections/InventoryPage.tsx",
@@ -8375,7 +8385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d41f1184d22cbdbcfe9a32ac3379de4550f36ad91a8014f3840c4582e8837cd1"
+          "content": "231e1b043a0704276dd4fa375db67ed6a13877212db06c135d6bfc8f199c033e"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -14325,7 +14335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc68016f0da042cecbe8452f20023596a9bf943df0ce7eca155af490cb5d0930"
+          "content": "6408efe0384bc80a6fc8d9a18e4a9902680c41595505bb5ec9e9e048f08a3cf7"
         }
       ],
       "name": "mobile/sahool_app/lib/features/inventory/data/inventory_api.dart",
@@ -14335,7 +14345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1ba95388fa08b782ab29418ad10233e86e8cb64759d48d5b048424ae76c95cd"
+          "content": "45bc9bbd1dd6d355744b777c4470cc89f6d004755fed89aaa52e9b6b78e52dec"
         }
       ],
       "name": "mobile/sahool_app/lib/features/inventory/data/inventory_models.dart",
@@ -14355,7 +14365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5c425524a3c7c027f392679630912fd688eef5af361d0500458fc457daab407"
+          "content": "d34ba10b9d1dd8f85b700bc53f46b8c59440a2307ce2b8ace9ccb221b9728d1e"
         }
       ],
       "name": "mobile/sahool_app/lib/features/inventory/presentation/inventory_cubit.dart",
@@ -14365,7 +14375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cbc2a776dec6bfed3ae7326588c76e339722ca7b6e81d426e8cb74bba66198e"
+          "content": "be8cb87efd7bc87ed3722d1eb75cc2b0ec57cde89f593f99ad4858e4ef43377b"
         }
       ],
       "name": "mobile/sahool_app/lib/features/inventory/presentation/inventory_item_screen.dart",
@@ -14375,7 +14385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af16da085a9e9a4fbd61a928eb911e3551fae3104491851ee7bc9983e8e201b1"
+          "content": "a9f1e15bfd513a3229ec3506777f96119efc57a1d589760e9c9eea994f8e9144"
         }
       ],
       "name": "mobile/sahool_app/lib/features/inventory/presentation/inventory_screen.dart",
@@ -17345,7 +17355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e36d014d75f15c4b01edbd10aa60fa58b27754940ea6f56cbf133fdde2dd5e9"
+          "content": "32651c5c6d726acb7dfc5238a711431283fad96ca66541e84c77a8d965deba50"
         }
       ],
       "name": "mobile/sahool_app/test/features/inventory/inventory_api_test.dart",
@@ -17355,7 +17365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cd401b3aefdaa62e52aa0a621e6dffef8c89d73a523f45f99caf9c69f8963a05"
+          "content": "d2907cff03f3d92a958449afa1af5c381d248897bc31db72aece1824ea9b787c"
         }
       ],
       "name": "mobile/sahool_app/test/features/inventory/inventory_item_screen_test.dart",
@@ -17365,7 +17375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef0657e58f6700e6aeed60a236a0072083c515bfd178469c054dc1a2e2a69845"
+          "content": "0c2ae7fb5a17198304011a7503670c81f60eb45718f941748f3ff5720489c4ae"
         }
       ],
       "name": "mobile/sahool_app/test/features/inventory/inventory_screen_test.dart",
@@ -28765,7 +28775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93dbf2b2622b0792da91cbbc5514579c03eb5fbd94b067cdc6c6137ae4d5e3d3"
+          "content": "7783ce1c97d6baad01fec06646a353f7f93761ca7879effb728f92db489bb0fe"
         }
       ],
       "name": "services/sahool-platform/api/routers/inventory.py",
@@ -32429,6 +32439,16 @@
         }
       ],
       "name": "services/sahool-platform/core/internal_orchestrator.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "048e893e42129b73c150bf3917effd1c3126d9843e9190f87b8f442cc83ceafc"
+        }
+      ],
+      "name": "services/sahool-platform/core/inventory_units.py",
       "type": "file"
     },
     {

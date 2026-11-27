@@ -3843,7 +3843,7 @@
       "function": "list_expiring_batches",
       "method": "GET",
       "path": "/api/v1/inventory/expiring",
-      "line": 186,
+      "line": 202,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::GET /api/v1/inventory/expiring::list_expiring_batches"
@@ -3853,7 +3853,7 @@
       "function": "list_inventory_items",
       "method": "GET",
       "path": "/api/v1/inventory/items",
-      "line": 91,
+      "line": 94,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::GET /api/v1/inventory/items::list_inventory_items"
@@ -3863,7 +3863,7 @@
       "function": "add_inventory_batch",
       "method": "POST",
       "path": "/api/v1/inventory/items/{item_id}/batches",
-      "line": 122,
+      "line": 138,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::POST /api/v1/inventory/items/{item_id}/batches::add_inventory_batch"
@@ -3873,7 +3873,7 @@
       "function": "create_inventory_item",
       "method": "POST",
       "path": "/api/v1/inventory/items",
-      "line": 40,
+      "line": 43,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::POST /api/v1/inventory/items::create_inventory_item"
