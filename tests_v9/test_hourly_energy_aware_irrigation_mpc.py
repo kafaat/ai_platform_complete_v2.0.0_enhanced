@@ -183,6 +183,22 @@ def test_malformed_seasonal_balance_blocks(invalid):
     assert "INVALID_REMAINING_SEASONAL_VOLUME" in result.blocking_reasons
 
 
+def test_large_finite_seasonal_allocation_is_nonbinding():
+    unlimited = solve()
+    large = solve(irrigation_capability={**capability(), "remaining_seasonal_volume_m3": 1e30})
+    assert large == unlimited
+
+
+def test_tiny_budget_cannot_cut_a_final_refill_below_minimum_runtime():
+    # Existing policy permits a short final 5 mm refill. The budget allows only 2 mm.
+    args = {"canonical_water_state": water(dr=35.0), "area_ha": 1.0}
+    assert solve(**args).scheduled_irrigation_mm == 5.0
+    cap = {**capability(), "remaining_seasonal_volume_m3": 20.0}
+    limited = solve(**args, irrigation_capability=cap)
+    assert limited.actions == []
+    assert limited.status == "degraded"
+
+
 def test_zero_seasonal_balance_blocks_irrigation():
     result = solve(irrigation_capability={**capability(), "remaining_seasonal_volume_m3": 0})
     assert result.status == "blocked"

@@ -18,7 +18,7 @@ from typing import Any
 
 SCHEMA_VERSION = "hourly_energy_aware_irrigation_mpc.v1"
 SOLVER_VERSION = "hourly-lex-mpc.v1"
-SCHEDULE_PRECISION = Decimal("0.000001")
+SCHEDULE_DECIMALS = 6
 
 
 def _digest(payload: Any) -> str:
@@ -32,6 +32,12 @@ def _num(value: Any) -> float | None:
         return None
     value = float(value)
     return value if math.isfinite(value) else None
+
+
+def _budget_precision(value: Decimal, rounding: str) -> Decimal:
+    # Scaling keeps large finite budgets representable at the schedule's precision.
+    units = value.scaleb(SCHEDULE_DECIMALS).to_integral_value(rounding=rounding)
+    return units.scaleb(-SCHEDULE_DECIMALS)
 
 
 def _hour(value: Any) -> datetime | None:
@@ -346,7 +352,7 @@ def solve_hourly_energy_aware_mpc(
         daily_depth_left: dict[date, Decimal] = {}
         volume_per_mm = Decimal(str(area)) * 10
         seasonal_volume_left = (
-            Decimal(str(seasonal_volume)).quantize(SCHEDULE_PRECISION, rounding=ROUND_DOWN)
+            _budget_precision(Decimal(str(seasonal_volume)), ROUND_DOWN)
             if seasonal_volume is not None
             else Decimal("Infinity")
         )
@@ -367,11 +373,11 @@ def solve_hourly_energy_aware_mpc(
             daily_remaining = daily_depth_left.get(day, daily_limit)
             requested_depth = min(remaining, max_event_depth, depth_from_full_hour, state_dr)
             # Round down to the published depth precision before deriving volume and energy.
-            budgeted_depth = min(
-                Decimal(str(requested_depth)), daily_remaining, seasonal_volume_left / volume_per_mm
-            ).quantize(SCHEDULE_PRECISION, rounding=ROUND_DOWN)
+            requested = Decimal(str(requested_depth))
+            available = min(requested, daily_remaining, seasonal_volume_left / volume_per_mm)
+            budgeted_depth = _budget_precision(available, ROUND_DOWN)
             depth = float(budgeted_depth)
-            if depth < min_depth and remaining > min_depth:
+            if depth < min_depth and (remaining > min_depth or available < requested):
                 continue
             if depth <= 1e-9:
                 continue
@@ -394,7 +400,7 @@ def solve_hourly_energy_aware_mpc(
             actions.append(action)
             daily_depth_left[day] = daily_remaining - budgeted_depth
             # Reserve any fraction of a published volume unit against the seasonal balance.
-            seasonal_volume_left -= budgeted_volume.quantize(SCHEDULE_PRECISION, rounding=ROUND_CEILING)
+            seasonal_volume_left -= _budget_precision(budgeted_volume, ROUND_CEILING)
             state_dr = max(0.0, state_dr - depth)
             remaining -= depth
             last_action_time = h["hour"]
