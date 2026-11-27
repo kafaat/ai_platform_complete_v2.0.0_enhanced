@@ -4,10 +4,12 @@ import hashlib
 import json
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
 from api import irrigation_runtime_orchestrator as mod
+from httpx import ASGITransport, AsyncClient
 
 D = hashlib.sha256(b"x").hexdigest()
 
@@ -264,3 +266,254 @@ async def test_well_fk_on_old_graph_blocks_even_when_payload_omits_the_well(monk
     assert result["reason"] == "AQUIFER_ALLOCATION_UNVERIFIED"
     assert result["execution_allowed"] is False
     assert conn.executed == []
+
+
+# ASGI policy regression for the daily consumer of a persisted well graph.
+# Router, canonical-water resolver, daily solver, and governed bridge are real.
+# Database transport, authentication, weather/root-profile providers, and decision
+# transport are synthetic; these cases do not certify PostgreSQL/RLS or JWT.
+_AQUIFER_TEST_TENANT = "11111111-1111-4111-8111-111111111111"
+_AQUIFER_TEST_FIELD = "synthetic-pivot"
+_AQUIFER_TEST_SEASON = "synthetic-current-season"
+
+
+class _AquiferSnapshotConnection:
+    """Transport double with a persisted well graph and absent/expired bindings."""
+
+    def __init__(self, binding_state: str, graph_season: str | None):
+        self.binding_state = binding_state
+        self.graph_season = graph_season
+        self.queries: list[str] = []
+        self.writes: list[str] = []
+        now = datetime.now(UTC)
+        self.bindings = (
+            []
+            if binding_state == "absent"
+            else [
+                {
+                    "tenant_id": _AQUIFER_TEST_TENANT,
+                    "field_id": _AQUIFER_TEST_FIELD,
+                    "source_type": "well",
+                    "status": "active",
+                    "valid_from": now - timedelta(days=7),
+                    "valid_to": now - timedelta(days=1),
+                }
+            ]
+        )
+
+    async def fetch(self, sql, *args):
+        self.queries.append(sql)
+        if "field_irrigation_source_assignments" in sql:
+            field, now = args
+            return [
+                row
+                for row in self.bindings
+                if row["field_id"] == field
+                and row["status"] == "active"
+                and row["valid_from"] <= now < row["valid_to"]
+            ]
+        raise AssertionError(f"Unexpected fetch: {sql}")
+
+    async def fetchval(self, sql, *args):
+        self.queries.append(sql)
+        if "field_irrigation_source_assignments" in sql:
+            field, start, end, tenant = args
+            assert tenant == _AQUIFER_TEST_TENANT
+            return any(
+                row["tenant_id"] == tenant
+                and row["field_id"] == field
+                and row["status"] == "active"
+                and row["source_type"] == "well"
+                and row["valid_from"] < end
+                and row["valid_to"] > start
+                for row in self.bindings
+            )
+        if "canonical_irrigation_capability_graphs" in sql:
+            # The proposed query scopes the current persisted graph to tenant,
+            # field, and season. A real PG fixture is a separate acceptance gate.
+            return self.graph_season is not None and tuple(args) == (
+                _AQUIFER_TEST_TENANT,
+                _AQUIFER_TEST_FIELD,
+                self.graph_season,
+            )
+        if "elevation_m" in sql:
+            return 400.0
+        if "area_ha" in sql:
+            return 50.0
+        if "cultivar" in sql:
+            return "synthetic-wheat-variety"
+        raise AssertionError(f"Unexpected fetchval: {sql}")
+
+    async def fetchrow(self, sql, *args):
+        self.queries.append(sql)
+        if "SELECT 1 FROM fields" in sql:
+            return {"exists": 1}
+        if "FROM seasons" in sql:
+            return {
+                "season_id": _AQUIFER_TEST_SEASON,
+                "sowing_date": datetime.now(UTC).date() - timedelta(days=60),
+                "crops": ["wheat"],
+                "cultivar": "synthetic-wheat-variety",
+            }
+        if "FROM water_ledger" in sql:
+            return {
+                "ledger_date": datetime.now(UTC).date(),
+                "depletion_mm": 80.0,
+                "confidence": 0.95,
+                "et0_mm": 5.0,
+                "kc": 1.0,
+                "etc_mm": 5.0,
+                "rain_mm": 0.0,
+            }
+        if "canonical_irrigation_capability_graphs" in sql:
+            if self.graph_season != _AQUIFER_TEST_SEASON:
+                return None
+            return {
+                "well_id": "22222222-2222-4222-8222-222222222222",
+                "payload": {"status": "verified", "operational_eligible": True},
+                "capability_digest": "a" * 64,
+                "status": "verified",
+                "operational_eligible": True,
+            }
+        if "irrigation_executability_gates" in sql:
+            return {
+                "snapshot": {},
+                "valid_until": datetime.now(UTC) + timedelta(days=1),
+                "execution_allowed": True,
+                "blocking_reasons": [],
+                "executability_digest": "b" * 64,
+                "commissioning_certification_digest": "c" * 64,
+            }
+        raise AssertionError(f"Unexpected fetchrow: {sql}")
+
+    async def execute(self, sql, *args):
+        self.writes.append(sql)
+        raise AssertionError("An unverified well must not persist an hourly schedule")
+
+
+@pytest.fixture
+def aquifer_snapshot_harness(monkeypatch):
+    from api import canonical_water_state as water
+    from api import decision_service_client as decisions
+    from api.routers import irrigation_mpc as route
+    from fastapi import FastAPI
+
+    async def make(binding_state, graph_season=_AQUIFER_TEST_SEASON):
+        conn = _AquiferSnapshotConnection(binding_state, graph_season)
+
+        @asynccontextmanager
+        async def tenant_connection(user):
+            assert user.tenant_id == _AQUIFER_TEST_TENANT
+            yield conn
+
+        async def forecast(lat, lon, *, days):
+            return {
+                "timezone": "UTC",
+                "source": "synthetic-weather-provider",
+                "days": [
+                    {
+                        "date": (datetime.now(UTC).date() + timedelta(days=i)).isoformat(),
+                        "temp_min_c": 15.0,
+                        "temp_max_c": 28.0,
+                        "precipitation_mm": 0.0,
+                    }
+                    for i in range(days)
+                ],
+            }
+
+        async def et0(**kwargs):
+            n = len(kwargs["daily_dates"])
+            return {"daily_et0_mm": [5.0] * n, "methods": ["fao56_pm"] * n}
+
+        monkeypatch.setattr(route, "tenant_connection", tenant_connection)
+        monkeypatch.setattr(
+            water,
+            "_field_weather_context",
+            AsyncMock(return_value=(15.0, 44.0, "wheat", "mid_season", 60)),
+        )
+        monkeypatch.setattr(
+            water,
+            "resolve_canonical_root_zone_profile",
+            AsyncMock(
+                return_value=SimpleNamespace(
+                    taw_mm=120.0,
+                    raw_fraction=0.5,
+                    raw_mm=60.0,
+                    root_depth_m=1.0,
+                    operational_eligible=True,
+                    limitations=[],
+                    soil_hydraulic_profile_id="synthetic-soil",
+                    profile_digest="d" * 64,
+                    root_policy_version="synthetic-policy",
+                    quality_status="verified",
+                    evidence={},
+                )
+            ),
+        )
+        monkeypatch.setattr(water, "get_weather_forecast", forecast)
+        monkeypatch.setattr(water, "get_et0_series", et0)
+        monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "1")
+        lineage = AsyncMock(return_value={"status": "synthetic_lineage_boundary"})
+        submission = AsyncMock(return_value={"status": "observed_stub_transport"})
+        monkeypatch.setattr(decisions, "governed_candidate_lineage", lineage)
+        monkeypatch.setattr(decisions, "submit_governed_candidate", submission)
+        app = FastAPI()
+        app.include_router(route.router)
+        app.dependency_overrides[route.get_current_user] = lambda: SimpleNamespace(
+            tenant_id=_AQUIFER_TEST_TENANT
+        )
+        return conn, app, submission
+
+    return make
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("binding_state", ["absent", "expired"])
+@pytest.mark.parametrize("submit", [False, True])
+async def test_daily_known_well_blocks_even_without_active_assignment(
+    aquifer_snapshot_harness, binding_state, submit
+):
+    conn, app, submission = await aquifer_snapshot_harness(binding_state)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://fixture") as client:
+        response = await client.post(
+            f"/api/v1/fields/{_AQUIFER_TEST_FIELD}/irrigation/mpc/recommendation",
+            json={"horizon_days": 1, "submit": submit},
+        )
+    result = response.json()
+    assert response.status_code == 200
+    assert result.get("status") == "blocked", result
+    assert result["reason"] == "AQUIFER_ALLOCATION_UNVERIFIED"
+    assert "decision" not in result
+    submission.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("binding_state", ["absent", "expired"])
+async def test_hourly_existing_guard_is_a_blocking_control(aquifer_snapshot_harness, binding_state):
+    conn, app, submission = await aquifer_snapshot_harness(binding_state)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://fixture") as client:
+        response = await client.post(
+            f"/api/v1/fields/{_AQUIFER_TEST_FIELD}/irrigation/mpc/hourly-recommendation",
+            json={"horizon_hours": 1, "persist": True},
+        )
+    assert response.status_code == 200
+    assert response.json()["reason"] == "AQUIFER_ALLOCATION_UNVERIFIED"
+    assert response.json()["execution_allowed"] is False
+    assert conn.writes == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("graph_season", [None, "a-different-season"])
+async def test_daily_without_a_current_well_graph_retains_legacy_behavior(
+    aquifer_snapshot_harness, graph_season
+):
+    conn, app, submission = await aquifer_snapshot_harness("absent", graph_season=graph_season)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://fixture") as client:
+        response = await client.post(
+            f"/api/v1/fields/{_AQUIFER_TEST_FIELD}/irrigation/mpc/recommendation",
+            json={"horizon_days": 1, "submit": False},
+        )
+    assert response.status_code == 200
+    assert response.json()["mode"] == "operational"
+    assert "decision" in response.json()
+    submission.assert_not_awaited()

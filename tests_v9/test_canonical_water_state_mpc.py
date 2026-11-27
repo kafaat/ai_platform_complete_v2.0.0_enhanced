@@ -393,6 +393,9 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
                 assert (field_id, tenant_id) == ("fld-1", "tenant-1")
                 assert end - start == timedelta(days=1)
                 return False  # This field has no overlapping well binding.
+            if "FROM canonical_irrigation_capability_graphs" in sql:
+                assert args == ("tenant-1", "fld-1", "sea-1")
+                return False  # No well graph exists in this canonical season.
             return await super().fetchval(sql, *args)
 
         async def fetchrow(self, sql, *args):
