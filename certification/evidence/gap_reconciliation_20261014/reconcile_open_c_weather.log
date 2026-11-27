@@ -1,9 +1,0 @@
-Date: 2026-10-14 UTC
-Source HEAD: 53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b
-Working directory: sahool
-Command: env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=services/weather-service:. sahool-venv/bin/python -m pytest -q -p no:cacheprovider services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py services/weather-service/tests/test_missing_temperature_is_not_zero.py services/weather-service/tests/test_canonical_weather_state.py services/weather-service/tests/test_operation_fail_closed.py
-Exit code: 0
-Retained test collection/summary transcript (progress lines omitted):
-collected 79 items
-============================== 79 passed in 0.74s ==============================
-No live provider, DB, Railway, or HTTP requests in these isolated suites.

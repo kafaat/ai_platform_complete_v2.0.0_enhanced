@@ -1,4 +1,0 @@
-$ sh -c "$NATS_SERVER_BIN" --version; python3 -c "import importlib.metadata as m; print(\"nats-py\", m.version(\"nats-py\"))"
-nats-server: v2.15.0
-nats-py 2.16.0
-[exit=0]

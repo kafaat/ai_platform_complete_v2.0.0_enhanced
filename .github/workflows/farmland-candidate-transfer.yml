@@ -1,0 +1,32 @@
+name: Verify and transfer Farmland integration candidate
+on:
+  push:
+    branches: [ci/farmland-1639-1641-candidate-transfer]
+permissions:
+  contents: write
+jobs:
+  publish-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+      - name: Verify pack, exact parents and tree before creating the candidate ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate=2c8ce373dad6682ae746822ed5d2dc1f8350dde6
+          first=4b01316448fc6aa43c3cee0c8b38f2240f422a0e
+          second=0fcbda7ab3f5d8a2fd2031ba1b75dcdbba819f11
+          tree=fc1c169aa89e013b3ceee3c22642def5712c3afb
+          destination=refs/heads/integration/farmland-1639-1641-qualified
+          cat qualification-transfer/pack-* > "$RUNNER_TEMP/candidate.pack"
+          echo '6457901a9750a60035a1a80c453b7109971cccd8e5ca6c70518dbe97ea8dfa90  candidate.pack' | (cd "$RUNNER_TEMP" && sha256sum --check --strict)
+          git fetch --no-tags --depth=1 origin "$first" "$second"
+          git index-pack --stdin < "$RUNNER_TEMP/candidate.pack"
+          test "$(git show -s --format=%P "$candidate")" = "$first $second"
+          test "$(git rev-parse "$candidate^{tree}")" = "$tree"
+          git ls-tree -r "$candidate" >/dev/null
+          git push origin "$candidate:$destination"
+          test "$(git ls-remote origin "$destination" | cut -f1)" = "$candidate"
