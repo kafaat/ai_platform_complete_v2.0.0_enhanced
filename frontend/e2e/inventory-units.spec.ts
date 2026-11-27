@@ -29,3 +29,28 @@ test('inventory shows separate batch quantities and preserves comparable and leg
     await expect(row.getByText('مخزون منخفض')).toHaveCount(amount === '0' ? 1 : 0);
   }
 });
+
+test('the Arabic category choices submit the inventory API enum', async ({ page }) => {
+  await seedAuthAndRoutes(page, 'manager');
+  await page.route(url => url.pathname === '/api/v1/inventory/items', route =>
+    route.request().method() === 'POST'
+      ? route.fulfill({ status: 201, json: { item_id: 'seed-test' } })
+      : route.fulfill({ json: [] }));
+  await page.goto('/ops/inventory');
+  await page.getByRole('button', { name: 'إضافة صنف', exact: true }).click();
+  const form = page.getByRole('dialog');
+  const select = form.getByRole('combobox', { name: /الفئة/ });
+  const categories = [
+    ['أسمدة', 'fertilizer'], ['مبيدات', 'pesticide'], ['بذور', 'seed'],
+    ['قطع غيار', 'spare_part'], ['أخرى', 'other'],
+  ];
+  for (const [label, value] of categories) {
+    await expect(select.getByRole('option', { name: label, exact: true })).toHaveAttribute('value', value);
+  }
+  await select.selectOption({ label: 'بذور' });
+  await form.getByPlaceholder('مثال: يوريا 46%').fill('بذور الاختبار');
+  const posted = page.waitForRequest(req => req.method() === 'POST' && new URL(req.url()).pathname === '/api/v1/inventory/items');
+  await form.getByRole('button', { name: 'حفظ الصنف' }).click();
+  expect((await posted).postDataJSON()).toMatchObject({ category: 'seed', name: 'بذور الاختبار' });
+  await expect(form).toHaveCount(0);
+});
