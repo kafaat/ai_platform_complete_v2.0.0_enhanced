@@ -37,7 +37,21 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 # نُثبّت إلى /opt/pylocal (لا /root/.local الافتراضيّ): /root وضعه 0700 فلا يقرأه
 # المستخدم غير الجذر (sahool) في طور التشغيل ⇒ تكسر الاستيرادات. /opt قابل للاجتياز.
 ENV PYTHONUSERBASE=/opt/pylocal
-RUN pip install --no-cache-dir --timeout 300 --retries 10 --user -r "${EDGE_REQUIREMENTS}"
+# The pip bundled with Python 3.12 can hash a truncated GPU wheel after a disconnect.
+# Use a resume-capable pip in the builder only. Keep the CPU install on the base pip.
+RUN set -eu; \
+    install_requirements() { \
+        if [ "${EDGE_REQUIREMENTS##*/}" = "requirements-gpu.txt" ]; then \
+            python -m pip install --no-cache-dir --timeout 300 --retries 10 'pip==26.3' || return 1; \
+            export PIP_RESUME_RETRIES=10; \
+        fi; \
+        python -m pip install --no-cache-dir --timeout 300 --retries 10 --user -r "${EDGE_REQUIREMENTS}"; \
+    }; \
+    if ! install_requirements; then \
+        [ "${PIP_INDEX_URL%/}" = "https://mirrors.aliyun.com/pypi/simple" ] || exit 1; \
+        printf '%s\n' 'Aliyun install failed; retrying with official PyPI.' >&2; \
+        PIP_INDEX_URL=https://pypi.org/simple PIP_TRUSTED_HOST= install_requirements; \
+    fi
 
 # Runtime stage
 FROM python:3.12-slim-bookworm
