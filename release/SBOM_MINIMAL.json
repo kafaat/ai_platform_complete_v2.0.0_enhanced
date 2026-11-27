@@ -725,6 +725,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7f912de6dab80852a8758fb1e740472fd2ca10075afa58c2216719894ef34812"
+        }
+      ],
+      "name": "frontend/src/components/EquipmentReadinessCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7f8c0e7e3d2ccc70d49f6f93e27818b6c493d9bfbf28b175808646a099604f76"
         }
       ],
@@ -4115,6 +4125,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e357757a67ad37fe484cc38dae3700131258c010f771d9be34d413e637190e10"
+        }
+      ],
+      "name": "frontend/src/lib/equipmentReadiness.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "88d5b97248ebdd32c4240913dd65d7c3c721bea28f991a2a84026c5777bd9008"
+        }
+      ],
+      "name": "frontend/src/lib/equipmentReadiness.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "755bafc2f62baf578d17d7444a33e19527655e226277a47d16bef1bf67ad4368"
         }
       ],
@@ -5275,7 +5305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c1df697d9298fd528f3b01ee70c7fe0b3a8a2e1f4abac75486eeec23808df261"
+          "content": "a3208535a2711e827716f53b8fb7212a2d0af905a790e70cff50e34c72e1894f"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6265,7 +6295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "800528c8cdee21ea3c93b54f8bd896eef8880710b05cb3ef32a22ec8c9f7298c"
+          "content": "ae70de7e6a731c24ec44a08d45fa6b473d1d88aff4b7a13138e2be6732175b29"
         }
       ],
       "name": "frontend/src/sections/EquipmentPage.tsx",
@@ -28245,7 +28275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ad2856c9dda10b6cea238ae830bf44809069a01884f8b6d7b2433da2510daa5"
+          "content": "72985d40136b06126afccc84d5414fda3f8c9e3ab764bb7543cf108e62d86ff7"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_review.py",
@@ -28335,7 +28365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f399a64a57a7886c5afbf2fe4808f64e5d6a4361def64a55a4ff2c5c54a0f2a"
+          "content": "35f870b69ec393983ea68201ce05fdef7e8c97af853e7c11ccb7cdc783ea8ce5"
         }
       ],
       "name": "services/sahool-platform/api/routers/equipment.py",
@@ -35165,7 +35195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "180283970550e6ee4f93802af7a5e6fb1e546025c244a622e3ebe2efe9d2575d"
+          "content": "5fab8bfb6655c3d0cee7110fc5accec2276498e9119b94856e7a3f26a18eaa75"
         }
       ],
       "name": "services/sahool-platform/tests/test_decision_review_queue_endpoint.py",

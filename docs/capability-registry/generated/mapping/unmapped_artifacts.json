@@ -180,6 +180,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/EquipmentReadinessCard.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/FieldDetailPanel.tsx",
     "kind": "web"
   },
@@ -1297,6 +1301,14 @@
   },
   {
     "path": "frontend/src/lib/enterpriseGisPhase7.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/equipmentReadiness.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/equipmentReadiness.ts",
     "kind": "web"
   },
   {

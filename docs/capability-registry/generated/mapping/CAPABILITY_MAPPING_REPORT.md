@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **46**
-- Files scanned: **7757**
+- Files scanned: **7761**
 - Ambiguous artifacts queued: **266**
-- Unmapped artifacts queued: **3697**
+- Unmapped artifacts queued: **3700**
 
 ## Capability coverage
 
@@ -62,7 +62,7 @@
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 12 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| OPS-007 | operations | 0 | 0 | 3 | 0 | 0 | 1 | 0 | 2 |
+| OPS-007 | operations | 0 | 0 | 3 | 0 | 0 | 1 | 1 | 3 |
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 9 | 34 | 8 | 2 | 1 | 0 | 11 | 6 |
 | PA-002 | precision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

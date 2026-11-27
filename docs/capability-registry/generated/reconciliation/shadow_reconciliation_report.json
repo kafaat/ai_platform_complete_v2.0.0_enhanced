@@ -187,7 +187,7 @@
       "ratchet_identity": "OPS-006:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "capability_id": "OPS-007",
       "declared_maturity": 3,
       "finding_id": "OPS-007:declared_above_evidence",
