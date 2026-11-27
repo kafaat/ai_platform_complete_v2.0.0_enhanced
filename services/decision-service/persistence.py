@@ -23,6 +23,8 @@ import weakref
 from datetime import UTC, datetime
 from typing import Any
 
+from field_inspection_evidence import verify_owner_evidence
+
 logger = logging.getLogger(__name__)
 
 # Snapshot identifiers (exploration bug: snapshot ids were stored without checks).
@@ -2257,6 +2259,7 @@ async def get_execution_plan_state(*, tenant_id: str, execution_plan_id: str) ->
                 """
                 SELECT p.execution_plan_id, p.decision_id, p.request_hash, p.status,
                        p.planned_start, p.planned_end, p.operation_type,
+                       p.constraints, p.target_zone_ids, d.field_id,
                        p.decision_value_digest AS plan_decision_value_digest,
                        d.review_state, d.decision_value_digest AS current_decision_value_digest
                   FROM decision_execution_plans p
@@ -2289,6 +2292,9 @@ async def get_execution_plan_state(*, tenant_id: str, execution_plan_id: str) ->
         "plan_digest": row["request_hash"],
         "plan_state": row["status"],
         "operation_type": row["operation_type"],
+        "field_id": row.get("field_id"),
+        "constraints": _jsonish(row.get("constraints")) or {},
+        "target_zone_ids": _jsonish(row.get("target_zone_ids")) or [],
         "planned_start": _iso(row["planned_start"]),
         "planned_end": _iso(row["planned_end"]),
         "review_state": row["review_state"],
@@ -3458,12 +3464,15 @@ async def verify_execution_outcome(
             source = await conn.fetchrow(
                 """SELECT r.execution_request_id,r.execution_plan_id,r.dispatch_authorization_id,
                           r.decision_id,r.status,r.receipt_id,r.receipt_status,
-                          r.target_type,r.receipt_payload,
+                          r.target_type,r.receipt_payload,r.operation_type,r.target_id,
+                          r.command_payload,r.correlation_id,d.field_id,
                           a.receipt_id AS attempt_receipt_id,
                           a.receipt_status AS attempt_receipt_status
                      FROM decision_execution_requests r
                      JOIN decision_execution_delivery_attempts a
                        ON a.tenant_id=r.tenant_id AND a.execution_request_id=r.execution_request_id
+                     LEFT JOIN decision_record d
+                       ON d.tenant_id=r.tenant_id AND d.decision_id=r.decision_id
                     WHERE r.tenant_id=$1::uuid AND r.execution_request_id=$2
                     FOR UPDATE OF r,a""",
                 tenant_id,
@@ -3505,6 +3514,20 @@ async def verify_execution_outcome(
                     "status": "conflict",
                     "reason": _equipment_receipt_evidence_gap(source.get("receipt_payload")),
                 }
+            if (
+                payload.verification_state == "verified_success"
+                and source.get("target_type") == "task"
+                and source.get("operation_type") == "field_inspection"
+            ):
+                reason = await verify_owner_evidence(
+                    tenant_id=tenant_id,
+                    execution_request_id=execution_request_id,
+                    verified_by=verified_by,
+                    source=source,
+                    payload=payload,
+                )
+                if reason:
+                    return {"status": "conflict", "reason": reason}
             if prior:
                 return _authoritative_execution_outcome(prior, replay=True)
             # A vegetation-namespaced evidence id claims to be evidence this service holds: it

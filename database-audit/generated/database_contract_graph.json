@@ -278,6 +278,7 @@
       "v288_model_promotion_terminal_state.sql",
       "v289_scouting_verification_bridge.sql",
       "v290_scouting_verification_initial_state.sql",
+      "v291_field_task_execution_delivery.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -984,6 +985,48 @@
       "name": "tenant_isolation",
       "source": "v204_field_forms.sql",
       "table": "field_submissions"
+    },
+    {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "execution_confirmation_append",
+      "source": "v291_field_task_execution_delivery.sql",
+      "table": "field_task_execution_confirmations"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "execution_confirmation_read",
+      "source": "v291_field_task_execution_delivery.sql",
+      "table": "field_task_execution_confirmations"
+    },
+    {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "execution_link_append",
+      "source": "v291_field_task_execution_delivery.sql",
+      "table": "field_task_execution_links"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "execution_link_read",
+      "source": "v291_field_task_execution_delivery.sql",
+      "table": "field_task_execution_links"
+    },
+    {
+      "has_using": false,
+      "has_with_check": true,
+      "name": "execution_outcome_receipt_append",
+      "source": "v291_field_task_execution_delivery.sql",
+      "table": "field_task_execution_outcome_receipts"
+    },
+    {
+      "has_using": true,
+      "has_with_check": false,
+      "name": "execution_outcome_receipt_read",
+      "source": "v291_field_task_execution_delivery.sql",
+      "table": "field_task_execution_outcome_receipts"
     },
     {
       "has_using": true,
@@ -1996,17 +2039,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 279,
+    "manifest_entries": 280,
     "manifest_missing_count": 0,
-    "policies": 244,
+    "policies": 250,
     "production_certified": false,
-    "rls_enabled": 237,
-    "rls_forced": 218,
+    "rls_enabled": 240,
+    "rls_forced": 221,
     "runtime_verified": false,
-    "sql_files": 300,
-    "tables": 367,
+    "sql_files": 301,
+    "tables": 370,
     "tenant_rls_gaps": 139,
-    "tenant_tables": 348,
+    "tenant_tables": 351,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -4096,6 +4139,58 @@
     },
     {
       "code_readers": [
+        "services/field-management-service/fm_execution_task_store.py"
+      ],
+      "code_writers": [
+        "services/field-management-service/fm_execution_task_store.py"
+      ],
+      "created_in": "v291_field_task_execution_delivery.sql",
+      "has_tenant_id": true,
+      "manifest_position": 277,
+      "policy_count": 2,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "field_task_execution_confirmations",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/field-management-service/fm_execution_task_store.py"
+      ],
+      "code_writers": [
+        "services/field-management-service/fm_execution_task_store.py"
+      ],
+      "created_in": "v291_field_task_execution_delivery.sql",
+      "has_tenant_id": true,
+      "manifest_position": 277,
+      "policy_count": 2,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "field_task_execution_links",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/field-management-service/fm_execution_task_store.py"
+      ],
+      "code_writers": [
+        "services/field-management-service/fm_execution_task_store.py"
+      ],
+      "created_in": "v291_field_task_execution_delivery.sql",
+      "has_tenant_id": true,
+      "manifest_position": 277,
+      "policy_count": 2,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "field_task_execution_outcome_receipts",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/field-management-service/fm_execution_task_store.py",
         "services/field-management-service/fm_scouting_tasks.py",
         "services/field-management-service/fm_task_costs.py",
         "services/field-management-service/fm_task_inspection.py",
@@ -4113,6 +4208,7 @@
         "services/scout-ingest-service/tests/test_media_live.py"
       ],
       "code_writers": [
+        "services/field-management-service/fm_execution_task_store.py",
         "services/field-management-service/fm_scouting_tasks.py",
         "services/field-management-service/fm_task_inspection.py",
         "services/sahool-platform/api/routers/tasks.py",
@@ -7798,6 +7894,7 @@
         "services/auth/routers/registration.py",
         "services/auth/routers/session.py",
         "services/auth/routers/users.py",
+        "services/field-management-service/fm_execution_task_store.py",
         "services/field-management-service/fm_task_inspection.py",
         "services/field-management-service/fm_verification_store.py",
         "services/sahool-platform/api/routers/break_glass.py",

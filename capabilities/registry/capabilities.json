@@ -323,7 +323,7 @@
         "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:347",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1613",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:667",
-        "GET / @ services/field-management-service/main.py:301",
+        "GET / @ services/field-management-service/main.py:303",
         "GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:355",
         "GET /api/v1/agro/kc-timeseries/{field_id} @ services/sahool-platform/api/routers/kc_timeseries.py:140",
         "GET /api/v1/agro/kc-timeseries/{field_id}/compare @ services/sahool-platform/api/routers/kc_timeseries.py:156",
@@ -456,8 +456,8 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "apis": 245,
-        "tests": 171,
+        "apis": 250,
+        "tests": 175,
         "mobile_consumers": 50
       }
     },
@@ -3436,6 +3436,7 @@
         "POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:865",
         "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:897",
         "POST /api/v1/portfolio/command @ services/sahool-platform/api/routers/portfolio_command.py:70",
+        "POST /internal/field-inspection-execution-owner/{operation} @ services/field-management-service/fm_execution_routes.py:310",
         "POST /v1/command @ services/actuator-service/routers/commands.py:26",
         "POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2568",
         "POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2609",
@@ -3511,7 +3512,7 @@
           "path": "migrations/v238_actuator_delivery_state.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=21, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=22, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4067,6 +4068,7 @@
       ],
       "apis": [
         "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:46",
+        "GET /internal/field-tasks/execution-proofs/{execution_request_id} @ services/field-management-service/fm_execution_routes.py:392",
         "GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:284",
         "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:303",
         "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:368",
@@ -4076,6 +4078,7 @@
         "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:281",
         "GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147",
         "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:106",
+        "POST /api/v1/inspection-executions/fields/{field_id}/tasks/{task_id}/verify @ services/sahool-platform/api/routers/inspection_executions.py:108",
         "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2769",
         "POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88",
         "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:318",
@@ -4114,11 +4117,13 @@
         "mobile/sahool_app/test/features/tasks/tasks_cubit_test.dart",
         "mobile/sahool_app/test/features/tasks/tasks_fakes.dart",
         "mobile/sahool_app/test/features/tasks/tasks_screen_test.dart",
+        "services/field-management-service/tests/test_execution_tasks_unit.py",
         "services/field-management-service/tests/test_field_task_routes_unit.py",
         "services/field-management-service/tests/test_scouting_tasks_unit.py",
         "services/raster-service/test_task_indicator_previews.py",
         "services/sahool-platform/tests/test_task_irrigation_observations.py",
         "services/sahool-platform/tests/test_task_update_idempotency.py",
+        "tests_v9/test_field_task_execution_delivery_live_pg.py",
         "tests_v9/test_field_task_inspection_live_pg.py",
         "tests_v9/test_field_task_on_api_field_live_pg.py",
         "tests_v9/test_field_task_scouting_anomaly_live_pg.py",
@@ -4168,7 +4173,7 @@
           "path": "migrations/v247_farm_operations_task_link.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=20, tests=16, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=22, tests=18, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4540,7 +4545,7 @@
       "apis": [
         "GET /v1/offline/packs @ services/raster-service/routers/storage.py:124",
         "GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:152",
-        "POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:163"
+        "POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:154"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -5124,11 +5129,13 @@
         "services/decision-service/main.py"
       ],
       "apis": [
+        "GET /internal/field-tasks/execution-proofs/{execution_request_id} @ services/field-management-service/fm_execution_routes.py:392",
         "GET /v1/execution-requests @ services/decision-service/main.py:2105",
         "GET /v1/execution-requests/recovery @ services/decision-service/main.py:2134",
         "GET /v1/execution-requests/{execution_request_id}/observation-context @ services/decision-service/main.py:2234",
         "POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:389",
         "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:457",
+        "POST /api/v1/inspection-executions/fields/{field_id}/requests/{execution_request_id}/receive @ services/sahool-platform/api/routers/inspection_executions.py:95",
         "POST /v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:2156",
         "POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:2188",
         "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:66",
@@ -5163,7 +5170,7 @@
           "path": "services/sahool-platform/api/irrigation_execution_request_port.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=9, tests=4, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=4, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5357,6 +5364,7 @@
       "mobile_consumers": [],
       "tests": [
         "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+        "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
         "services/decision-service/tests/test_outcome_reconcile.py",
         "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
         "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
@@ -5388,6 +5396,7 @@
           "receipt:api:POST_/v1/outcomes/{outcome_id}/remote-sensing-attribution",
           "receipt:api:POST_/v1/recommendation-outcomes",
           "receipt:test:services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+          "receipt:test:services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
           "receipt:test:services/decision-service/tests/test_outcome_reconcile.py",
           "receipt:test:services/decision-service/tests/test_outcome_reconcile_order_live_pg.py",
           "receipt:test:services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
@@ -5398,8 +5407,7 @@
           "receipt:test:services/sahool-platform/tests/test_pest_execution_outcome.py",
           "receipt:test:services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
           "receipt:test:services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
-          "receipt:test:services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py",
-          "receipt:test:tests_v9/test_outcome_measurement.py"
+          "receipt:test:services/sahool-platform/tests/test_v26_cutover_outcome_labels_contract.py"
         ],
         "audit_events": []
       },
@@ -5425,7 +5433,7 @@
           "path": "services/sahool-platform/api/outcome_measurement.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=15, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5611,8 +5619,8 @@
         "POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2437",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2692",
         "POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2728",
-        "POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:129",
-        "POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:224"
+        "POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:120",
+        "POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:207"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

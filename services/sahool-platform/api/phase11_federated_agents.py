@@ -33,6 +33,9 @@ router = APIRouter(
 # خدمة أو SDK أو اختبار أو سجلّ قدرات. الدوالّ الصرفة باقية في shared/ باختباراتها، و/cycle
 # ما زال يُشغّل run_specialist_agents وdesign_shadow_experiment عبر run_phase11_federation_cycle.
 # يحرسها tests/test_w4_09_retired_dead_routes.py.
+# W4-09 (2026-11-27): /runtime/event-envelope has no repository HTTP caller or
+# product-level route test. The shared builder and its tests remain; /cycle still
+# builds the envelope before persistence. Retirement is guarded with its siblings.
 
 
 class AgentContextRequest(BaseModel):
@@ -82,11 +85,6 @@ class AuthorityEnvelopeRequest(BaseModel):
     cycle: dict[str, Any]
     resolution: dict[str, Any] | None = None
     requested_authority: str = "advisory"
-
-
-class FederationEventEnvelopeRequest(BaseModel):
-    cycle: dict[str, Any]
-    authority: dict[str, Any]
 
 
 @router.post("/context")
@@ -164,8 +162,3 @@ def runtime_authority_envelope(req: AuthorityEnvelopeRequest) -> dict[str, Any]:
     return create_authority_envelope(
         req.cycle, resolution=req.resolution, requested_authority=req.requested_authority
     )
-
-
-@router.post("/runtime/event-envelope")
-def runtime_event_envelope(req: FederationEventEnvelopeRequest) -> dict[str, Any]:
-    return build_federation_event_envelope(req.cycle, req.authority)

@@ -375,3 +375,339 @@ def test_allowlist_patterns_expand_to_concrete_paths():
         "/v1/fields/{}/soil/profile/history",
     ], "فكُّ البدائل والمقطع المتغيّر انكسر"
     assert guard.expand_pattern(r"v1/.*") is None, "نمطٌ لا يُفَكّ يجب ألّا يُدَّعى فكُّه"
+
+
+# Two real owners share a helper name, but neither its signature nor its host.
+_CLASS_TRANSPORTS = """
+import httpx
+import os
+from urllib.parse import quote
+
+class DecisionClient:
+    def __init__(self, base_url, token):
+        self.base_url, self.token = base_url.rstrip("/"), token
+
+    @classmethod
+    def from_env(cls):
+        return cls(os.getenv("DECISION_URL", "http://sahool-decision-service:8160"), "token")
+
+    async def _request(self, method, path, tenant):
+        async with httpx.AsyncClient() as client:
+            return await client.request(method, self.base_url + path)
+
+    async def claim(self, request_id):
+        return await self._request(
+            "POST", "/v1/execution-requests/" + quote(request_id, safe="") + "/claim", "tenant"
+        )
+
+class OwnerClient:
+    PREFIX = "/internal/field-inspection-execution-owner/"
+
+    def __init__(self, base_url, token):
+        self.base_url, self.token = base_url.rstrip("/"), token
+
+    @classmethod
+    def from_env(cls):
+        return cls(os.getenv("OWNER_URL", "http://sahool-field-management:8000"), "token")
+
+    async def _request(self, caller, operation, body):
+        async with httpx.AsyncClient() as client:
+            return await client.post(self.base_url + self.PREFIX + operation, json=body)
+
+    async def readback(self, caller):
+        return await self._request(caller, "readback", {})
+"""
+
+_CLASS_KNOWN = {"sahool-decision-service", "sahool-field-management"}
+_OWNER_READBACK = "/internal/field-inspection-execution-owner/readback"
+_DECISION_CLAIM = "/v1/execution-requests/{}/claim"
+
+
+def test_class_local_wrappers_keep_their_own_transport_and_prefix():
+    scan = guard.scan_module(_CLASS_TRANSPORTS, _CLASS_KNOWN)
+    assert scan["requested"] == {
+        "sahool-decision-service": {_DECISION_CLAIM},
+        "sahool-field-management": {_OWNER_READBACK},
+    }
+    assert scan["unattributed"] == []
+
+
+def test_the_inspection_adapter_exposes_exactly_both_owners_contracts():
+    source = (ROOT / "services/sahool-platform/api/inspection_execution_adapter.py").read_text(
+        encoding="utf-8"
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"] == {
+        "sahool-decision-service": {
+            "/v1/execution-requests/recovery",
+            "/v1/execution-requests",
+            "/v1/decisions/{}/lineage",
+            "/v1/execution-plans/{}",
+            "/v1/execution-requests/{}/claim",
+            "/v1/execution-requests/{}/receipt",
+            "/v1/execution-requests/{}/observation-context",
+            "/v1/execution-requests/{}/verify-outcome",
+        },
+        "sahool-field-management": {
+            "/internal/field-inspection-execution-owner/require-field",
+            "/internal/field-inspection-execution-owner/get-link",
+            "/internal/field-inspection-execution-owner/list-links",
+            "/internal/field-inspection-execution-owner/validate-binding",
+            "/internal/field-inspection-execution-owner/ensure-task",
+            "/internal/field-inspection-execution-owner/readback",
+            "/internal/field-inspection-execution-owner/preview-confirmation",
+            "/internal/field-inspection-execution-owner/prepare-confirmation",
+            "/internal/field-inspection-execution-owner/save-outcome",
+        },
+    }
+    assert scan["unattributed"] == []
+
+
+def test_wrapper_keyword_arguments_follow_the_called_method_signature():
+    source = _CLASS_TRANSPORTS.replace(
+        'self._request(caller, "readback", {})',
+        'self._request(body={}, operation="readback", caller=caller)',
+    )
+    assert guard.scan_module(source, _CLASS_KNOWN)["requested"]["sahool-field-management"] == {
+        _OWNER_READBACK
+    }
+
+
+def test_wrapper_names_are_not_a_substitute_for_real_http_transport():
+    renamed = _CLASS_TRANSPORTS.replace("_request", "_send_to_owner")
+    assert guard.scan_module(renamed, _CLASS_KNOWN)["requested"]["sahool-field-management"] == {
+        _OWNER_READBACK
+    }
+    no_transport = _CLASS_TRANSPORTS.replace(
+        "return await client.post(self.base_url + self.PREFIX + operation, json=body)",
+        "return {'operation': operation}",
+    )
+    assert (
+        guard.scan_module(no_transport, _CLASS_KNOWN)["requested"]["sahool-field-management"]
+        == set()
+    )
+    assert _OWNER_READBACK not in guard.requested_paths(no_transport)
+
+
+@pytest.mark.parametrize(
+    "replacement",
+    [
+        'os.getenv("OWNER_URL")',
+        '("http://sahool-field-management:8000" if unknown else '
+        '"http://sahool-decision-service:8160")',
+    ],
+)
+def test_an_unresolved_or_ambiguous_class_host_cannot_borrow_another_class(replacement):
+    source = _CLASS_TRANSPORTS.replace(
+        'os.getenv("OWNER_URL", "http://sahool-field-management:8000")', replacement
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"]["sahool-decision-service"] == {_DECISION_CLAIM}
+    assert not scan["requested"].get("sahool-field-management")
+    assert scan["unattributed"], "Unknown owner URL was silently accepted or dropped"
+
+
+@pytest.mark.parametrize(
+    "unused",
+    [
+        '    """Operator note: http://sahool-field-management:8000"""\n',
+        '    UNUSED_URL = "http://sahool-field-management:8000"\n',
+        '    def unused(self):\n        return "http://sahool-field-management:8000"\n',
+    ],
+)
+def test_unused_host_literals_do_not_establish_the_transport_host(unused):
+    source = _CLASS_TRANSPORTS.replace(
+        'os.getenv("OWNER_URL", "http://sahool-field-management:8000")',
+        'os.getenv("OWNER_URL")',
+    ).replace("class OwnerClient:\n", "class OwnerClient:\n" + unused)
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"]["sahool-field-management"] == set()
+    assert scan["unattributed"]
+
+
+def test_one_resolved_class_request_does_not_hide_a_second_unresolved_request():
+    source = (
+        _CLASS_TRANSPORTS
+        + """
+    async def dynamic(self, caller, opaque_operation):
+        return await self._request(caller, opaque_operation, {})
+"""
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"]["sahool-field-management"] == {_OWNER_READBACK}
+    assert scan["unattributed"], "A resolved call hid another call with an unknown URL"
+
+
+def test_a_class_prefix_typo_is_reported_against_its_actual_owner():
+    source = _CLASS_TRANSPORTS.replace(
+        'PREFIX = "/internal/field-inspection-execution-owner/"',
+        'PREFIX = "/internal/field-inspection-owner-typo/"',
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"]["sahool-decision-service"] == {_DECISION_CLAIM}
+    verdict = guard.classify(
+        "owner.py", scan["requested"]["sahool-field-management"], {_OWNER_READBACK}
+    )
+    assert verdict["undeclared"] == ["/internal/field-inspection-owner-typo/readback"]
+
+
+def test_an_unresolved_direct_class_transport_is_not_hidden_by_a_known_wrapper():
+    source = (
+        _CLASS_TRANSPORTS
+        + """
+    async def direct(self, opaque_url):
+        async with httpx.AsyncClient() as client:
+            return await client.post(opaque_url)
+"""
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"]["sahool-field-management"] == {_OWNER_READBACK}
+    assert scan["unattributed"]
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'operation = "readback"\n'
+        + _CLASS_TRANSPORTS
+        + """
+    async def dynamic(self, caller, operation):
+        return await self._request(caller, operation, {})
+""",
+        'base_url = "http://sahool-field-management:8000"\n'
+        + _CLASS_TRANSPORTS.replace(
+            'def from_env(cls):\n        return cls(os.getenv("OWNER_URL", '
+            '"http://sahool-field-management:8000"), "token")',
+            'def from_env(cls, base_url):\n        return cls(base_url, "token")',
+        ),
+        _CLASS_TRANSPORTS
+        + """
+    async def dynamic(self, caller, operation):
+        def unused():
+            operation = "readback"
+        return await self._request(caller, operation, {})
+""",
+    ],
+    ids=["caller-parameter", "factory-parameter", "nested-local"],
+)
+def test_lexical_parameters_cannot_borrow_globals_or_nested_assignments(source):
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"]["sahool-decision-service"] == {_DECISION_CLAIM}
+    assert scan["unattributed"], "A different lexical scope supplied the unknown URL"
+
+
+def test_literal_route_operations_are_expanded_without_accepting_a_typo(tmp_path):
+    (tmp_path / "owner.py").write_text(
+        """
+from typing import Literal
+Operation = Literal["readback", "ensure-task"]
+@router.post("/internal/field-inspection-execution-owner/{operation}")
+def execute(operation: Operation):
+    pass
+""",
+        encoding="utf-8",
+    )
+    declared = guard.declared_paths(tmp_path)
+    assert {_OWNER_READBACK, "/internal/field-inspection-execution-owner/ensure-task"} <= declared
+    typo = "/internal/field-inspection-execution-owner/readbak"
+    assert guard.classify("owner.py", {typo}, declared)["undeclared"] == [typo]
+
+
+@pytest.mark.parametrize(
+    "old,new",
+    [
+        (
+            'return await self._request(caller, "readback", {})',
+            'self.base_url = os.getenv("OPAQUE_URL")\n'
+            '        return await self._request(caller, "readback", {})',
+        ),
+        (
+            'return await self._request(caller, "readback", {})',
+            'self.PREFIX = "/wrong-owner/"\n'
+            '        return await self._request(caller, "readback", {})',
+        ),
+        (
+            'self.base_url, self.token = base_url.rstrip("/"), token',
+            'self.base_url, self.token = base_url.rstrip("/"), token\n'
+            '        self.base_url: str = os.getenv("OPAQUE_URL")',
+        ),
+        (
+            'self.base_url, self.token = base_url.rstrip("/"), token',
+            'self.base_url, self.token = base_url.rstrip("/"), token\n'
+            '        self.base_url += "/wrong"',
+        ),
+    ],
+    ids=["method-url", "method-prefix", "annotated-member", "augmented-member"],
+)
+def test_member_writes_cannot_reuse_an_obsolete_constructor_value(old, new):
+    decision, owner = _CLASS_TRANSPORTS.split("class OwnerClient:", 1)
+    source = decision + "class OwnerClient:" + owner.replace(old, new, 1)
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    verdict = guard.classify(
+        "owner.py", scan["requested"]["sahool-field-management"], {_OWNER_READBACK}
+    )
+    assert scan["unattributed"] or verdict["undeclared"]
+
+
+def test_class_constant_aliases_keep_their_definition_scope():
+    source = 'OWNER_PREFIX = "/wrong-owner/"\n' + _CLASS_TRANSPORTS.replace(
+        'PREFIX = "/internal/field-inspection-execution-owner/"',
+        "PREFIX = OWNER_PREFIX",
+    ).replace(
+        "async def _request(self, caller, operation, body):\n",
+        "async def _request(self, caller, operation, body):\n"
+        '        OWNER_PREFIX = "/internal/field-inspection-execution-owner/"\n',
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["requested"]["sahool-field-management"] == {"/wrong-owner/readback"}
+
+
+def test_a_conditional_local_url_does_not_make_an_unknown_url_certain():
+    source = (
+        _CLASS_TRANSPORTS
+        + """
+    async def direct(self, opaque_url, override):
+        url = opaque_url
+        if override:
+            url = self.base_url + self.PREFIX + "readback"
+        async with httpx.AsyncClient() as client:
+            return await client.post(url)
+"""
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    assert scan["unattributed"]
+
+
+def test_literal_operations_do_not_allow_an_unknown_interpolation():
+    source = (
+        _CLASS_TRANSPORTS.replace(
+            "self.base_url + self.PREFIX + operation",
+            'f"{self.base_url}{self.PREFIX}{operation}"',
+        )
+        + """
+    async def dynamic(self, caller, operation):
+        return await self._request(caller, operation, {})
+"""
+    )
+    scan = guard.scan_module(source, _CLASS_KNOWN)
+    declared = guard.declared_paths(ROOT / "services/field-management-service")
+    verdict = guard.classify("owner.py", scan["requested"]["sahool-field-management"], declared)
+    assert scan["unattributed"] or verdict["undeclared"]
+
+
+def test_literal_aliases_are_read_at_route_registration(tmp_path):
+    (tmp_path / "owner.py").write_text(
+        """
+from typing import Literal
+Operation = Literal["readback"]
+@router.post("/internal/owner/{operation}")
+def execute(operation: Operation):
+    pass
+Operation = Literal["delete"]
+""",
+        encoding="utf-8",
+    )
+    declared = guard.declared_paths(tmp_path)
+    assert "/internal/owner/readback" in declared
+    assert "/internal/owner/delete" not in declared
+    assert "/internal/owner/{}" not in declared

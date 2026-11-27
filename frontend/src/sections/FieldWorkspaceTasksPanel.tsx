@@ -8,6 +8,7 @@ import { DegradedState } from '../components/product/DegradedState';
 import { taskTypeLabel } from '../lib/taskTypeLabels';
 import FieldWorkspaceStaleNote from './FieldWorkspaceStaleNote';
 import { cachedDataView } from './fieldWorkspaceStaleData';
+import InspectionExecutionInbox from './InspectionExecutionInbox';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -82,6 +83,7 @@ export default function FieldWorkspaceTasksPanel({ fieldId }: { fieldId: string 
           )}
         </div>
       )}
+      <InspectionExecutionInbox fieldId={fieldId} />
     </section>
   );
 }

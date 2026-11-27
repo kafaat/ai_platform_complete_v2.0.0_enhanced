@@ -699,7 +699,9 @@
 \i migrations/v289_scouting_verification_bridge.sql
 \echo '═══ 277. v290_scouting_verification_initial_state.sql ═══'
 \i migrations/v290_scouting_verification_initial_state.sql
-\echo '═══ 278. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 278. v291_field_task_execution_delivery.sql ═══'
+\i migrations/v291_field_task_execution_delivery.sql
+\echo '═══ 279. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 279. v206_rls_final_hardening.sql ═══'
+\echo '═══ 280. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

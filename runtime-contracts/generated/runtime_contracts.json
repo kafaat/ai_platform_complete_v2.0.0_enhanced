@@ -423,6 +423,7 @@
         "DECISION_WORKER_ASSERTION_REDIS_URL",
         "DEPLOY_BUILD_SHA",
         "ENVIRONMENT",
+        "FIELD_MANAGEMENT_SERVICE_URL",
         "IRR_F01_RESERVATION_ENFORCE_ACTIVATION",
         "PLATFORM_DATABASE_URL",
         "RUNTIME_WORK_LEASE_SECONDS",
@@ -455,6 +456,7 @@
           "services/decision-service/backfill.py",
           "services/decision-service/cutover.py",
           "services/decision-service/decision_sor_role_certify.py",
+          "services/decision-service/field_inspection_evidence.py",
           "services/decision-service/main.py",
           "services/decision-service/migration_runner.py",
           "services/decision-service/persistence.py",
@@ -481,7 +483,8 @@
         "DECISION_REQUIRE_AUTH_TOKEN",
         "DECISION_SERVICE_AUTH_TOKEN",
         "DECISION_WORKER_ASSERTION_KEY",
-        "DECISION_WORKER_ASSERTION_PREVIOUS_KEY"
+        "DECISION_WORKER_ASSERTION_PREVIOUS_KEY",
+        "FIELD_INSPECTION_PROOF_TOKEN"
       ],
       "service": "decision-service",
       "source_service": "decision-service",
@@ -708,6 +711,7 @@
       "entrypoint": "services/field-management-service/main.py",
       "evidence_paths": {
         "configuration": [
+          "services/field-management-service/fm_execution_routes.py",
           "services/field-management-service/fm_gateway.py",
           "services/field-management-service/fm_verification.py",
           "services/field-management-service/fm_verification_client.py",
@@ -715,6 +719,7 @@
         ],
         "metrics": [],
         "routes": [
+          "services/field-management-service/fm_execution_routes.py",
           "services/field-management-service/fm_scouting_tasks.py",
           "services/field-management-service/fm_task_costs.py",
           "services/field-management-service/fm_task_inspection.py",
@@ -730,6 +735,8 @@
         "tracing_instrumented": false
       },
       "secrets": [
+        "FIELD_INSPECTION_COORDINATOR_TOKEN",
+        "FIELD_INSPECTION_PROOF_TOKEN",
         "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
         "FIELD_TASKS_SERVICE_TOKEN",
@@ -1981,6 +1988,7 @@
         "FEATURE_X",
         "FIELD_BOOTSTRAP_ENABLED",
         "FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED",
+        "FIELD_MANAGEMENT_SERVICE_URL",
         "FII_PRESCRIPTION_SEASON_MODE",
         "GEOEXPORT_DIR",
         "GUARDRAILS_TIMEOUT_S",
@@ -2118,6 +2126,7 @@
           "services/sahool-platform/api/field_state_projection.py",
           "services/sahool-platform/api/idempotency.py",
           "services/sahool-platform/api/imagery_automation.py",
+          "services/sahool-platform/api/inspection_execution_adapter.py",
           "services/sahool-platform/api/irrigation_activation_gate.py",
           "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
           "services/sahool-platform/api/irrigation_recommendation_policy.py",
@@ -2272,6 +2281,7 @@
           "services/sahool-platform/api/routers/high_value_crops.py",
           "services/sahool-platform/api/routers/indicators.py",
           "services/sahool-platform/api/routers/indices.py",
+          "services/sahool-platform/api/routers/inspection_executions.py",
           "services/sahool-platform/api/routers/internal_service.py",
           "services/sahool-platform/api/routers/introduction.py",
           "services/sahool-platform/api/routers/inventory.py",
@@ -2371,6 +2381,7 @@
         "DECISION_SERVICE_TOKEN",
         "EDGE_TENANT_ASSERTION_KEY",
         "FIELD_FORMS_SERVICE_TOKEN",
+        "FIELD_INSPECTION_COORDINATOR_TOKEN",
         "INTERNAL_SERVICE_TOKEN",
         "JWT_SECRET",
         "OLLAMA_API_KEY",

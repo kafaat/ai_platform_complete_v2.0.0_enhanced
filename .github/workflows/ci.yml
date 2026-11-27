@@ -1080,11 +1080,11 @@ jobs:
             run_group services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py
             run_group services/ai_agronomist/test_ai_field_memory_v49.py
             run_group services/auth/tests/test_router_decomposition_guard.py
-            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_execution_plan_boundary_normalisation.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py services/decision-service/tests/test_tenant_binding_force_rls.py
+            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_decision_provenance_integrity.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_execution_plan_boundary_normalisation.py services/decision-service/tests/test_field_inspection_outcome_owner_gate.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py services/decision-service/tests/test_decision_tenant_tables_force_rls_static.py services/decision-service/tests/test_tenant_binding_force_rls.py
             # edge-inference: عقود AI-02/AI-03 (المصادقة قبل التحقّق · إيقاف مهمّة المزامنة)؛ كانت
             # تُشغَّل في `runtime-real-smoke.yml` وحدها وهي ليست فحصاً مطلوباً ⇒ تحمرّ ولا تحجب.
             run_group services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py services/edge-inference/tests/test_entrypoint_validation_lifecycle.py services/edge-inference/tests/test_model_artifact_gate_endpoints.py
-            run_group services/field-management-service/tests/test_field_management_service_contract.py services/field-management-service/tests/test_field_task_routes_unit.py services/field-management-service/tests/test_scouting_tasks_unit.py
+            run_group services/field-management-service/tests/test_field_management_service_contract.py services/field-management-service/tests/test_field_task_routes_unit.py services/field-management-service/tests/test_scouting_tasks_unit.py services/field-management-service/tests/test_execution_tasks_unit.py services/field-management-service/tests/test_execution_routes_unit.py
             run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
             run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
             run_group services/indicators-service/tests/test_indicators_service_honest_boundary.py services/indicators-service/tests/test_indicators_service_static_route_smoke.py services/indicators-service/tests/test_observation_runtime.py services/indicators-service/tests/test_observation_timeline.py services/indicators-service/tests/test_observation_store.py services/indicators-service/tests/test_observation_drain.py
@@ -1184,6 +1184,8 @@ jobs:
       # بوّابة تغطية "ratchet" غير-كاسرة: تُقاس حزمتا api/core، والأرضيّة في
       # .coveragerc مضبوطة عند المقيس الحاليّ (٦١٫٩٢٪) ناقص هامش ⇒ fail_under=60.
       # لا تُفشل CI اليوم؛ يمكنها الصعود فقط (تُرفع الأرضيّة مع نموّ التغطية).
+      # Includes tests/test_inspection_execution_routes.py (real ASGI/auth dependencies,
+      # adapter boundary doubled); collect it once with the complete platform suite.
       - name: Run platform pure-logic tests (no DB/services) + coverage ratchet
         working-directory: services/sahool-platform
         run: >-
@@ -1718,6 +1720,15 @@ jobs:
         # The opt-in v289 bridge also exercises real FM PostgreSQL and the real vegetation
         # SQLite receiver via ASGI; its fixture enforces SELECT-only farm grants.
         run: pytest -v -m integration -rs tests_v9/test_field_task_inspection_live_pg.py tests_v9/test_scouting_verification_bridge_live_pg.py tests_v9/test_scouting_verification_bridge_counterexamples_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+      # v291: task delivery links and approved inspection confirmations belong to field
+      # management. This native PostgreSQL contract uses a temporary NOBYPASSRLS role;
+      # missing database prerequisites fail when the certification flag is enabled.
+      - name: Field inspection execution delivery (v291, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          FIELD_TASK_EXECUTION_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_field_task_execution_delivery_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
       # v278 (owner decisions 2 and 3): custody events append-only (UPDATE/DELETE/TRUNCATE refused),
       # lots and fields with a custody chain not erased by cascade (RESTRICT), lot identity
       # immutable, and market listings checked against the lot remainder under its row lock; per

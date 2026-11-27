@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 685,
+  "baseline_python_module_count": 687,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -137,6 +137,7 @@
     "api/idempotency.py",
     "api/imagery_automation.py",
     "api/index_registry.py",
+    "api/inspection_execution_adapter.py",
     "api/inventory_models.py",
     "api/ipm_advisor.py",
     "api/irrigation_activation_gate.py",
@@ -295,6 +296,7 @@
     "api/routers/high_value_crops.py",
     "api/routers/indicators.py",
     "api/routers/indices.py",
+    "api/routers/inspection_executions.py",
     "api/routers/internal_service.py",
     "api/routers/introduction.py",
     "api/routers/inventory.py",
@@ -728,5 +730,6 @@
   "water_ledger_inputs_note": "680->681: api/water_ledger_inputs.py — مدخلاتُ دفتر الماء اليوميّ (Kc الطوريّ من بطاقة المحصول، منطقة الجذور القانونيّة مع احتياط قوامٍ معلَّم، p من FAO-56 Table 22 مُعدَّلاً بـETc، الرطوبة وريح 2م بمعادلة 47). يُقبَل على أرضيّة ci10_knowledge_layer_note: له مستهلكان إنتاجيّان في التغيير نفسه — العامل اليوميّ phase_runtime_workers.run_water_ledger_once (مسار مجمَّد، تفويض GATE01-ADJ-2026-10-05-001) وapi/canonical_water_state.py المقروء من راوتر الريّ. موضعُه خارج العامل المجمَّد عمداً كي يُختبَر سلوكيّاً ويُعدَّل بلا تفويضٍ جديد. أمّا عقد التسميد غير الموصول فلم يُقبَل هنا: وُضِع في shared/precision_agriculture/fertigation_plan.py لأنّه بلا مستهلكٍ إنتاجيّ. لا مسارَ جديداً.",
   "task_irrigation_observations_note": "681->683: api/irrigation_observations.py (request models + computed quantity for a field irrigation observation) and api/task_irrigation_observations.py (append the observation as a non-transition event on the EXISTING v187 irrigation_manual_execution_events table, and list it per task). Admitted on the ci10_knowledge_layer_note ground: both are reachable from mounted routers in the same change - api/routers/observations.py (POST /api/v1/observations, envelope {task_id, irrigation_observation}) and api/routers/tasks.py (GET /api/v1/tasks?irrigation_task_id=). NO NEW ROUTE and NO MIGRATION: the platform route budget is unchanged, and the event rows keep from_state = to_state so they never match the lifecycle readers (the independent-verifier query reads only stopped->confirmed). Observation only: it does not confirm an execution, approve irrigation, or write water_ledger.",
   "idempotency_module_note": "683->684 (unified; 681->682 on its branch): api/idempotency.py — _idem_key و_idempotent نُقلا من api/main.py كما هما (main.py عند سقف p1_main_decomposition_guard: 2553 سطراً، فنزل إلى 2493) وأُضيف شرطُ المستأجر (PLATFORM-IDEMPOTENCY-STORE-NOT-TENANT-BOUND-01). ليس كودَ نطاقٍ جديداً: تفكيكٌ من main.py يُعاد تصديره هناك لأنّ 16 راوتراً تستوردهما من api.main.",
-  "sc1_farm_scope_note": "684->685: api/farm_scope.py (Service Center SC-1, owner decisions A and C). Admitted on the ci10_knowledge_layer_note ground: it has a production consumer in the same change - api.main.tenant_connection, which most tenant-scoped routers use (modules that set the tenant GUC themselves do not get farm scope; they are listed in api/farm_scope.py as a precondition before SAHOOL_FARM_SCOPE_ENFORCE is switched on), calls load_farm_scope after setting the tenant GUCs. It is the platform's own RLS session setup, not extractable domain code: it reads per-farm grants (v287, keyed by the JWT sub) and switches the v287 policies on only while SAHOOL_FARM_SCOPE_ENFORCE is on (default off) and the schema is present (catalog probe). Its other function, insert_tenant_grants, is the platform-side writer the operator backfill calls (decision A: the platform is the only writer of its tables); no route calls it. main.py stays at its 2553-line ceiling, which is why this is a module and not lines in main.py. NO NEW ROUTE."
+  "sc1_farm_scope_note": "684->685: api/farm_scope.py (Service Center SC-1, owner decisions A and C). Admitted on the ci10_knowledge_layer_note ground: it has a production consumer in the same change - api.main.tenant_connection, which most tenant-scoped routers use (modules that set the tenant GUC themselves do not get farm scope; they are listed in api/farm_scope.py as a precondition before SAHOOL_FARM_SCOPE_ENFORCE is switched on), calls load_farm_scope after setting the tenant GUCs. It is the platform's own RLS session setup, not extractable domain code: it reads per-farm grants (v287, keyed by the JWT sub) and switches the v287 policies on only while SAHOOL_FARM_SCOPE_ENFORCE is on (default off) and the schema is present (catalog probe). Its other function, insert_tenant_grants, is the platform-side writer the operator backfill calls (decision A: the platform is the only writer of its tables); no route calls it. main.py stays at its 2553-line ceiling, which is why this is a module and not lines in main.py. NO NEW ROUTE.",
+  "field_inspection_bff_execution_note": "685->687, exactly two modules with no spare module allowance: api/inspection_execution_adapter.py and api/routers/inspection_executions.py. Deliberate extraction-baseline registration under the existing ci10_knowledge_layer_note production-reachability rule, approved by the task coordinator in the authorized 2026-11-27 continuation on main 5037c4f9279673c1ebe997cee58c40325f7bee40; this records no new human approval. Both are reached by the three mounted /api/v1/inspection-executions routes and by the measured native v2 HTTP journey (overlay da5ab28b960cbae93b565e6b951f238a5b3c66f1). The BFF coordinates HTTP between decision and field owners; SQL and systems of record stay in FM/DS. Keeping this orchestration inside FM created the measured DS-to-FM-to-DS SCC, so the existing platform BFF is the acyclic owner-neutral boundary. No offline island, new service, route-limit increase, infrastructure exemption, or change to the counting guard. Public routes consume three units of the existing domain budget: 622 <= 623. RED two module-registration cases and mounted reachability are retained in the source receipt. Decision reference: sahool-brain/decisions/ledger.md, 2026-11-27 field-inspection BFF module registration."
 }

@@ -938,6 +938,12 @@ services:
       # أن يحمي؛ و`DECISION_REQUIRE_AUTH_TOKEN` يجعل غيابَه فشلاً معلَناً لا صمتاً.
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
+      # Explicit inspection coordination: the platform calls decision and field owners.
+      FIELD_INSPECTION_EXECUTION_ENABLED: ${FIELD_INSPECTION_EXECUTION_ENABLED:-0}
+      FIELD_INSPECTION_EXECUTION_ADAPTER_ID: ${FIELD_INSPECTION_EXECUTION_ADAPTER_ID:-field-management-service-inspection-v1}
+      FIELD_INSPECTION_DELIVERY_TOKEN_KEY: ${FIELD_INSPECTION_DELIVERY_TOKEN_KEY:-}
+      FIELD_INSPECTION_COORDINATOR_TOKEN: ${FIELD_INSPECTION_COORDINATOR_TOKEN:-}
+      FIELD_MANAGEMENT_SERVICE_URL: ${FIELD_MANAGEMENT_SERVICE_URL:-http://sahool-field-management:8000}
       # W2-02 (routes-3/decision-9): AC-1 is always required in production, so the server-side
       # composer must be on there or every governed candidate is blocked:lineage_missing. The
       # platform refuses to boot with AC-1 required and this off (agronomic_context_startup_error).
@@ -1395,6 +1401,11 @@ services:
       # Gateway-only task/inspection routes (fm_gateway.py): nginx injects this token as
       # X-Field-Tasks-Token after auth_request. Empty ⇒ those routes answer 503.
       FIELD_TASKS_SERVICE_TOKEN: ${FIELD_TASKS_SERVICE_TOKEN:-}
+      # Explicit field-inspection delivery only; no background or equipment dispatch.
+      FIELD_INSPECTION_EXECUTION_ENABLED: ${FIELD_INSPECTION_EXECUTION_ENABLED:-0}
+      FIELD_INSPECTION_EXECUTION_ADAPTER_ID: ${FIELD_INSPECTION_EXECUTION_ADAPTER_ID:-field-management-service-inspection-v1}
+      FIELD_INSPECTION_COORDINATOR_TOKEN: ${FIELD_INSPECTION_COORDINATOR_TOKEN:-}
+      FIELD_INSPECTION_PROOF_TOKEN: ${FIELD_INSPECTION_PROOF_TOKEN:-}
       # Field-management owns the reviewed assessment/outbox; flags stay off by default.
       FM_SCOUTING_VERIFICATION_ENABLED: ${FM_SCOUTING_VERIFICATION_ENABLED:-0}
       VEGETATION_VERIFICATION_URL: ${VEGETATION_VERIFICATION_URL:-http://sahool-vegetation-analysis:8000}
@@ -2024,6 +2035,9 @@ services:
       DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       DECISION_STRICT_WORKER_TENANTS: ${DECISION_STRICT_WORKER_TENANTS:-false}
+      # Task success reads the current owner proof; an accepted delivery alone is insufficient.
+      FIELD_MANAGEMENT_SERVICE_URL: ${FIELD_MANAGEMENT_SERVICE_URL:-http://sahool-field-management:8000}
+      FIELD_INSPECTION_PROOF_TOKEN: ${FIELD_INSPECTION_PROOF_TOKEN:-}
       # W4-05 (owner decision): the WX-12 model-lifecycle loop stays off until its four backends
       # have a real owner; off ⇒ WX-12 writes refuse with model_lifecycle_disabled.
       DECISION_MODEL_LIFECYCLE_ENABLED: ${DECISION_MODEL_LIFECYCLE_ENABLED:-false}

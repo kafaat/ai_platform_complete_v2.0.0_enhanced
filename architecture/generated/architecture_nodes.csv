@@ -3,7 +3,7 @@ actuator-service,service,0,1,False,services/actuator-service
 agriai-engine,service,1,1,False,services/agriai-engine
 ai-agronomist,service,0,3,False,services/ai_agronomist
 auth,service,0,0,True,services/auth
-decision-service,service,11,3,False,services/decision-service
+decision-service,service,12,4,False,services/decision-service
 edge-inference,service,2,0,False,services/edge-inference
 erp-bridge,service,1,0,False,services/odoo-bridge
 erpnext-backend,compose-service,5,1,False,
@@ -19,7 +19,7 @@ erpnext-scheduler,compose-service,0,1,False,
 erpnext-websocket,compose-service,1,1,False,
 evidence-migrate,compose-service,0,1,False,
 evidence-postgres,compose-service,1,0,False,
-field-management-service,service,0,0,True,services/field-management-service
+field-management-service,service,2,0,False,services/field-management-service
 field-segmentation,service,0,0,True,services/field-segmentation
 guardrails-engine,service,0,0,True,services/guardrails-engine
 indicators-service,service,6,3,False,services/indicators-service
@@ -27,7 +27,7 @@ knowledge-graph,service,2,0,False,services/knowledge-graph
 local-ai-rag,service,1,1,False,services/local-ai-rag
 mcp-servers,service,0,3,False,services/mcp_servers
 model-registry-adapter,service,0,2,False,services/model-registry-adapter
-platform,service,8,30,False,services/sahool-platform
+platform,service,8,32,False,services/sahool-platform
 production-preflight,compose-service,3,0,False,
 qdrant-seed,service,0,0,True,services/qdrant-seed
 rag-retrieval,service,1,0,False,services/rag-retrieval

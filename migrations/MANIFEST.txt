@@ -900,6 +900,10 @@ v289_scouting_verification_bridge.sql
 # v290: every verification outbox INSERT starts pending, with zero attempts and
 #   no lease, receipt or error. Preserves v289 and all existing delivery rows.
 v290_scouting_verification_initial_state.sql
+# v291: field-management owns immutable execution-request/task links, independently
+#   approved inspection confirmations, and authoritative outcome acknowledgements.
+#   Does not enable delivery; before convergence and final RLS hardening.
+v291_field_task_execution_delivery.sql
 # v240: مرورٌ واحد == مروران. كائناتٌ يُنشئها v9_foundation/v9_new_tables/v57 مشروطةً بجداول
 #   تُنشأ لاحقاً فلا تظهر إلّا في المرور الثاني (55 سطر pg_dump مقيسة على قاعدة فارغة).
 #   يُنشئها هنا بالتعريف والشرط نفسيهما؛ no-op على قاعدةٍ أُعيد عليها البيان. قبل v206 مباشرةً.

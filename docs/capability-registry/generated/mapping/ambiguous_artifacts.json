@@ -3680,6 +3680,28 @@
     ]
   },
   {
+    "path": "services/field-management-service/fm_execution_task_store.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "dedup:Scouting=scouting"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "dedup:Execution request=execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/field-management-service/fm_verification_store.py",
     "kind": "backend",
     "candidates": [

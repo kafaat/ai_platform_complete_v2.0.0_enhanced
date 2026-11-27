@@ -5,10 +5,10 @@ Repository-derived evidence only; runtime activation is not implied.
 ## Summary
 
 - Nodes: 112
-- Edges: 205
-- Code-reference edges: 68
+- Edges: 208
+- Code-reference edges: 71
 - Compose dependency edges: 137
-- Orphan nodes: 8
+- Orphan nodes: 7
 - Strongly connected components: 0
 
 ## Cycles
@@ -18,7 +18,6 @@ Repository-derived evidence only; runtime activation is not implied.
 ## Orphans
 
 - auth
-- field-management-service
 - field-segmentation
 - guardrails-engine
 - qdrant-seed

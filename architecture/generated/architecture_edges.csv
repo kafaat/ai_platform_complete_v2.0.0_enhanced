@@ -4,6 +4,7 @@ agriai-engine,soil-service,code-reference,services/agriai-engine/agronomic_conte
 ai-agronomist,knowledge-graph,code-reference,services/ai_agronomist/ai_evidence_runtime.py
 ai-agronomist,knowledge-graph,code-reference,services/ai_agronomist/main.py
 ai-agronomist,platform,code-reference,services/ai_agronomist/ai_evidence_runtime.py
+decision-service,field-management-service,code-reference,services/decision-service/field_inspection_evidence.py
 decision-service,soil-service,code-reference,services/decision-service/agronomic_context/point_in_time.py
 decision-service,soil-service,code-reference,services/decision-service/main.py
 decision-service,soil-service,code-reference,services/decision-service/persistence.py
@@ -29,9 +30,11 @@ mcp-servers,weather-service,code-reference,services/mcp_servers/weather_server.p
 model-registry-adapter,decision-service,code-reference,services/model-registry-adapter/runtime.py
 model-registry-adapter,decision-service,code-reference,services/model-registry-adapter/worker.py
 platform,decision-service,code-reference,services/sahool-platform/api/decision_service_client.py
+platform,decision-service,code-reference,services/sahool-platform/api/inspection_execution_adapter.py
 platform,decision-service,code-reference,services/sahool-platform/api/irrigation_activation_gate.py
 platform,decision-service,code-reference,services/sahool-platform/core/capabilities.py
 platform,edge-inference,code-reference,services/sahool-platform/api/routers/service_proxy.py
+platform,field-management-service,code-reference,services/sahool-platform/api/inspection_execution_adapter.py
 platform,indicators-service,code-reference,services/sahool-platform/api/routers/indicators.py
 platform,raster-service,code-reference,services/sahool-platform/api/raster_service_client.py
 platform,raster-tiler-service,compose-depends-on,docker-compose.v9.yml

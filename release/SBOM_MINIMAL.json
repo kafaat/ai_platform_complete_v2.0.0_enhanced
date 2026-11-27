@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "417d7c2017d092544103c4e4a202fd9c04ef2f35f476776584c4382b46ebcf20"
+          "content": "0d6a939163747224a8576e7b179933e6df43cfa073c119bc09f22e70f3c92799"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5315,7 +5315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a3208535a2711e827716f53b8fb7212a2d0af905a790e70cff50e34c72e1894f"
+          "content": "0e5215461a73fe8af3a627abc7cacaee77f9dff48b269c9106c9a1b706961c81"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6675,7 +6675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cabc1421e2aff1a5cbdfb320a14a29670b72c6adee7e5b1fc7fa6828dcb9b99a"
+          "content": "ebca1d3f133e75ca236c52e20e9eecc609d0088d8b0482fad7527585f8203dcf"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceTasksPanel.tsx",
@@ -6809,6 +6809,26 @@
         }
       ],
       "name": "frontend/src/sections/HybridMonitor.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4cb6cd88a3a1096c6ba72860bcf71a60888ede4a819224038c8e75cd657a5c2b"
+        }
+      ],
+      "name": "frontend/src/sections/InspectionExecutionInbox.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6cfba3e364621f16bb144025bde5b42c8a6a21982cbc215fb12704e0ade74fcf"
+        }
+      ],
+      "name": "frontend/src/sections/InspectionExecutionInbox.tsx",
       "type": "file"
     },
     {
@@ -8215,6 +8235,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ebea68a4ea6ac0750892fd59f5800085a5a7cb4c3539dbb372627a1fab6d06cf"
+        }
+      ],
+      "name": "frontend/src/services/api/inspectionExecutions.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "377f4cb30a040617dea639a31393d32faa1b4ad4fb5d072c7b843aede708454d"
+        }
+      ],
+      "name": "frontend/src/services/api/inspectionExecutions.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "68e00a0fc7249e3e8c2a4a4b741d8cdce9514414f45caa0988edd193d4052a4e"
         }
       ],
@@ -8585,7 +8625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "147ddfec277e3378ac00267c41d0268d18fd37ea9930d423a86ed36417bc3a84"
+          "content": "1c170f9edc414df1004df635f67e96e526de3f7d052087611b2549bf37fc59af"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8655,7 +8695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6407db847ad916d8356a55b382951fbd85ce52e0430c989d4d3996b2bc1d8e9"
+          "content": "4004390474dc0e2fad70cf4e81049fbe2cc7382a98223ac398fd629ee5b02860"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -10769,6 +10809,16 @@
         }
       ],
       "name": "migrations/v290_scouting_verification_initial_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2697261498f85243979639770fe61bc4d4144ffe8b695808285bdcb9892c3501"
+        }
+      ],
+      "name": "migrations/v291_field_task_execution_delivery.sql",
       "type": "file"
     },
     {
@@ -19695,6 +19745,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a0c8aa5600ab9b5d18d883bc412d3c9de56de74dff4f0a8852942e6d0fe61971"
+        }
+      ],
+      "name": "services/decision-service/field_inspection_evidence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e0a978abf72f42fa94e8e5c87401369581c533dfdf57d5bd7972f062596f5f28"
         }
       ],
@@ -20125,7 +20185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c9b88c6f20ade3220c5f39948b54a8a167639480869706966f178ef333b5c183"
+          "content": "5814beef09277f0ed22103b9031cdc19987f364e006abed48e51b3196c70af68"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -20489,6 +20549,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_execution_request_plan_binding.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1cf7566d638d430a777647bfef0c21b6898a21bee20b83aa2deb1f3b7be4aa61"
+        }
+      ],
+      "name": "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
       "type": "file"
     },
     {
@@ -21295,6 +21365,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d0b4b3deb814fd4b83f7d23f4de1b7cdd823b68942cef8cb5792eabeeeb46241"
+        }
+      ],
+      "name": "services/field-management-service/fm_execution_routes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d2c4e31263e7fccc5132eb395d44930b7b9a58f14c53e0703ef44fb9b14beac"
+        }
+      ],
+      "name": "services/field-management-service/fm_execution_task_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0bd1c803181e9c1e14b5b151f16098854c6ab5d70a702dcb2036c4ee79d14b11"
+        }
+      ],
+      "name": "services/field-management-service/fm_execution_tasks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e2a026858353337fea23ff0ce98ad0f1596d1fe25a63a0f8ab7308a4647836a8"
         }
       ],
@@ -21375,7 +21475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cd721931108cdbcf93977f3d5fe61f579b39ac772045b6d46f319d26ed86ad39"
+          "content": "eab5e69c9c6dbfe2a7d9da56cd3ae617cab20f41923d404780c16c655bfe7727"
         }
       ],
       "name": "services/field-management-service/main.py",
@@ -21389,6 +21489,26 @@
         }
       ],
       "name": "services/field-management-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6b7d1eebae835ec756dc5cfa694312c86b6a72b53abf785e41de284872c50db"
+        }
+      ],
+      "name": "services/field-management-service/tests/test_execution_routes_unit.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6a4ef2f6b1eb0eb44f684f09980f2580e821e628de709bb25cc4120d6290bde1"
+        }
+      ],
+      "name": "services/field-management-service/tests/test_execution_tasks_unit.py",
       "type": "file"
     },
     {
@@ -27145,6 +27265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "27a719efb159ba5d654b4c9f7f286286f124f189f4ee02ef38d52f72194c1f3c"
+        }
+      ],
+      "name": "services/sahool-platform/api/inspection_execution_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "705aa1ce4a0f4f439091e7518d8d4ee5202eebebcf381a262f1ac1955f5671e3"
         }
       ],
@@ -27685,7 +27815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a04b55d89d9c86b442676f823468a7818656f75fc6e22be8eb14a2ed3d702b6"
+          "content": "62a1cbcc1287b037c503400db46a1b22b376d433f2885f51e31a5e36940b6131"
         }
       ],
       "name": "services/sahool-platform/api/phase10_continuous_learning.py",
@@ -27695,7 +27825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6819e00c3a39f24c28c00096ba51222fe094e8b112b2418df1e892e273ccb746"
+          "content": "48260d49f38526a973940dd10b591fa721243e9ba798391d205f54666b07a897"
         }
       ],
       "name": "services/sahool-platform/api/phase11_federated_agents.py",
@@ -28729,6 +28859,16 @@
         }
       ],
       "name": "services/sahool-platform/api/routers/indices.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "954cf9103d17d341994bcd7068c42c6c9db8e9d1230fb78ba9566f3039abfd00"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/inspection_executions.py",
       "type": "file"
     },
     {
@@ -36595,6 +36735,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "592df8479bc67febec83c1862b952998180fd21eb12a72e9884c5f373d38528f"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_inspection_execution_owner_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "13c9b5f7e9eed8bee7ff9b1ef2cb0d908d5e438751442a7b965ebb2c20e9a2b6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_inspection_execution_routes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "804926dba940d24f10df63db58edfccff5c203d14e87d4deb53852bb7c60a753"
         }
       ],
@@ -39065,7 +39225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dec35ffb78135ea9e28482069dea22457d66068e3cd1b14765769b735559310c"
+          "content": "4661895a37748a414f4d9128855eee27e4b9c74ddbebab6ce54f56719fbdbcf4"
         }
       ],
       "name": "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
@@ -43349,6 +43509,16 @@
         }
       ],
       "name": "shared/field_change_summary.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "25301d00d0aa685346cf61fb9c1ab86a296940203616e3bf5cd64fbb96100078"
+        }
+      ],
+      "name": "shared/field_inspection_execution.py",
       "type": "file"
     },
     {

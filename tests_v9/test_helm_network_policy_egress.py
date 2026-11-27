@@ -85,9 +85,9 @@ _NO_PUBLIC_EGRESS_EVIDENCE: dict[str, frozenset[str]] = {
             "SAHOOL_ENV",
         }
     ),
-    # Databases and an assertion Redis only. The httpx users in the service directory
-    # (read_side_compare.py, production_promotion.py, staging_probe.py) are operator scripts
-    # that main.py does not import, so they are outside the closure.
+    # Databases, assertion Redis and the optional owner-proof client; see _GATED_OUTBOUND.
+    # read_side_compare.py, production_promotion.py and staging_probe.py are operator
+    # scripts that main.py does not import, so they remain outside the closure.
     "sahool-decision-service": frozenset(
         {
             "ACTIVATION_CACHE_TTL_SECONDS",
@@ -114,6 +114,8 @@ _NO_PUBLIC_EGRESS_EVIDENCE: dict[str, frozenset[str]] = {
             "DECISION_WORKER_ASSERTION_REDIS_URL",
             "DEPLOY_BUILD_SHA",
             "ENVIRONMENT",
+            "FIELD_INSPECTION_PROOF_TOKEN",
+            "FIELD_MANAGEMENT_SERVICE_URL",
             "IRR_F01_RESERVATION_ENFORCE_ACTIVATION",
             "RUNTIME_WORK_LEASE_SECONDS",
             "SAHOOL_ENV",
@@ -122,6 +124,12 @@ _NO_PUBLIC_EGRESS_EVIDENCE: dict[str, frozenset[str]] = {
     "sahool-field-management": frozenset(
         {
             "DATABASE_URL",
+            # Owner RPC/proof credentials and shared execution settings: no outbound host.
+            "FIELD_INSPECTION_COORDINATOR_TOKEN",
+            "FIELD_INSPECTION_DELIVERY_TOKEN_KEY",
+            "FIELD_INSPECTION_EXECUTION_ADAPTER_ID",
+            "FIELD_INSPECTION_EXECUTION_ENABLED",
+            "FIELD_INSPECTION_PROOF_TOKEN",
             "FIELD_SERVICE_ALLOWED_CALLERS",
             "FIELD_SERVICE_ASSERTION_REDIS_URL",
             "FIELD_SERVICE_TENANT_ASSERTION_KEY",
@@ -193,6 +201,14 @@ _OUTBOUND_MODULES = frozenset(
 # install and the default-deny policy blocks nothing that runs. Turning one on needs the setting
 # and an egress rule together (SMTP is port 587, outside publicHttpsEgress).
 _GATED_OUTBOUND: dict[str, dict[str, frozenset[str]]] = {
+    "sahool-decision-service": {
+        # field_inspection_evidence.py reads the current proof from field-management.
+        # read_owner_proof refuses an absent URL or token before constructing AsyncClient.
+        # The URL is configurable, so do not assume it names an in-cluster host. The chart
+        # renders neither setting: enabling this client requires a reviewed destination
+        # and network policy together, without granting this workload public HTTPS.
+        "httpx": frozenset({"FIELD_MANAGEMENT_SERVICE_URL", "FIELD_INSPECTION_PROOF_TOKEN"}),
+    },
     "sahool-auth": {
         # Password-reset and verification email (services/auth/main.py send_reset_email).
         "aiosmtplib": frozenset({"SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD"}),

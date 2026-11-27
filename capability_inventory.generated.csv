@@ -117,6 +117,8 @@ erp-bridge.readyz.capabilities,query,erp-bridge,GET /v1/readyz/capabilities,,rou
 erp-bridge.suppliers,query,erp-bridge,GET /v1/suppliers,,route,False
 erp-bridge.sync,command,erp-bridge,POST /v1/sync,,route,False
 erp-bridge.webhook.odoo,command,erp-bridge,POST /v1/webhook/odoo,,route,False
+field-management-service.internal.field-inspection-execution-owner.operation,command,field-management-service,POST /internal/field-inspection-execution-owner/{operation},,route,False
+field-management-service.internal.field-tasks.execution-proofs,query,field-management-service,GET /internal/field-tasks/execution-proofs/{execution_request_id},,route,False
 field-management-service.internal.field-tasks.farm-book,command,field-management-service,POST /internal/field-tasks/farm-book/entries/{entry_id}/task,,route,False
 field-management-service.internal.field-tasks.fields,mixed,field-management-service,GET /internal/field-tasks/fields/{field_id}/inspection-assignees|GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task|GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff|GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context|GET /internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id}|GET /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}|POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task|POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept|POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding|POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign|POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links|POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver|POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments,,route,False
 field-management-service.internal.field-tasks.scouting,mixed,field-management-service,GET /internal/field-tasks/scouting|POST /internal/field-tasks/scouting,,route,False
@@ -530,6 +532,7 @@ sahool-platform.indicators.dashboard,query,sahool-platform,GET /api/v1/indicator
 sahool-platform.indicators.map-layers,query,sahool-platform,GET /api/v1/indicators/map-layers,frontend,route,False
 sahool-platform.indicators.readyz,query,sahool-platform,GET /api/indicators/readyz,frontend,route,False
 sahool-platform.indices.coverage-report,query,sahool-platform,GET /api/v1/indices/coverage-report,frontend,route,False
+sahool-platform.inspection-executions.fields.field_id,mixed,sahool-platform,GET /api/v1/inspection-executions/fields/{field_id}|POST /api/v1/inspection-executions/fields/{field_id}/requests/{execution_request_id}/receive|POST /api/v1/inspection-executions/fields/{field_id}/tasks/{task_id}/verify,frontend,route,False
 sahool-platform.internal.events.ai-advice,command,sahool-platform,POST /internal/events/ai-advice,frontend,route,False
 sahool-platform.internal.fields.field_id,query,sahool-platform,GET /internal/fields/{field_id}/state,frontend,route,False
 sahool-platform.introduction.candidates,query,sahool-platform,GET /api/v1/introduction/candidates,frontend,route,False
@@ -608,7 +611,7 @@ sahool-platform.outcomes.outcome_id.learning-attribution,command,sahool-platform
 sahool-platform.pest-escalation.run,command,sahool-platform,POST /api/v1/pest-escalation/run,frontend,route,False
 sahool-platform.phase10.learning.cycle,command,sahool-platform,POST /v1/phase10/learning/cycle,frontend,route,False
 sahool-platform.phase10.learning.dataset,command,sahool-platform,POST /v1/phase10/learning/dataset,frontend,route,False
-sahool-platform.phase10.learning.feature-store,command,sahool-platform,POST /v1/phase10/learning/feature-store/offline-dataset|POST /v1/phase10/learning/feature-store/online-materialization|POST /v1/phase10/learning/feature-store/point-in-time|POST /v1/phase10/learning/feature-store/register,frontend,route,False
+sahool-platform.phase10.learning.feature-store,command,sahool-platform,POST /v1/phase10/learning/feature-store/offline-dataset|POST /v1/phase10/learning/feature-store/point-in-time,frontend,route,False
 sahool-platform.phase10.learning.models,mixed,sahool-platform,GET /v1/phase10/learning/models/serving/{alias:path}|POST /v1/phase10/learning/models/promote|POST /v1/phase10/learning/models/register|POST /v1/phase10/learning/models/serving/promote|POST /v1/phase10/learning/models/serving/rollback,frontend,route,False
 sahool-platform.phase10.learning.scenario,command,sahool-platform,POST /v1/phase10/learning/scenario,frontend,route,False
 sahool-platform.phase11.federation.consensus,command,sahool-platform,POST /v1/phase11/federation/consensus,frontend,route,False
@@ -616,7 +619,7 @@ sahool-platform.phase11.federation.context,command,sahool-platform,POST /v1/phas
 sahool-platform.phase11.federation.cycle,command,sahool-platform,POST /v1/phase11/federation/cycle,frontend,route,False
 sahool-platform.phase11.federation.operation-plan,command,sahool-platform,POST /v1/phase11/federation/operation-plan,frontend,route,False
 sahool-platform.phase11.federation.quality,command,sahool-platform,POST /v1/phase11/federation/quality,frontend,route,False
-sahool-platform.phase11.federation.runtime,command,sahool-platform,POST /v1/phase11/federation/runtime/authority-envelope|POST /v1/phase11/federation/runtime/event-envelope|POST /v1/phase11/federation/runtime/resolve,frontend,route,False
+sahool-platform.phase11.federation.runtime,command,sahool-platform,POST /v1/phase11/federation/runtime/authority-envelope|POST /v1/phase11/federation/runtime/resolve,frontend,route,False
 sahool-platform.phase9.autonomy.cycle,command,sahool-platform,POST /v1/phase9/autonomy/cycle,frontend,route,False
 sahool-platform.phase9.autonomy.events,command,sahool-platform,POST /v1/phase9/autonomy/events/from-plan|POST /v1/phase9/autonomy/events/replay,frontend,route,False
 sahool-platform.phase9.autonomy.experiments,command,sahool-platform,POST /v1/phase9/autonomy/experiments/assign,frontend,route,False

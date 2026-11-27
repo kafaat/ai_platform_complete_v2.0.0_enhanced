@@ -9,7 +9,7 @@
       "registrations": [
         {
           "function": "root",
-          "line": 301,
+          "line": 303,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/",
@@ -63,7 +63,7 @@
         },
         {
           "function": "contract",
-          "line": 277,
+          "line": 279,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/contract",
@@ -110,7 +110,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 239,
+          "line": 241,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/health",
@@ -293,7 +293,7 @@
         },
         {
           "function": "healthz",
-          "line": 234,
+          "line": 236,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/healthz",
@@ -675,7 +675,7 @@
         },
         {
           "function": "readyz",
-          "line": 244,
+          "line": 246,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/readyz",
@@ -1039,7 +1039,7 @@
       "registrations": [
         {
           "function": "learning_cycle",
-          "line": 144,
+          "line": 135,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/cycle",
@@ -1047,7 +1047,7 @@
         },
         {
           "function": "cycle",
-          "line": 128,
+          "line": 126,
           "method": "POST",
           "module": "services/sahool-platform/api/phase11_federated_agents.py",
           "path": "/cycle",
@@ -1078,7 +1078,7 @@
       "registrations": [
         {
           "function": "model_register",
-          "line": 196,
+          "line": 179,
           "method": "POST",
           "module": "services/sahool-platform/api/phase10_continuous_learning.py",
           "path": "/models/register",
@@ -1214,8 +1214,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1161,
-  "route_inventory_sha256": "c233bdb465e056beadfd9e16d94714599c5aaeda5fad783839c58ff21c0e4b9a",
+  "route_count": 1163,
+  "route_inventory_sha256": "0ca545b88c930c9d23e2c7c446a06d4f10cb514e49e10f9ca6172327daf7759f",
   "runtime_verified": false,
   "schema_version": 1
 }

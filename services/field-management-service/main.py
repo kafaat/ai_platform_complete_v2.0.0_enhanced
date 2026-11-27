@@ -51,6 +51,7 @@ app = FastAPI(title="SAHOOL Field Management Service", version=VERSION)
 _SERVICE_DIR = str(Path(__file__).resolve().parent)
 if _SERVICE_DIR not in sys.path:
     sys.path.append(_SERVICE_DIR)
+from fm_execution_routes import router as _execution_router  # noqa: E402
 from fm_scouting_tasks import build_router as _build_scouting_router  # noqa: E402
 from fm_task_costs import router as _task_costs_router  # noqa: E402
 from fm_task_inspection import router as _task_inspection_router  # noqa: E402
@@ -59,6 +60,7 @@ from fm_verification import router as _verification_router  # noqa: E402
 app.include_router(_task_inspection_router)
 app.include_router(_verification_router)
 app.include_router(_task_costs_router)
+app.include_router(_execution_router)
 
 
 def _source_sha256(path: Path) -> str:

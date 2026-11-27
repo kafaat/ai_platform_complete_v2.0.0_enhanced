@@ -47,8 +47,8 @@
         "services/decision-service"
       ],
       "kind": "service",
-      "incoming": 11,
-      "outgoing": 3,
+      "incoming": 12,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -181,9 +181,9 @@
         "services/field-management-service"
       ],
       "kind": "service",
-      "incoming": 0,
+      "incoming": 2,
       "outgoing": 0,
-      "orphan": true
+      "orphan": false
     },
     {
       "id": "field-segmentation",
@@ -262,7 +262,7 @@
       ],
       "kind": "service",
       "incoming": 8,
-      "outgoing": 30,
+      "outgoing": 32,
       "orphan": false
     },
     {
@@ -995,6 +995,12 @@
     },
     {
       "source": "decision-service",
+      "target": "field-management-service",
+      "kind": "code-reference",
+      "evidence": "services/decision-service/field_inspection_evidence.py"
+    },
+    {
+      "source": "decision-service",
       "target": "soil-service",
       "kind": "code-reference",
       "evidence": "services/decision-service/agronomic_context/point_in_time.py"
@@ -1147,6 +1153,12 @@
       "source": "platform",
       "target": "decision-service",
       "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/inspection_execution_adapter.py"
+    },
+    {
+      "source": "platform",
+      "target": "decision-service",
+      "kind": "code-reference",
       "evidence": "services/sahool-platform/api/irrigation_activation_gate.py"
     },
     {
@@ -1160,6 +1172,12 @@
       "target": "edge-inference",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/routers/service_proxy.py"
+    },
+    {
+      "source": "platform",
+      "target": "field-management-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/inspection_execution_adapter.py"
     },
     {
       "source": "platform",
@@ -2197,11 +2215,11 @@
   "cycles": [],
   "summary": {
     "nodes": 112,
-    "edges": 205,
-    "orphans": 8,
+    "edges": 208,
+    "orphans": 7,
     "cycles": 0,
-    "code_edges": 68,
+    "code_edges": 71,
     "compose_edges": 137
   },
-  "content_sha256": "c5e527e2fb96ede772536694d1bf540d1c5b011e33a3d515e56d9b90bac4bf3d"
+  "content_sha256": "23e512af77fd6180b0fb99b19cfbbcf4462f19505fa7545918f352ada24ad11d"
 }

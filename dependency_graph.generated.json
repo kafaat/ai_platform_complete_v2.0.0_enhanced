@@ -1,5 +1,5 @@
 {
-  "edge_count": 1145,
+  "edge_count": 1154,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1112,6 +1112,46 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_task_execution_confirmations",
+      "to": "db://field_task_execution_confirmations",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_task_execution_links",
+      "to": "db://field_task_execution_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_task_execution_outcome_receipts",
+      "to": "db://field_task_execution_outcome_receipts",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/fm_scouting_tasks.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -1369,6 +1409,16 @@
       "relation": "READS",
       "resource": "db://task_expense_links",
       "to": "db://task_expense_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://users",
+      "to": "db://users",
       "to_kind": "resource"
     },
     {
@@ -8082,6 +8132,46 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_task_execution_confirmations",
+      "to": "db://field_task_execution_confirmations",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_task_execution_links",
+      "to": "db://field_task_execution_links",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_task_execution_outcome_receipts",
+      "to": "db://field_task_execution_outcome_receipts",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/field-management-service/fm_execution_task_store.py",
+      "from": "field-management-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://field_tasks",
+      "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/field-management-service/fm_scouting_tasks.py",
       "from": "field-management-service",
       "from_kind": "component",
@@ -11470,9 +11560,9 @@
     "CALLS": 47,
     "CONSUMES": 4,
     "EMITS": 3,
-    "READS": 617,
+    "READS": 622,
     "ROUTES_TO": 82,
-    "WRITES": 392
+    "WRITES": 396
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -11487,8 +11577,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 1010,
-      "resolved": 1009,
+      "observed": 1019,
+      "resolved": 1018,
       "unresolved_component_paths": 0
     }
   }

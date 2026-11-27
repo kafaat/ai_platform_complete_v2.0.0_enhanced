@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "f5582f8ec19d6d37a7e7a2b0b42062d3e226da17db52bfadf22824712150aa15",
+  "inventory_sha256": "8bb6ae70947f2b9257d7baace8abd39e6dc88ce2e7dad16eaae695d8f1584412",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "332a10134f0dac591e2a85043321e6a944fdd1d0f38f76f81b25a5388add6a92"
+    "policy_sha256": "be4e2e3d0fca4f57ce4c0b380d66e876e022f69818375918c4a7469db558cff3"
   },
   "routes": [
     {
@@ -2585,6 +2585,14 @@
     },
     {
       "classification": "domain",
+      "function": "list_inspection_executions",
+      "line": 84,
+      "method": "GET",
+      "path": "/fields/{field_id}",
+      "source": "api/routers/inspection_executions.py"
+    },
+    {
+      "classification": "domain",
       "function": "graphql_schema",
       "line": 188,
       "method": "GET",
@@ -2626,7 +2634,7 @@
     {
       "classification": "domain",
       "function": "model_serving_resolve",
-      "line": 233,
+      "line": 216,
       "method": "GET",
       "path": "/models/serving/{alias:path}",
       "source": "api/phase10_continuous_learning.py"
@@ -4482,7 +4490,7 @@
     {
       "classification": "domain",
       "function": "consensus",
-      "line": 102,
+      "line": 100,
       "method": "POST",
       "path": "/consensus",
       "source": "api/phase11_federated_agents.py"
@@ -4490,7 +4498,7 @@
     {
       "classification": "domain",
       "function": "context",
-      "line": 92,
+      "line": 90,
       "method": "POST",
       "path": "/context",
       "source": "api/phase11_federated_agents.py"
@@ -4498,7 +4506,7 @@
     {
       "classification": "domain",
       "function": "learning_cycle",
-      "line": 143,
+      "line": 134,
       "method": "POST",
       "path": "/cycle",
       "source": "api/phase10_continuous_learning.py"
@@ -4506,7 +4514,7 @@
     {
       "classification": "domain",
       "function": "cycle",
-      "line": 127,
+      "line": 125,
       "method": "POST",
       "path": "/cycle",
       "source": "api/phase11_federated_agents.py"
@@ -4530,7 +4538,7 @@
     {
       "classification": "domain",
       "function": "dataset",
-      "line": 118,
+      "line": 109,
       "method": "POST",
       "path": "/dataset",
       "source": "api/phase10_continuous_learning.py"
@@ -4578,34 +4586,34 @@
     {
       "classification": "domain",
       "function": "feature_store_offline_dataset",
-      "line": 162,
+      "line": 153,
       "method": "POST",
       "path": "/feature-store/offline-dataset",
       "source": "api/phase10_continuous_learning.py"
     },
     {
       "classification": "domain",
-      "function": "feature_store_online_materialization",
-      "line": 173,
-      "method": "POST",
-      "path": "/feature-store/online-materialization",
-      "source": "api/phase10_continuous_learning.py"
-    },
-    {
-      "classification": "domain",
       "function": "feature_store_point_in_time",
-      "line": 181,
+      "line": 164,
       "method": "POST",
       "path": "/feature-store/point-in-time",
       "source": "api/phase10_continuous_learning.py"
     },
     {
       "classification": "domain",
-      "function": "feature_store_register",
-      "line": 155,
+      "function": "receive_inspection_execution",
+      "line": 94,
       "method": "POST",
-      "path": "/feature-store/register",
-      "source": "api/phase10_continuous_learning.py"
+      "path": "/fields/{field_id}/requests/{execution_request_id}/receive",
+      "source": "api/routers/inspection_executions.py"
+    },
+    {
+      "classification": "domain",
+      "function": "verify_inspection_execution",
+      "line": 107,
+      "method": "POST",
+      "path": "/fields/{field_id}/tasks/{task_id}/verify",
+      "source": "api/routers/inspection_executions.py"
     },
     {
       "classification": "domain",
@@ -4730,7 +4738,7 @@
     {
       "classification": "domain",
       "function": "model_promotion",
-      "line": 128,
+      "line": 119,
       "method": "POST",
       "path": "/models/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4738,7 +4746,7 @@
     {
       "classification": "domain",
       "function": "model_register",
-      "line": 195,
+      "line": 178,
       "method": "POST",
       "path": "/models/register",
       "source": "api/phase10_continuous_learning.py"
@@ -4754,7 +4762,7 @@
     {
       "classification": "domain",
       "function": "model_serving_promote",
-      "line": 216,
+      "line": 199,
       "method": "POST",
       "path": "/models/serving/promote",
       "source": "api/phase10_continuous_learning.py"
@@ -4762,7 +4770,7 @@
     {
       "classification": "domain",
       "function": "model_serving_rollback",
-      "line": 223,
+      "line": 206,
       "method": "POST",
       "path": "/models/serving/rollback",
       "source": "api/phase10_continuous_learning.py"
@@ -4778,7 +4786,7 @@
     {
       "classification": "domain",
       "function": "operation_plan",
-      "line": 112,
+      "line": 110,
       "method": "POST",
       "path": "/operation-plan",
       "source": "api/phase11_federated_agents.py"
@@ -4890,7 +4898,7 @@
     {
       "classification": "domain",
       "function": "quality",
-      "line": 122,
+      "line": 120,
       "method": "POST",
       "path": "/quality",
       "source": "api/phase11_federated_agents.py"
@@ -4906,23 +4914,15 @@
     {
       "classification": "domain",
       "function": "runtime_authority_envelope",
-      "line": 162,
+      "line": 160,
       "method": "POST",
       "path": "/runtime/authority-envelope",
       "source": "api/phase11_federated_agents.py"
     },
     {
       "classification": "domain",
-      "function": "runtime_event_envelope",
-      "line": 169,
-      "method": "POST",
-      "path": "/runtime/event-envelope",
-      "source": "api/phase11_federated_agents.py"
-    },
-    {
-      "classification": "domain",
       "function": "runtime_resolve",
-      "line": 151,
+      "line": 149,
       "method": "POST",
       "path": "/runtime/resolve",
       "source": "api/phase11_federated_agents.py"
@@ -4930,7 +4930,7 @@
     {
       "classification": "domain",
       "function": "scenario",
-      "line": 138,
+      "line": 129,
       "method": "POST",
       "path": "/scenario",
       "source": "api/phase10_continuous_learning.py"

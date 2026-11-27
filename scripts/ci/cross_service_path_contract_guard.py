@@ -63,6 +63,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
 # و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان **يحسب صحيحاً** (٨ عقود، صفرُ
@@ -169,6 +170,380 @@ def _local_assigns(scope: ast.AST) -> dict[str, ast.AST]:
     return assigns
 
 
+def _scope_nodes(scope: ast.AST):
+    """Walk one lexical scope without borrowing assignments from a nested definition."""
+    yield scope
+    for child in ast.iter_child_nodes(scope):
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+            yield child
+        else:
+            yield from _scope_nodes(child)
+
+
+def _conditional_nodes(scope: ast.AST) -> set[int]:
+    return {
+        id(child)
+        for node in _scope_nodes(scope)
+        if isinstance(
+            node, (ast.If, ast.For, ast.AsyncFor, ast.While, ast.Try, ast.TryStar, ast.Match)
+        )
+        for child in _scope_nodes(node)
+    }
+
+
+def _scope_assigns(scope: ast.AST) -> dict[str, ast.AST]:
+    assigns: dict[str, ast.AST] = {}
+    conditional = _conditional_nodes(scope)
+
+    def record(name: str, value: ast.AST) -> None:
+        previous = assigns.get(name)
+        assigns[name] = (
+            ast.Constant(None)
+            if previous is not None and ast.dump(previous) != ast.dump(value)
+            else value
+        )
+
+    for node in _scope_nodes(scope):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                for left, right in _assignment_pairs(target, node.value):
+                    if isinstance(left, ast.Name):
+                        record(left.id, ast.Constant(None) if id(node) in conditional else right)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value:
+            record(node.target.id, ast.Constant(None) if id(node) in conditional else node.value)
+        elif isinstance(node, (ast.AugAssign, ast.NamedExpr)) and isinstance(node.target, ast.Name):
+            record(node.target.id, ast.Constant(None))
+        elif node is not scope and isinstance(
+            node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+        ):
+            record(node.name, ast.Constant(None))
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                record(alias.asname or alias.name.split(".")[0], ast.Constant(None))
+    return assigns
+
+
+def _method_scope(method: ast.AST, inherited: dict[str, ast.AST]) -> dict[str, ast.AST]:
+    args = method.args.posonlyargs + method.args.args + method.args.kwonlyargs
+    args += [arg for arg in (method.args.vararg, method.args.kwarg) if arg is not None]
+    return inherited | {arg.arg: ast.Constant(None) for arg in args}
+
+
+def _method_arguments(method: ast.AST, call: ast.Call | None) -> dict[str, ast.AST] | None:
+    """Bind a local bound-method call; starred or unknown arguments stay unresolved."""
+    positional = method.args.posonlyargs + method.args.args
+    bound = {
+        arg.arg: value
+        for arg, value in zip(
+            positional[len(positional) - len(method.args.defaults) :],
+            method.args.defaults,
+            strict=True,
+        )
+    }
+    bound.update(
+        (arg.arg, value)
+        for arg, value in zip(method.args.kwonlyargs, method.args.kw_defaults, strict=True)
+        if value is not None
+    )
+    if call is None:
+        return bound
+    parameters = positional[1:]
+    names = {arg.arg for arg in parameters + method.args.kwonlyargs}
+    if (
+        len(call.args) > len(parameters)
+        or any(isinstance(arg, ast.Starred) for arg in call.args)
+        or any(keyword.arg not in names for keyword in call.keywords)
+    ):
+        return None
+    bound.update((arg.arg, value) for arg, value in zip(parameters, call.args, strict=False))
+    bound.update((keyword.arg, keyword.value) for keyword in call.keywords)
+    return bound
+
+
+def _class_text(
+    node: ast.AST,
+    names: dict[str, ast.AST],
+    members: dict[str, ast.AST],
+    depth: int = 0,
+) -> str | None:
+    """Resolve the measured class URL forms, refusing opaque URL builders and cycles."""
+    if depth > 12:
+        return None
+
+    def read(value: ast.AST) -> str | None:
+        return _class_text(value, names, members, depth + 1)
+
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.Name) and node.id in names:
+        return read(names[node.id])
+    if (
+        isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id in {"self", "cls"}
+        and node.attr in members
+    ):
+        return read(members[node.attr])
+    if isinstance(node, ast.JoinedStr):
+        return "".join(
+            str(part.value) if isinstance(part, ast.Constant) else read(part.value) or "{}"
+            for part in node.values
+        )
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left, right = read(node.left), read(node.right)
+        return left + right if left is not None and right is not None else None
+    if isinstance(node, ast.IfExp):
+        left, right = read(node.body), read(node.orelse)
+        return left if left == right else None
+    if isinstance(node, ast.Call):
+        if isinstance(node.func, ast.Name) and node.func.id in {"quote", "urlencode"}:
+            return "{}"
+        if isinstance(node.func, ast.Attribute):
+            if (
+                isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "os"
+                and node.func.attr == "getenv"
+            ):
+                default = (
+                    node.args[1]
+                    if len(node.args) > 1
+                    else next(
+                        (keyword.value for keyword in node.keywords if keyword.arg == "default"),
+                        None,
+                    )
+                )
+                return read(default) if default is not None else None
+            if node.func.attr in {"rstrip", "lstrip", "strip"} and len(node.args) <= 1:
+                value = read(node.func.value)
+                chars = read(node.args[0]) if node.args else None
+                if value is not None and (not node.args or chars is not None):
+                    return getattr(value, node.func.attr)(chars)
+    return None
+
+
+def _assignment_pairs(target: ast.AST, value: ast.AST):
+    if isinstance(target, (ast.Tuple, ast.List)):
+        if isinstance(value, (ast.Tuple, ast.List)) and len(target.elts) == len(value.elts):
+            for left, right in zip(target.elts, value.elts, strict=True):
+                yield from _assignment_pairs(left, right)
+        else:
+            for left in target.elts:
+                yield from _assignment_pairs(left, ast.Constant(None))
+    else:
+        yield target, value
+
+
+def _member_assignments(method: ast.AST):
+    conditional = _conditional_nodes(method)
+    for node in _scope_nodes(method):
+        pairs = []
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                pairs.extend(_assignment_pairs(target, node.value))
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            pairs.append((node.target, node.value))
+        elif isinstance(node, ast.AugAssign):
+            pairs.append((node.target, ast.Constant(None)))
+        elif isinstance(node, ast.Delete):
+            pairs.extend((target, ast.Constant(None)) for target in node.targets)
+        for target, value in pairs:
+            if (
+                isinstance(target, ast.Attribute)
+                and isinstance(target.value, ast.Name)
+                and target.value.id == "self"
+            ):
+                yield target.attr, ast.Constant(None) if id(node) in conditional else value
+
+
+def _class_members(
+    cls: ast.ClassDef,
+    module_names: dict[str, ast.AST],
+    definition_names: dict[str, ast.AST],
+) -> dict[str, ast.AST]:
+    """Trace constructor attributes from that class's own factories, never another class."""
+    raw_members = _local_assigns(ast.Module(body=cls.body, type_ignores=[]))
+    members = {
+        name: ast.Constant(_class_text(value, definition_names | raw_members, raw_members))
+        for name, value in raw_members.items()
+    }
+    methods = {
+        node.name: node
+        for node in cls.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    init = methods.get("__init__")
+    if init is None:
+        for method in methods.values():
+            for name, _value in _member_assignments(method):
+                members[name] = ast.Constant(None)
+        return members
+    factories: list[dict[str, ast.AST]] = []
+    for method in methods.values():
+        if not any(
+            isinstance(dec, ast.Name) and dec.id == "classmethod" for dec in method.decorator_list
+        ):
+            continue
+        for node in _scope_nodes(method):
+            if not (
+                isinstance(node, ast.Return)
+                and isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Name)
+                and node.value.func.id == "cls"
+            ):
+                continue
+            bindings = _method_arguments(init, node.value)
+            if bindings is None:
+                factories.append({})
+            else:
+                names = _method_scope(method, module_names | members) | _scope_assigns(method)
+                factories.append(
+                    {
+                        name: ast.Constant(_class_text(value, names, members))
+                        for name, value in bindings.items()
+                    }
+                )
+    candidates: dict[str, list[str | None]] = {}
+    for bindings in factories or [_method_arguments(init, None) or {}]:
+        names = _method_scope(init, module_names | members) | bindings | _scope_assigns(init)
+        for name, value in _member_assignments(init):
+            candidates.setdefault(name, []).append(_class_text(value, names, members))
+    for name, values in candidates.items():
+        members[name] = ast.Constant(values[0] if len(set(values)) == 1 else None)
+    # Do not claim that a URL member remains immutable after another method
+    # writes it. Unsupported flow stays unresolved instead of reusing old data.
+    for method in methods.values():
+        if method is not init:
+            for name, _value in _member_assignments(method):
+                members[name] = ast.Constant(None)
+    return members
+
+
+def _http_transports(method: ast.AST) -> list[tuple[ast.Call, ast.AST | None]]:
+    """Only expand methods that actually call a locally created httpx client."""
+    clients: set[str] = set()
+    for node in _scope_nodes(method):
+        if not isinstance(node, (ast.With, ast.AsyncWith)):
+            continue
+        for item in node.items:
+            constructor = item.context_expr
+            if (
+                isinstance(constructor, ast.Call)
+                and isinstance(constructor.func, ast.Attribute)
+                and isinstance(constructor.func.value, ast.Name)
+                and constructor.func.value.id == "httpx"
+                and constructor.func.attr in {"Client", "AsyncClient"}
+                and isinstance(item.optional_vars, ast.Name)
+            ):
+                clients.add(item.optional_vars.id)
+    found = []
+    for node in _scope_nodes(method):
+        if not (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id in clients
+            and node.func.attr in {"get", "post", "put", "patch", "delete", "request", "stream"}
+        ):
+            continue
+        index = 1 if node.func.attr in {"request", "stream"} else 0
+        url = (
+            node.args[index]
+            if len(node.args) > index
+            else next((keyword.value for keyword in node.keywords if keyword.arg == "url"), None)
+        )
+        found.append((node, url))
+    return found
+
+
+def _class_request(
+    cls: ast.ClassDef,
+    caller: ast.AST,
+    line: int,
+    url: ast.AST | None,
+    names: dict[str, ast.AST],
+    members: dict[str, ast.AST],
+) -> dict:
+    text = _class_text(url, names, members) if url is not None else None
+    path, hosts = None, set()
+    if text is not None:
+        try:
+            parsed = urlsplit(text)
+            path = _literal_path(ast.Constant(parsed.path))
+            if parsed.scheme in {"http", "https"} and parsed.hostname:
+                hosts = {parsed.hostname}
+        except ValueError:
+            pass
+    return {
+        "path": path,
+        "url": url,
+        "scope": caller,
+        "transport_hosts": hosts,
+        "unresolved": f"{cls.name}.{caller.name}:{line}: unresolved transport URL",
+    }
+
+
+def _class_requests(tree: ast.Module) -> tuple[list[dict], set[int]]:
+    """Follow one class-local wrapper hop to its HTTP URL, binding the real signature."""
+    found: list[dict] = []
+    expanded: set[int] = set()
+    module_names = _local_assigns(tree)
+    for cls in [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]:
+        methods = {
+            node.name: node
+            for node in cls.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        transports = {name: _http_transports(method) for name, method in methods.items()}
+        if not any(transports.values()):
+            continue
+        definition_names = _local_assigns(
+            ast.Module(
+                body=[node for node in tree.body if node.lineno < cls.lineno], type_ignores=[]
+            )
+        )
+        members = _class_members(cls, module_names, definition_names)
+        for caller in methods.values():
+            for call in _scope_nodes(caller):
+                if not (
+                    isinstance(call, ast.Call)
+                    and isinstance(call.func, ast.Attribute)
+                    and isinstance(call.func.value, ast.Name)
+                    and call.func.value.id == "self"
+                    and transports.get(call.func.attr)
+                ):
+                    continue
+                helper = methods[call.func.attr]
+                bindings = _method_arguments(helper, call)
+                caller_names = _method_scope(caller, module_names) | _scope_assigns(caller)
+                arguments = {
+                    name: ast.Constant(_class_text(value, caller_names, members))
+                    for name, value in (bindings or {}).items()
+                }
+                names = _method_scope(helper, module_names) | arguments | _scope_assigns(helper)
+                for transport, url in transports[call.func.attr]:
+                    expanded.add(id(transport))
+                    found.append(
+                        _class_request(
+                            cls,
+                            caller,
+                            call.lineno,
+                            url if bindings is not None else None,
+                            names,
+                            members,
+                        )
+                    )
+        # A direct public method may have no local callers. Its unknown URL must
+        # still fail when another method in the same module has a known route.
+        for name, calls in transports.items():
+            method = methods[name]
+            names = _method_scope(method, module_names) | _scope_assigns(method)
+            for transport, url in calls:
+                if id(transport) not in expanded:
+                    expanded.add(id(transport))
+                    found.append(_class_request(cls, method, transport.lineno, url, names, members))
+    return found, expanded
+
+
 def _requests(tree: ast.Module) -> list[dict]:
     """كلُّ طلبٍ مقروءٍ في الوحدة: المسار، وتعبيرُ العنوان، والدالّةُ المحيطة (أو None).
 
@@ -180,7 +555,7 @@ def _requests(tree: ast.Module) -> list[dict]:
        `GATE_ENFORCE_PATH = "/v1/activation/irr_f01_reservation/enforce"` ويبنيه
        داخل `_decision_url()`، فلا يُرى عند موضع النداء إطلاقاً.
     """
-    found: list[dict] = []
+    found, expanded = _class_requests(tree)
 
     for node in tree.body:
         if not isinstance(node, ast.Assign):
@@ -220,6 +595,8 @@ def _requests(tree: ast.Module) -> list[dict]:
             continue
         if id(node) in declarations:
             continue
+        if id(node) in expanded:
+            continue
         func = node.func
         name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
         # **يُطابَق الاحتواءُ لا النهاية.** كان الشرطُ `endswith` فأفلت
@@ -247,7 +624,81 @@ def requested_paths(source: str) -> set[str]:
     وسلسلةٌ في رسالة خطأ أو تعليقٍ تبقى خارج الجرد: الشرطُ موضعُ نداءٍ أو ثابتٌ
     مُسمًّى على مستوى الوحدة، لا أيُّ سلسلةٍ تبدأ بشرطة.
     """
-    return {item["path"] for item in _requests(ast.parse(source))}
+    return {item["path"] for item in _requests(ast.parse(source)) if item["path"] is not None}
+
+
+def _literal_options(node: ast.AST | None, aliases: dict[str, ast.AST], depth: int = 0):
+    if depth > 8:
+        return None
+    if isinstance(node, ast.Name) and node.id in aliases:
+        return _literal_options(aliases[node.id], aliases, depth + 1)
+    if not isinstance(node, ast.Subscript):
+        return None
+    kind = node.value.id if isinstance(node.value, ast.Name) else getattr(node.value, "attr", "")
+    values = node.slice.elts if isinstance(node.slice, ast.Tuple) else [node.slice]
+    if kind == "Annotated" and values:
+        return _literal_options(values[0], aliases, depth + 1)
+    if kind != "Literal" or not values:
+        return None
+    if not all(
+        isinstance(value, ast.Constant)
+        and isinstance(value.value, str)
+        and value.value
+        and not any(char in value.value for char in "/{}")
+        for value in values
+    ):
+        return None
+    return {value.value for value in values}
+
+
+def _literal_declared_paths(source: str) -> tuple[set[str], set[str]]:
+    """Expand only explicitly enumerated path values; never accept arbitrary operations."""
+    tree = ast.parse(source)
+    found: set[str] = set()
+    replaced: set[str] = set()
+    unrestricted: set[str] = set()
+    for method in ast.walk(tree):
+        if not isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        aliases = (
+            _local_assigns(
+                ast.Module(
+                    body=[node for node in tree.body if node.lineno < method.lineno],
+                    type_ignores=[],
+                )
+            )
+            if method in tree.body
+            else {}
+        )
+        for decorator in method.decorator_list:
+            if not (
+                isinstance(decorator, ast.Call)
+                and isinstance(decorator.func, ast.Attribute)
+                and isinstance(decorator.func.value, ast.Name)
+                and decorator.func.value.id in {"app", "router"}
+                and decorator.func.attr in {"get", "post", "put", "patch", "delete"}
+                and decorator.args
+                and isinstance(decorator.args[0], ast.Constant)
+                and isinstance(decorator.args[0].value, str)
+            ):
+                continue
+            paths = {decorator.args[0].value}
+            expanded = False
+            for arg in method.args.posonlyargs + method.args.args + method.args.kwonlyargs:
+                token = "{" + arg.arg + "}"
+                options = _literal_options(arg.annotation, aliases)
+                if options and any(token in path for path in paths):
+                    expanded = True
+                    if len(paths) * len(options) > 256:
+                        paths = set()
+                        break
+                    paths = {path.replace(token, option) for path in paths for option in options}
+            if expanded:
+                found.update(normalise(path) for path in paths)
+                replaced.add(normalise(decorator.args[0].value))
+            else:
+                unrestricted.add(normalise(decorator.args[0].value))
+    return found, replaced - unrestricted
 
 
 def declared_paths(service_dir: Path) -> set[str]:
@@ -256,10 +707,12 @@ def declared_paths(service_dir: Path) -> set[str]:
         text = file.as_posix()
         if "__pycache__" in text or "/tests/" in text:
             continue
-        declared |= {
-            normalise(m)
-            for m in _DECLARED.findall(file.read_text(encoding="utf-8", errors="ignore"))
-        }
+        source = file.read_text(encoding="utf-8", errors="ignore")
+        paths = {normalise(m) for m in _DECLARED.findall(source)}
+        if "Literal" in source:
+            concrete, replaced = _literal_declared_paths(source)
+            paths = (paths - replaced) | concrete
+        declared |= paths
     return declared
 
 
@@ -346,6 +799,13 @@ def scan_module(source: str, known: set[str]) -> dict:
     unattributed: list[str] = []
     scope_bound: dict[int, dict[str, set[str]]] = {}
     for item in _requests(tree):
+        if "transport_hosts" in item:
+            target = item["transport_hosts"] & hosts
+            if item["path"] is not None and len(target) == 1:
+                per_host[target.pop()].add(item["path"])
+            elif hosts:
+                unattributed.append(item["path"] or item["unresolved"])
+            continue
         if len(hosts) == 1:
             per_host[next(iter(hosts))].add(item["path"])
             continue

@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "ac870c36c9309985708802f884110557521e1f55",
+  "measured_on": "db79cf6d33fb8adb900f049d742de229f8616d4b",
   "fake_connection_tests": [
     "services/actuator-service/test_actuator_delivery_state_20261103.py",
     "services/actuator-service/test_actuator_safety_audit_20261101.py",
@@ -8,6 +8,7 @@
     "services/decision-service/tests/test_decision_provenance_integrity.py",
     "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_execution_request_plan_binding.py",
+    "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
     "services/decision-service/tests/test_sod_single_operator_self_approval.py",
@@ -743,6 +744,16 @@
         "tests_v9/test_band_math_version_reuse.py"
       ],
       "justification": "#1554 bumps the band-math algorithm version to sahool.band_math/2. The stand-in (_Conn with fetchval/fetchrow/execute/transaction, patched db_persist._connect) answers the ready-asset preflight from an in-memory table and filters on the algorithm version only when the SQL text itself names `algorithm_version=$N`, reading the parameter position from the query. It measures that both preflights (backfill_scan_worker._ready_asset and db_persist.enqueue_single_scene_process) bind the current version to that clause, that a /1 or version-less ready asset is not answered as ready, and that no legacy item is re-keyed onto the /2 identity. Removing the clause from either preflight or reverting the version constant, the fallback or the fixed legacy baseline fails it (1, 2, 3 or 6 tests). Its green says nothing about what PostgreSQL decides: column types, NULL comparison and RLS are not exercised here. services/raster-service/test_single_scene_concurrent_pg.py (#1556) exercises the live single-scene enqueue under a restricted role but seeds no ready asset, so it does not prove the version binding; the independent review ran the /1, NULL and /2 ready-asset cases against live PostgreSQL 16 by hand (planned, planned, already_ready; all already_ready with the clause removed). No proven_live exemption or database-enforcement claim is added."
+    },
+    {
+      "kind": "field_inspection_owner_gate_unit_contract_20261127",
+      "date": "2026-11-27",
+      "before": 140,
+      "after": 141,
+      "sites": [
+        "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py"
+      ],
+      "justification": "The connection and pool stand-ins drive the actual decision-service verify_execution_outcome application boundary with an explicitly mocked owner-proof reader and record attempted outcome/outbox writes. The 116 unit cases cover proof validation, transport refusal, source/receipt/payload binding, replay checks and preservation of the noninspection/failure contract. The narrow five-case baseline comparison falsely accepts four new outcomes and one stored replay before the guard, then refuses all five with zero insert attempts after it. These are application control-flow observations, not PostgreSQL column types, transactions, row locks, constraints, RLS, trigger or concurrency proofs. The separately retained actual HTTP journey over real PostgreSQL exercises the owner-to-decision outcome path and found the VARCHAR(80) idempotency defect that the doubles did not catch; its corrected run is independent scoped evidence, not a proven_live exemption for this unit module. No claiming_db_enforced or proven_live entry, guard rule, skip policy or threshold is changed."
     }
   ]
 }

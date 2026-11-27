@@ -1,0 +1,826 @@
+{
+  "actual_http": {
+    "architecture_revision": "platform-coordinator-fm-owner-v2",
+    "artifact_root": "task-delivery-v2/evidence",
+    "browser_used": false,
+    "cleanup": "owned processes and PostgreSQL stopped before this receipt",
+    "complete": {
+      "artifact": {
+        "bytes": 268170,
+        "path": "task-delivery-runtime-v2-pgqrtogz/task-delivery-http-complete.json",
+        "sha256": "0fc8b7a3d9b3798217e9d5bb08f63c6a66646c69b8148caee14a8d3bf1bbb5d8"
+      },
+      "counts": {
+        "failed": 0,
+        "http_requests": 34,
+        "not_measured": 1,
+        "note": "HTTP requests and semantic checks overlap; never add these counts.",
+        "passed": 63,
+        "semantic_checks": 64
+      }
+    },
+    "container_parity_claim": false,
+    "controls": "Actual HTTP includes peer-tenant denial, no coordinator/proof credential, human gateway proof-audience denial, direct and BFF forged success before proof, separately disabled platform, and separately unconfigured DS proof owner.",
+    "database_identity": {
+      "bytes": 160,
+      "path": "task-delivery-runtime-v2-pgqrtogz/database-identity.json",
+      "sha256": "978dbfb9c44d4b2339085324d37088e2b95506476d61862412c23722ad8892d6"
+    },
+    "database_observation_scope": "Read-only admin snapshots; no runtime-role/RLS certification",
+    "database_snapshot_limit": "Snapshots cover the named 14 tables and synthetic fixture scope; no whole-database or global runtime-role/RLS certification is claimed.",
+    "fixture_scope": "Synthetic users, field, pin, explicit decision/plan and approved inspection evidence through actual auth, nginx, platform coordinator, field owner and decision service. PostgreSQL 17.12/PostGIS 3.5.2; canonical 280 and decision 39 migrations; restricted service roles.",
+    "gateway_adaptation": {
+      "bytes": 543,
+      "path": "task-delivery-runtime-v2-pgqrtogz/gateway-adaptation.json",
+      "sha256": "a1e3a0a787b6f33f0978f63cfa0d5e8f518fa7598da72f552bce582bb1773d9a"
+    },
+    "independent_review": {
+      "bytes": 26667,
+      "path": "independent-review.json",
+      "sha256": "5cee7c38abcfc6ada8de7ad591b6068d9d54f37817ee57b512e63311e6d08f03"
+    },
+    "journey_driver_sha256": "81a6d30cd8c0952ae77427860c92337af36b52120f0eec722f7918459fd695cb",
+    "mocked_transport": false,
+    "not_measured": [
+      {
+        "check": "stale photo actual HTTP",
+        "reason": "This runtime has no scout-ingest/S3 photo owner. Separate PostgreSQL controls cover photo staleness; none are counted here.",
+        "result": "NOT_MEASURED"
+      }
+    ],
+    "overall": "INCONCLUSIVE",
+    "prepare": {
+      "artifact": {
+        "bytes": 44567,
+        "path": "task-delivery-runtime-v2-pgqrtogz/task-delivery-http-prepare.json",
+        "sha256": "d426a2a3af6df966835cbabda1fe8a6dfb758dc0d0be0473b6b1f9e6fe2ed48f"
+      },
+      "counts": {
+        "failed": 0,
+        "http_requests": 8,
+        "not_measured": 0,
+        "note": "HTTP requests and semantic checks overlap; never add these counts.",
+        "passed": 19,
+        "semantic_checks": 19
+      }
+    },
+    "published_archive": {
+      "artifact_root": "task-delivery-v2/published-evidence",
+      "bytes": 341728,
+      "members": 66,
+      "path": "native-v2-unit-http-evidence.tar.gz",
+      "scope": "Native v2 da5ab28b and its units; archive predates route retirements and does not establish a later candidate.",
+      "sha256": "956ca6eaa03d8f892d9de3d7534f10e9d3adbce81c922b040bd09c1e381fc4f8"
+    },
+    "runtime_driver": {
+      "bytes": 195,
+      "path": "task-delivery-runtime-v2-pgqrtogz/driver-identity.json",
+      "sha256": "a00f08622aa2e05c11a2e6a2c94d8b76da1f6df184ab03c1e851127fd37e4fb4"
+    },
+    "runtime_receipt": {
+      "bytes": 1139,
+      "path": "task-delivery-runtime-v2-pgqrtogz/runtime.json",
+      "sha256": "de84b02008748c8729375ece6d8d7140bf054a5280b410edeeddba31d36e777b"
+    },
+    "runtime_roles": {
+      "bytes": 10897,
+      "path": "task-delivery-runtime-v2-pgqrtogz/runtime-roles.json",
+      "sha256": "67be6da4ad113e1a95928be5c2e6688664ee0bed9f6b59af340e908ee525ce65"
+    },
+    "scoped_result": "PASS",
+    "source_after": {
+      "bytes": 13886,
+      "path": "task-delivery-runtime-v2-pgqrtogz/source-after.json",
+      "sha256": "352f5f545dc757b6abdac27e244677a36c1c1a49a2e95b3b2171070dfb7ce447"
+    },
+    "source_before": {
+      "bytes": 13886,
+      "path": "task-delivery-runtime-v2-pgqrtogz/source-before.json",
+      "sha256": "352f5f545dc757b6abdac27e244677a36c1c1a49a2e95b3b2171070dfb7ce447"
+    },
+    "source_identity_unchanged": true,
+    "source_overlay_patch_sha256": "0d80a69042db1354f82e456b18f77a68a83af7909206341e7028b1d265aa6bfd",
+    "source_overlay_tree": "da5ab28b960cbae93b565e6b951f238a5b3c66f1"
+  },
+  "agronomic_acceptance_claim": false,
+  "architecture_checks": {
+    "artifact": {
+      "bytes": 1866,
+      "path": "task-delivery-v2-platform-gates/summary.json",
+      "sha256": "d057a13a938a577e97c325b54e4a868c56809f06c4f3e3264efc929e1bd08887"
+    },
+    "counts": {
+      "code_edges": 71,
+      "compose_edges": 137,
+      "cycles": 0,
+      "edges": 208,
+      "nodes": 112,
+      "orphans": 7
+    },
+    "cycles": [],
+    "route_counts": {
+      "domain_budget_headroom": 1,
+      "domain_budget_routes": 622,
+      "domain_route_budget": 623,
+      "infrastructure_routes": 4,
+      "raw_routes": 626
+    },
+    "scope": "Specific read-only source graph and route-budget checks before official v2 generation; not full preflight acceptance."
+  },
+  "architecture_revision": "platform-coordinator-fm-owner-v2",
+  "baseline_unit_comparison": {
+    "baseline_blob": "337e6144e28c5f539262ed290decc0ce4ac55df4",
+    "baseline_commit": "3c5ed1dc65542c87330ea2f343300bb7683b58e2",
+    "baseline_existing_replay_acceptances": 1,
+    "baseline_false_acceptances": 5,
+    "baseline_new_insert_attempts": 4,
+    "baseline_sha256": "c9b88c6f20ade3220c5f39948b54a8a167639480869706966f178ef333b5c183",
+    "earlier_fixture_error": {
+      "artifact": {
+        "bytes": 32445,
+        "path": "ds-owner-gate-v2.xml",
+        "sha256": "3e9159af0377e24914a76e78ffd498a8557995c1817f6065c17fb3c35478b11e"
+      },
+      "failed": 7,
+      "passed": 109,
+      "reason": "Positive fixture omitted completed_at and verification_state; not the baseline security RED"
+    },
+    "historical_green": {
+      "artifact": {
+        "bytes": 23291,
+        "path": "ds-owner-gate-v4-green.xml",
+        "sha256": "fcea410d5f6d26886660b5b182622e5057f4c46360240e0a43262ba31fd08aee"
+      },
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 116
+    },
+    "historical_patched_source_files": {
+      "services/decision-service/field_inspection_evidence.py": {
+        "git_blob": "3855dc71fcea7f3008f9155ebaabaccff523fed7",
+        "sha256": "38b76765ff90957d08282b0e7389664f6ef700684ce07cf2974749b4153773eb"
+      },
+      "services/decision-service/persistence.py": {
+        "git_blob": "fb955732b4d9a1e99fdda764b07fb48f77451ef1",
+        "sha256": "688b357424b64a830ba3f1291badbf246665712348040eb2f5f8097cb5614af7"
+      },
+      "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py": {
+        "git_blob": "1a13e29a0e7e9d520541e58b2f810b8aaae1d09e",
+        "sha256": "e0f7a1079a27b68e2001b457003aa6f4b1dcd597f78024820b1b02354af9d641"
+      }
+    },
+    "note": "This measured RED/GREEN precedes the later LEFT JOIN compatibility change and idempotency-key width fix; it is not relabeled as the final source.",
+    "patched_refusal_insert_attempts": 0,
+    "patched_refusals": 5,
+    "red": {
+      "artifact": {
+        "bytes": 7014,
+        "path": "ds-owner-gate-baseline-red.xml",
+        "sha256": "a6e91d4c5d7bf2db1d1811e475396b001fa798a83260dbbfe125bc4c9dde7683"
+      },
+      "errors": 0,
+      "failures": 5,
+      "skipped": 0,
+      "tests": 5
+    },
+    "scope": "Mocked database and owner seams; no real database or network effects",
+    "tests": 5
+  },
+  "browser": {
+    "hosted_qualification": "PENDING",
+    "local_blocker": "Chromium download returned 403; local HTTP success is not browser acceptance",
+    "note": "The successful v2 native journey used actual HTTP without a browser. Historical Lab attempts are separately documented in the runbook and do not establish v2 browser acceptance.",
+    "status": "NOT_MEASURED_ON_V2"
+  },
+  "counting": "Keep measurements separate. Historical reruns and delta cases overlap the named suites. HTTP requests and semantic checks are different overlapping dimensions; no combined grand total is claimed.",
+  "evidence_id": "field-inspection-execution-20261127",
+  "historical_design_v1": {
+    "actual_http": {
+      "browser_used": false,
+      "complete": {
+        "artifact": {
+          "bytes": 252021,
+          "path": "task-delivery-runtime-nyf16yx4/task-delivery-http-complete.json",
+          "sha256": "781b2e61a468c3b8b955931631582c3fc310ac541891298760dfcbc26ff9a9d8"
+        },
+        "counts": {
+          "failed": 0,
+          "http_requests": 32,
+          "not_measured": 3,
+          "note": "HTTP requests and semantic checks overlap; never add these counts.",
+          "passed": 59,
+          "semantic_checks": 62
+        }
+      },
+      "database_observation_scope": "Read-only admin snapshots; no runtime-role/RLS certification",
+      "earlier_real_failure": {
+        "artifact": {
+          "bytes": 178246,
+          "path": "task-delivery-runtime-ltq24uak/task-delivery-http-complete.json",
+          "sha256": "26bb6215856e58a41ce2424874e226e3caafc700d3d8291828f51de220564c4f"
+        },
+        "cause": "Owner confirmation succeeded, then the 83-character inspection-outcome- plus SHA256 key exceeded outcome_record VARCHAR(80); decision-service failed and the owner returned 503.",
+        "counts": {
+          "failed": 1,
+          "http_requests": 24,
+          "not_measured": 2,
+          "note": "HTTP requests and semantic checks overlap; never add these counts.",
+          "passed": 41,
+          "semantic_checks": 44
+        },
+        "failure_receipt": {
+          "bytes": 1741,
+          "path": "task-delivery-runtime-ltq24uak/failure.json",
+          "sha256": "6da057a40363c5e733c753db912d81aca6f6344fab42688fb5213e5d852496bc"
+        },
+        "fix": "inspect-outcome- plus the complete 64-character SHA256 is 80 characters; database schema and guard acceptance conditions were not weakened."
+      },
+      "fixture_scope": "Synthetic users, field, pin, decision and approved inspection evidence through source auth, nginx, platform, field management and decision services; PostgreSQL 17.12/PostGIS 3.5.2 with canonical 280 and decision 39 migrations",
+      "journey_driver_sha256": "7d3c56b4da650d513f1d4be263ef1242b770f911e41723fe43538008524a04a6",
+      "mocked_transport": false,
+      "not_measured": [
+        {
+          "check": "disabled adapter actual HTTP",
+          "reason": "No separately running disabled field-service endpoint was provided.",
+          "result": "NOT_MEASURED"
+        },
+        {
+          "check": "unconfigured decision owner actual HTTP",
+          "reason": "No separately running decision endpoint without proof configuration was provided.",
+          "result": "NOT_MEASURED"
+        },
+        {
+          "check": "stale photo actual HTTP",
+          "reason": "This runtime has no scout-ingest/S3 photo owner. Separate PostgreSQL controls cover photo staleness; none are counted here.",
+          "result": "NOT_MEASURED"
+        }
+      ],
+      "overall": "INCONCLUSIVE",
+      "prepare": {
+        "artifact": {
+          "bytes": 30403,
+          "path": "task-delivery-runtime-nyf16yx4/task-delivery-http-prepare.json",
+          "sha256": "220e53ca823fb8d17670a3719e90077d5cc875d81c705c0b889012609ee8884c"
+        },
+        "counts": {
+          "failed": 0,
+          "http_requests": 8,
+          "not_measured": 0,
+          "note": "HTTP requests and semantic checks overlap; never add these counts.",
+          "passed": 19,
+          "semantic_checks": 19
+        }
+      },
+      "runtime_driver": {
+        "bytes": 195,
+        "path": "task-delivery-runtime-nyf16yx4/driver-identity.json",
+        "sha256": "0f44279217ab81a9904105b006fae6f67be1b494e110483460516cad92650290"
+      },
+      "runtime_receipt": {
+        "bytes": 887,
+        "path": "task-delivery-runtime-nyf16yx4/runtime.json",
+        "sha256": "32bee1c540c8872b1cb8cebb6f2cc161f487e83390dd022dad119edc217f4ad0"
+      },
+      "scoped_result": "PASS"
+    },
+    "note": "The following measurements belong to the earlier FM-hosted coordinator and are retained without relabeling as current v2 acceptance.",
+    "source_files_at_preflight_start": {
+      ".env.example": "bf9583dd7cfb099f5a8eb4c41f66d69a66ab48fce165076813e366b2ac661730",
+      ".github/workflows/ci.yml": "6050bf17e3ab5ab4c84615f3a234d90dc9033592b38ef8b0dc73e3ac6eaa35fd",
+      "docker-compose.v9.yml": "2f5d71bd915fedef4d996f6cf67c82c12c3e71a7a7e336b39cb1272935eaa942",
+      "docs/architecture/db_ownership.yml": "330e70f1d8fdf7a3dc7461f97f72782ba82265b4f5b706be765e30675b4e30ab",
+      "docs/runbooks/FIELD_INSPECTION_EXECUTION_DELIVERY.md": "ebc6c16b8d1c4a0622528d325efe047835986112bb05d3ec0cd5660aafff19e6",
+      "frontend/src/sections/FieldWorkspaceTasksPanel.tsx": "ebca1d3f133e75ca236c52e20e9eecc609d0088d8b0482fad7527585f8203dcf",
+      "frontend/src/sections/InspectionExecutionInbox.test.tsx": "4cb6cd88a3a1096c6ba72860bcf71a60888ede4a819224038c8e75cd657a5c2b",
+      "frontend/src/sections/InspectionExecutionInbox.tsx": "6cfba3e364621f16bb144025bde5b42c8a6a21982cbc215fb12704e0ade74fcf",
+      "frontend/src/services/api/inspectionExecutions.test.ts": "720a34c8082c4452c6884f294d9c1a76729d10bfc0d82b675eb8c1d2b5a90979",
+      "frontend/src/services/api/inspectionExecutions.ts": "22ceff84bb97b6f7dba156884a999ec5cf22a37186d5ad943c683d48a69e9a6b",
+      "migrations/MANIFEST.txt": "1c170f9edc414df1004df635f67e96e526de3f7d052087611b2549bf37fc59af",
+      "migrations/v291_field_task_execution_delivery.sql": "2697261498f85243979639770fe61bc4d4144ffe8b695808285bdcb9892c3501",
+      "sahool-brain/decisions/ledger.md": "2b79d0cfc6f3e0ceec8bf81fb9413b1c20cf0c7960657dfdb1dd1f5e3663be82",
+      "sahool-brain/gaps/registry.md": "9e083e2ef08a318dbbf32b85d797055e7e5d5af42640777711981c1b156728b4",
+      "sahool-brain/hot.md": "a6831e302b53bfbab0a0140077d2b714ba4457f68f96c9332e181419b81ba775",
+      "sahool-brain/log.md": "6ff44bdc19ed7c5e8b634438400e305ca907c167473eab53d6c74578524ba910",
+      "services/decision-service/field_inspection_evidence.py": "a0c8aa5600ab9b5d18d883bc412d3c9de56de74dff4f0a8852942e6d0fe61971",
+      "services/decision-service/persistence.py": "5814beef09277f0ed22103b9031cdc19987f364e006abed48e51b3196c70af68",
+      "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py": "1cf7566d638d430a777647bfef0c21b6898a21bee20b83aa2deb1f3b7be4aa61",
+      "services/field-management-service/fm_execution_routes.py": "319aa23a743a417b438fe60dfcbf26c2c7055a0920961b67a3975317622b4ccb",
+      "services/field-management-service/fm_execution_task_store.py": "5d2c4e31263e7fccc5132eb395d44930b7b9a58f14c53e0703ef44fb9b14beac",
+      "services/field-management-service/fm_execution_tasks.py": "f6831154f603f663b99606a09557199d7a40850b0f5377280fa2e7867dcd3834",
+      "services/field-management-service/main.py": "eab5e69c9c6dbfe2a7d9da56cd3ae617cab20f41923d404780c16c655bfe7727",
+      "services/field-management-service/tests/test_execution_routes_unit.py": "8187cf657b2f910e387e5456b8bddb9436d6920feb35e927f72fdbd1bf07fa52",
+      "services/field-management-service/tests/test_execution_tasks_unit.py": "e3749e509ba7d16293f97edf012605463fe2f707748213e4675896597bcc43a5",
+      "tests_v9/test_field_task_execution_delivery_live_pg.py": "1368f948d930d71a8ca33ec24467188dffbda64f400230b389d7ee625b1c10f1"
+    },
+    "targeted_units": {
+      "after_width_fix": {
+        "artifact": {
+          "bytes": 34159,
+          "path": "owner-key-width-unit.xml",
+          "sha256": "2bdc5f7601ae0ea0ba823bff1596e32ca40713c9fa3cbae81d0135e7d54cbe84"
+        },
+        "errors": 0,
+        "failures": 0,
+        "groups": {
+          "adapter_store": 58,
+          "decision_owner_gate": 116
+        },
+        "note": "174 is the union of these two groups in one run, not additional cases to add to earlier 116/58 evidence.",
+        "skipped": 0,
+        "tests": 174
+      },
+      "asgi_router": {
+        "artifact": {
+          "bytes": 1316,
+          "path": "gateway-route-unit-v1.txt",
+          "sha256": "868686b7ec30314c96f5e085925ea877bb55c463dc244daaf10b306e2937a7f4"
+        },
+        "passed": 47,
+        "scope": "In-process ASGI with explicit auth/store doubles; not real gateway/owner network acceptance"
+      },
+      "owner_and_routes_repeat": {
+        "artifact": {
+          "bytes": 1397,
+          "path": "gateway-owner-and-routes-unit-v4.txt",
+          "sha256": "e4527e82731ecccbde2dcbed2d31ad331a821bed8472caf73e6a28f00e6c6c06"
+        },
+        "groups": {
+          "adapter_store": 58,
+          "asgi_router": 47
+        },
+        "note": "Historical before the idempotency prefix fix; overlaps the groups above.",
+        "passed": 105,
+        "source_bindings": {
+          "bytes": 3734,
+          "path": "gateway-router-ui-validation-v2.json",
+          "sha256": "901576f23a535aa257e74e2b5ccd99834a00bce87a9b3dbbeeaa4da7749eb69a"
+        }
+      }
+    }
+  },
+  "hospital_accepted": false,
+  "lab": {
+    "engine_execution": "BLOCKED",
+    "instructions_commit": "1a47bc9397e38cbcfba5dbe9f1aeb2ab52b34f37",
+    "new_operation_created": false,
+    "reason": "Pinned commit absent from available local lab Git object stores; private HTTPS clone lacks authentication. Pinned contracts were read through the GitHub connector; the authorized project's own preflight is run directly."
+  },
+  "limitations": [
+    "Synthetic review is workflow evidence, not a measured field inspection.",
+    "Owner proof is point-in-time; no cross-service linearizability is claimed.",
+    "Delivery recovery uses bounded discovery; no new canonical outcome recovery endpoint.",
+    "A lost committed outcome response followed by changed evidence may leave the local acknowledgement unsynchronized.",
+    "Accepted delivery is a persisted task/link receipt, not a completed or verified inspection.",
+    "Fresh owner proof is checked for task/field_inspection verified_success; verified_failure preserves the previous contract.",
+    "The adapter is default-off and does not implement equipment execution.",
+    "The receipt is unsigned and does not authenticate a CI host or grant hospital, production, hardware, or agronomic acceptance.",
+    "Artifact paths are relative to the retained evidence directory unless a section declares artifact_root. Full runtime logs and credentials are not embedded in this source receipt."
+  ],
+  "native_postgresql": {
+    "cleanup": "temporary application roles/grants removed per case; PG stopped cleanly; synthetic fixture rows remain in owned cluster for coordinator cleanup",
+    "database": "PostgreSQL 17.12 / PostGIS 3.5.2, owned loopback only",
+    "delta_note": "Both one-case deltas are reruns of existing cases on changed source. They do not increase the 42 unique-case catalogue.",
+    "earlier_attempts": [
+      {
+        "attempt": 1,
+        "reason": "separate exec loopback namespace",
+        "state": "collection failed before cases"
+      },
+      {
+        "attempt": 2,
+        "reason": "Unix domain socket unsupported; TCP-only next attempt",
+        "state": "PostgreSQL startup failed before cases"
+      },
+      {
+        "attempt": 3,
+        "reason": "test compared pg_trigger char bytes to str; corrected by explicit ::text",
+        "state": "21 passed, 1 failed, remaining not executed"
+      }
+    ],
+    "idempotency_width_delta": {
+      "artifact": {
+        "bytes": 431,
+        "path": "task-delivery-pg/results-idempotency-width-delta.xml",
+        "sha256": "ce91cae0e030c4440c521950e0cf91883c78f3d34d4257ade20311eb73a42a24"
+      },
+      "errors": 0,
+      "failures": 0,
+      "scope": "Existing positive case repeated against current store: canonical outcome_record limit 80, persisted/prepared/current proof key equality, and key length no greater than that catalogued limit",
+      "skipped": 0,
+      "source_bindings": {
+        "bytes": 1059,
+        "path": "task-delivery-pg/source-bindings-idempotency-width-delta.json",
+        "sha256": "877db8c4d44a1921b28b50d7a25f2457f282b126712fb13fe6d70f280e37e515"
+      },
+      "tests": 1
+    },
+    "migration_replay": {
+      "after_sha256": "979336de18760a14081c99f13f4e8af249131eaf9b138f855484bf9ac12e9804",
+      "before_sha256": "979336de18760a14081c99f13f4e8af249131eaf9b138f855484bf9ac12e9804",
+      "migration_sha256": "2697261498f85243979639770fe61bc4d4144ffe8b695808285bdcb9892c3501",
+      "replay_exit": 0,
+      "schema_equal": true,
+      "scope": "one v291 replay, normalized schema-only dumps, canonical manifest not rerun",
+      "source_head": "3c5ed1dc65542c87330ea2f343300bb7683b58e2",
+      "status": "pass",
+      "stop_exit": 0
+    },
+    "owner_name_delta": {
+      "artifact": {
+        "bytes": 427,
+        "path": "task-delivery-pg/results-owner-name-delta.xml",
+        "sha256": "6189f339b6f77115149c1a3d1a57b57e3325f52a03e969102f4915c8cd9e2d22"
+      },
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "source_bindings": {
+        "bytes": 561,
+        "path": "task-delivery-pg/source-bindings-owner-name-delta.json",
+        "sha256": "94bce4655dcdb5321d3854467d4ccf91fb6813bb15b8cd3abfa30e3cbb5cdaa1"
+      },
+      "tests": 1
+    },
+    "scope": "42 owner-store and DB tests; no HTTP/decision-service/physical device assertion",
+    "source_bindings": {
+      "bytes": 1059,
+      "path": "task-delivery-pg/source-bindings-attempt-04.json",
+      "sha256": "c6f53a47086694a6fa1ac280d2235da557718c015ea7ba20ccbbf4c4d841845d"
+    },
+    "suite": {
+      "artifact": {
+        "bytes": 7268,
+        "path": "task-delivery-pg/results-attempt-04.xml",
+        "sha256": "276a448cb722f1b9162436fed38d23064a63e9c81773ce63fc10c742b381ab65"
+      },
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 42
+    }
+  },
+  "overall": "INCONCLUSIVE",
+  "physical_inspection_verified": false,
+  "preflight": {
+    "argv": [
+      "bash",
+      "scripts/ci/preflight.sh",
+      "--fix",
+      "--no-fetch"
+    ],
+    "base": "5037c4f9279673c1ebe997cee58c40325f7bee40",
+    "generation_initial_attempt": {
+      "acceptance_status": "FAIL",
+      "artifact": {
+        "path": "preflight-20261127/generation-initial.json",
+        "sha256": "7e8289df458d4d7fe2151bc8762b6a9d7759e5b7aec27749ed225e004c857d68"
+      },
+      "status": "INTERRUPTED"
+    },
+    "prior_full_attempt": {
+      "acceptance_status": "FAIL",
+      "artifact": {
+        "bytes": 1167,
+        "path": "preflight-20261127/preflight-full.json",
+        "sha256": "9fc041a9e8ab86eb902998456b4f3d360269e2c44562b6ef3a78cae1d9344697"
+      },
+      "blocker": "architecture:no_cycles: decision-service -> field-management-service fresh proof URL, and field-management-service -> decision-service adapter URL form one SCC; PATH-1 19/20 and PATH-2 20/21 remain OPEN.",
+      "returncode": 130,
+      "status": "INTERRUPTED",
+      "test_suites": "NOT_RUN; the first generator cycle was stopped before the pytest suites"
+    },
+    "registration": {
+      "admission_kind": "field_inspection_owner_gate_unit_contract_20261127",
+      "after": 141,
+      "before": 140,
+      "reason": "Explicitly reviewed application-unit stand-in admission, with no proven_live exemption or guard/threshold/skip changes",
+      "registry": "docs/architecture/fake_connection_debt.json",
+      "sites": [
+        "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py"
+      ]
+    },
+    "status": "PENDING",
+    "tier": "default (complete generator sweep and test suites; not --fast)",
+    "v2_environment": {
+      "bytes": 3273,
+      "path": "preflight-v2-20261127/environment-validation.json",
+      "sha256": "0cdb68e4023e7b6e4264ba29c023da80562053b215767163f14283a30aee2110"
+    },
+    "v2_evidence_directory": "preflight-v2-20261127",
+    "v2_module_registration": {
+      "after": {
+        "bytes": 2766,
+        "path": "preflight-v2-20261127/platform-registration-after.xml",
+        "sha256": "512756f6910ee3fa4adf9aaea40ba988c25f84d47bf5c33f86e80b356d7c1d35"
+      },
+      "artifact": {
+        "bytes": 3218,
+        "path": "preflight-v2-20261127/platform-module-budget-before.xml",
+        "sha256": "15293f1d4676bea46240157f3d86d3bdb6db153ff8ba0ee3f9761a7226583684"
+      },
+      "baseline_count": 685,
+      "baseline_count_after": 687,
+      "baseline_count_before": 685,
+      "change": {
+        "bytes": 907,
+        "path": "preflight-v2-20261127/module-registration-change.json",
+        "sha256": "9f7aef7b9e3d48ee97fdf344e3421784dc7c8628fcb44df1e2c404e561f86401"
+      },
+      "decision": "Task coordinator approved exactly two reachable BFF modules under the declared baseline registration mechanism; no new human approval is asserted.",
+      "guard_source_modified": false,
+      "module_baseline_deliberately_updated": true,
+      "mounted_reachability": {
+        "bytes": 4589,
+        "path": "preflight-v2-20261127/module-mounted-reachability.json",
+        "sha256": "590c5df930fb36fd2e036bc312b1105cc43216e55a26c39b40041da4c23ab6be"
+      },
+      "observed_count": 687,
+      "paths": [
+        "api/inspection_execution_adapter.py",
+        "api/routers/inspection_executions.py"
+      ],
+      "route_domain_budget_unchanged": 623,
+      "status": "REGISTERED_MODULE_GUARDS_PASS_ROUTE_COUNTER_BLOCKED"
+    },
+    "v2_route_counter_blocker": {
+      "artifact": {
+        "bytes": 1166,
+        "path": "preflight-v2-20261127/route-counter-discrepancy.json",
+        "sha256": "6773ad4c463b753fbd65b495809331bf548a830fca38295944972ac8976d4150"
+      },
+      "canonical_direct_counts": {
+        "ceiling": 623,
+        "domain": 622,
+        "infrastructure": 4,
+        "raw": 626
+      },
+      "difference": "Four pre-existing multi-method api_route proxy declarations are included by the companion ownership test but omitted from the canonical direct-route budget inventory. No guard or route ceiling changed.",
+      "historical_failure_preserved": true,
+      "ownership_companion_counts": {
+        "ceiling": 623,
+        "domain": 626,
+        "infrastructure": 4,
+        "raw": 630
+      },
+      "resolution": "Exactly three wrapper retirements applied without ceiling or classifier changes; post-retirement guard run is pending.",
+      "status": "FAIL"
+    },
+    "v2_route_retirement": {
+      "api_route_proxies_retained": 4,
+      "ceiling_unchanged": 623,
+      "classifier_modified": false,
+      "decision": "Task coordinator authorized exactly these three wrapper retirements after repository audit; no new human or hospital approval is asserted.",
+      "expected_canonical_direct_counts": {
+        "domain": 619,
+        "infrastructure": 4,
+        "raw": 623
+      },
+      "expected_full_ownership_counts": {
+        "domain": 623,
+        "infrastructure": 4,
+        "raw": 627
+      },
+      "limits": [
+        "No production access logs inspected; source absence is not proof of zero external consumers.",
+        "Existing cycle routes and pure helpers remain; no identical replacement HTTP contract is claimed.",
+        "Native v2 da5ab28b measured the source before these retirements; a fresh staged identity and native run are pending."
+      ],
+      "phase10_targeted": {
+        "artifact": {
+          "bytes": 3827,
+          "path": "phase10-retirement-junit.xml",
+          "sha256": "4b02020f858781607f2702585350f9c4a80088acf01e0e3ea7bb4b851e32e4db"
+        },
+        "artifact_root": "phase10-route-review",
+        "comment_only_source_binding": {
+          "ast_unchanged": true,
+          "current_sha256": "62a1cbcc1287b037c503400db46a1b22b376d433f2885f51e31a5e36940b6131",
+          "reverse_comment_reproduces_tested_sha256": true,
+          "tested_sha256": "8ebe707c6380806e4b187fbc6ce81322e032a4cdc5c63b5fdf72e68f04445ce1"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 24
+        },
+        "overlap": "Includes one W4 phase10 test; do not add it again to a later complete W4 run."
+      },
+      "phase11_audit": {
+        "bytes": 2946,
+        "path": "preflight-v2-20261127/phase11-retirement-source-audit.json",
+        "sha256": "7807355d3d04107e20d49016a24819f45107e98fc6e54da32dc0bd15093a9f71"
+      },
+      "phase11_targeted": {
+        "artifact": {
+          "bytes": 2470,
+          "path": "preflight-v2-20261127/phase11-retirement-targeted.xml",
+          "sha256": "565648c85e203e6ece8f057c17dd5dbe0ab27812d7a7542936b0f7c38a373db7"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 16
+        },
+        "scope": "Existing TestClient API/cycle and pure helper tests; no real deployment."
+      },
+      "red": {
+        "artifact": {
+          "bytes": 1692,
+          "path": "preflight-v2-20261127/route-retirement-red.xml",
+          "sha256": "262db8eaeb014caca86cf3ec5515c0241eee7dcbc9ecccb8190fc20843ed8cbc"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 2,
+          "skipped": 0,
+          "tests": 2
+        },
+        "observed_failures": [
+          "register still served: HTTP200",
+          "event-envelope still served: HTTP422"
+        ],
+        "scope": "Two route-test failures before deletion, not three independent failures; 422 does not mean the payload was accepted."
+      },
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/v1/phase10/learning/feature-store/online-materialization",
+          "source": "api/phase10_continuous_learning.py",
+          "wrapper": "feature_store_online_materialization"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/phase10/learning/feature-store/register",
+          "source": "api/phase10_continuous_learning.py",
+          "wrapper": "feature_store_register"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/phase11/federation/runtime/event-envelope",
+          "source": "api/phase11_federated_agents.py",
+          "wrapper": "runtime_event_envelope"
+        }
+      ],
+      "source_files": {
+        "services/sahool-platform/api/phase10_continuous_learning.py": "62a1cbcc1287b037c503400db46a1b22b376d433f2885f51e31a5e36940b6131",
+        "services/sahool-platform/api/phase11_federated_agents.py": "48260d49f38526a973940dd10b591fa721243e9ba798391d205f54666b07a897",
+        "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py": "4661895a37748a414f4d9128855eee27e4b9c74ddbebab6ce54f56719fbdbcf4",
+        "tests/phase6/test_phase6_static_contracts.py": "85299fd7d6cfa7f2e243c164080ef3e485a699e029d233ae424f5727a5218269"
+      },
+      "status": "APPLIED_PENDING_POST_RETIREMENT_GUARDS_AND_NATIVE"
+    },
+    "v2_ruff_launcher_repair": {
+      "bytes": 1267,
+      "path": "preflight-v2-20261127/ruff-launcher-recovery.json",
+      "sha256": "70d0d47558e44afbc45a1e5594e622ba7d7eaa99f2373577f81645ee42198cff"
+    }
+  },
+  "production_accepted": false,
+  "schema": "sahool.field-inspection-execution-evidence/v1",
+  "scoped_result": "PASS",
+  "signed": false,
+  "source": {
+    "base_mapping": {
+      "base_tree": "fc4f193ac4d3fbe19fb1ec85732f4d6f8fc59e4d",
+      "changed_paths": 26,
+      "index_unchanged": true,
+      "new_base": "5037c4f9279673c1ebe997cee58c40325f7bee40",
+      "old_base": "3c5ed1dc65542c87330ea2f343300bb7683b58e2",
+      "source_of_merge": "GitHub #1646 merged 2026-11-27T14:25:03Z; not performed by this continuation",
+      "working_file_hashes_unchanged": true
+    },
+    "base_tree": "fc4f193ac4d3fbe19fb1ec85732f4d6f8fc59e4d",
+    "binding_note": "Uncommitted file bytes are identified separately from the unchanged base tree. No future commit or complete CI acceptance is claimed.",
+    "candidate_commit": null,
+    "followup_base_commit": "5037c4f9279673c1ebe997cee58c40325f7bee40",
+    "measurement_base_commit": "3c5ed1dc65542c87330ea2f343300bb7683b58e2",
+    "post_retirement_candidate": {
+      "base_commit": "5037c4f9279673c1ebe997cee58c40325f7bee40",
+      "files": {
+        "services/sahool-platform/api/phase10_continuous_learning.py": "62a1cbcc1287b037c503400db46a1b22b376d433f2885f51e31a5e36940b6131",
+        "services/sahool-platform/api/phase11_federated_agents.py": "48260d49f38526a973940dd10b591fa721243e9ba798391d205f54666b07a897",
+        "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py": "4661895a37748a414f4d9128855eee27e4b9c74ddbebab6ce54f56719fbdbcf4",
+        "tests/phase6/test_phase6_static_contracts.py": "85299fd7d6cfa7f2e243c164080ef3e485a699e029d233ae424f5727a5218269"
+      },
+      "status": "AWAITING_STAGED_IDENTITY_AND_NATIVE"
+    },
+    "receipt_and_generated_outputs_excluded_from_this_file_map": true,
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "v2_runtime": {
+      "base_commit": "5037c4f9279673c1ebe997cee58c40325f7bee40",
+      "base_tree": "fc4f193ac4d3fbe19fb1ec85732f4d6f8fc59e4d",
+      "changed_paths": 103,
+      "files": {
+        ".env.example": "a5a2f381339805200fa2507c59712ffd1c1cf4ca1a1b4b152ee399a85a223e75",
+        "docker-compose.v9.yml": "0d6a939163747224a8576e7b179933e6df43cfa073c119bc09f22e70f3c92799",
+        "frontend/src/lib/platformCatalog.generated.ts": "5f5974118f6783f1c47918e5c7dad6ab2fcb5845ef25df60fa63de900cb27fce",
+        "frontend/src/sections/FieldWorkspaceTasksPanel.tsx": "ebca1d3f133e75ca236c52e20e9eecc609d0088d8b0482fad7527585f8203dcf",
+        "frontend/src/sections/InspectionExecutionInbox.test.tsx": "4cb6cd88a3a1096c6ba72860bcf71a60888ede4a819224038c8e75cd657a5c2b",
+        "frontend/src/sections/InspectionExecutionInbox.tsx": "6cfba3e364621f16bb144025bde5b42c8a6a21982cbc215fb12704e0ade74fcf",
+        "frontend/src/services/api/inspectionExecutions.test.ts": "ebea68a4ea6ac0750892fd59f5800085a5a7cb4c3539dbb372627a1fab6d06cf",
+        "frontend/src/services/api/inspectionExecutions.ts": "377f4cb30a040617dea639a31393d32faa1b4ad4fb5d072c7b843aede708454d",
+        "migrations/MANIFEST.txt": "1c170f9edc414df1004df635f67e96e526de3f7d052087611b2549bf37fc59af",
+        "migrations/v291_field_task_execution_delivery.sql": "2697261498f85243979639770fe61bc4d4144ffe8b695808285bdcb9892c3501",
+        "services/decision-service/field_inspection_evidence.py": "a0c8aa5600ab9b5d18d883bc412d3c9de56de74dff4f0a8852942e6d0fe61971",
+        "services/decision-service/persistence.py": "5814beef09277f0ed22103b9031cdc19987f364e006abed48e51b3196c70af68",
+        "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py": "1cf7566d638d430a777647bfef0c21b6898a21bee20b83aa2deb1f3b7be4aa61",
+        "services/field-management-service/fm_execution_routes.py": "d0b4b3deb814fd4b83f7d23f4de1b7cdd823b68942cef8cb5792eabeeeb46241",
+        "services/field-management-service/fm_execution_task_store.py": "5d2c4e31263e7fccc5132eb395d44930b7b9a58f14c53e0703ef44fb9b14beac",
+        "services/field-management-service/fm_execution_tasks.py": "0bd1c803181e9c1e14b5b151f16098854c6ab5d70a702dcb2036c4ee79d14b11",
+        "services/field-management-service/main.py": "eab5e69c9c6dbfe2a7d9da56cd3ae617cab20f41923d404780c16c655bfe7727",
+        "services/field-management-service/tests/test_execution_routes_unit.py": "c6b7d1eebae835ec756dc5cfa694312c86b6a72b53abf785e41de284872c50db",
+        "services/field-management-service/tests/test_execution_tasks_unit.py": "6a4ef2f6b1eb0eb44f684f09980f2580e821e628de709bb25cc4120d6290bde1",
+        "services/sahool-platform/api/inspection_execution_adapter.py": "27a719efb159ba5d654b4c9f7f286286f124f189f4ee02ef38d52f72194c1f3c",
+        "services/sahool-platform/api/routers/inspection_executions.py": "954cf9103d17d341994bcd7068c42c6c9db8e9d1230fb78ba9566f3039abfd00",
+        "services/sahool-platform/tests/test_inspection_execution_owner_client.py": "592df8479bc67febec83c1862b952998180fd21eb12a72e9884c5f373d38528f",
+        "services/sahool-platform/tests/test_inspection_execution_routes.py": "13c9b5f7e9eed8bee7ff9b1ef2cb0d908d5e438751442a7b965ebb2c20e9a2b6",
+        "shared/field_inspection_execution.py": "25301d00d0aa685346cf61fb9c1ab86a296940203616e3bf5cd64fbb96100078"
+      },
+      "note": "This overlay includes historical generated outputs; v2 runtime source identity is verified before/after. Later generated metadata and receipt updates do not inherit this exact overlay identity.",
+      "overlay_tree": "da5ab28b960cbae93b565e6b951f238a5b3c66f1",
+      "patch_sha256": "0d80a69042db1354f82e456b18f77a68a83af7909206341e7028b1d265aa6bfd"
+    },
+    "worktree_patch": true
+  },
+  "targeted_units": {
+    "owner_client_adversarial": {
+      "after_fix": {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 98
+        },
+        "junit": "task-delivery-v2-owner-client-green.xml",
+        "sha256": "595d75ccac5e3269487400cecc5b9d0561c302ce6cc02ef1055e60717f56e8bd"
+      },
+      "artifact": {
+        "bytes": 2843,
+        "path": "task-delivery-v2-owner-client.json",
+        "sha256": "82e85f3bcd21b29ee5907bd414ce8ec68a8b5b7061bb89bba58abec3f614566a"
+      },
+      "initial_attempt": {
+        "counts": {
+          "errors": 0,
+          "failures": 2,
+          "skipped": 0,
+          "tests": 98
+        },
+        "fixture_failure": {
+          "name": "test_owner_envelope_must_be_exactly_scoped[change7]",
+          "reason": "TypeError: _envelope() got multiple values for argument 'operation'",
+          "result": "FAIL",
+          "source_defect_claim": false
+        },
+        "junit": "task-delivery-v2-owner-client-attempt1.xml",
+        "sha256": "ee03ec65179f9b211fa56cd134e355ae028203b1aa7fd2f6984a13ff15c87bd0",
+        "source_red_case": {
+          "meaning": "A row scoped to a peer tenant was accepted under a correctly scoped outer envelope.",
+          "name": "test_mismatched_owner_acknowledgement_is_rejected[tenant_id-22222222-2222-4222-8222-222222222222]",
+          "reason": "Failed: DID NOT RAISE HTTPException",
+          "result": "FAIL"
+        }
+      },
+      "note": "One genuine rejected-regression case concerns a peer-tenant acknowledgement row under a correctly scoped envelope. The separate duplicate-operation fixture TypeError is not a source defect. The 98 green cases are included in the combined 489.",
+      "source_after_sha256": "27a719efb159ba5d654b4c9f7f286286f124f189f4ee02ef38d52f72194c1f3c",
+      "source_before_sha256": "5c95789efef53f9dbf5e999c44b73d90b28ecb5da1a5ef1d16e67aeeb9262391"
+    },
+    "public_router": {
+      "artifact": {
+        "bytes": 1523,
+        "path": "task-delivery-v2-platform-routes.json",
+        "sha256": "c7f6f884f368c9b7d2ae68d9f64926181110c1cb3bb40942b0d962c1f529b43f"
+      },
+      "note": "88 ASGI cases are included in the combined 489; no additional total."
+    },
+    "v2_combined": {
+      "artifact": {
+        "bytes": 92651,
+        "path": "task-delivery-v2-combined-unit.xml",
+        "sha256": "04baeb1090da2ebea81035706ccc2642c13219e5ae73d5232c6fd3e35a765aaa"
+      },
+      "errors": 0,
+      "failures": 0,
+      "groups": {
+        "services.decision-service.tests.test_field_inspection_outcome_owner_gate": 116,
+        "services.field-management-service.tests.test_execution_routes_unit": 129,
+        "services.field-management-service.tests.test_execution_tasks_unit": 58,
+        "services.sahool-platform.tests.test_inspection_execution_owner_client": 98,
+        "services.sahool-platform.tests.test_inspection_execution_routes": 88
+      },
+      "log": {
+        "bytes": 3017,
+        "path": "task-delivery-v2-combined-unit.log",
+        "sha256": "b875f19d5737f159d20274f4c94055a8093bd025ef8796315693cad8b2b6931e"
+      },
+      "note": "The prior individual runs are subsets/repeats of these 489 cases and are not added to this count.",
+      "scope": "One combined run of 58 adapter units, 129 owner ASGI contracts, 116 DS owner-gate units, 88 public BFF ASGI contracts and 98 owner HTTP-client MockTransport contracts. Explicit application/store/transport doubles; no live DB or network assertion.",
+      "skipped": 0,
+      "tests": 489
+    }
+  },
+  "updated_at_utc": "2026-11-27T16:43:25.842654+00:00"
+}

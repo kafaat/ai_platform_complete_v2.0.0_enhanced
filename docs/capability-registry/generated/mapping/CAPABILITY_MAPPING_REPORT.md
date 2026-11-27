@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **46**
-- Files scanned: **7770**
-- Ambiguous artifacts queued: **266**
-- Unmapped artifacts queued: **3703**
+- Files scanned: **7790**
+- Ambiguous artifacts queued: **267**
+- Unmapped artifacts queued: **3710**
 
 ## Capability coverage
 
@@ -23,7 +23,7 @@
 | DEC-001 | decision | 2 | 0 | 0 | 3 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | DEC-003 | decision | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 2 |
-| DEC-004 | decision | 6 | 5 | 16 | 5 | 0 | 0 | 10 | 5 |
+| DEC-004 | decision | 10 | 7 | 16 | 5 | 1 | 0 | 13 | 6 |
 | DEC-005 | decision | 0 | 0 | 10 | 1 | 0 | 0 | 3 | 3 |
 | DEC-006 | decision | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | DEC-007 | decision | 4 | 8 | 4 | 3 | 1 | 0 | 5 | 6 |
@@ -56,9 +56,9 @@
 | IRR-008 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-009 | irrigation | 9 | 1 | 7 | 8 | 2 | 0 | 14 | 6 |
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| OPS-001 | operations | 0 | 0 | 20 | 9 | 0 | 1 | 4 | 4 |
+| OPS-001 | operations | 0 | 0 | 31 | 9 | 0 | 1 | 5 | 4 |
 | OPS-002 | operations | 4 | 9 | 6 | 4 | 1 | 0 | 8 | 6 |
-| OPS-003 | operations | 10 | 28 | 48 | 19 | 6 | 18 | 24 | 7 |
+| OPS-003 | operations | 11 | 28 | 48 | 19 | 6 | 18 | 24 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 12 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

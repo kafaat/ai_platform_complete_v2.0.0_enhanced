@@ -1862,6 +1862,36 @@
     },
     {
       "approval_required": false,
+      "capability_id": "field-management-service.internal.field-inspection-execution-owner.operation",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /internal/field-inspection-execution-owner/{operation}"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "field-management-service",
+      "producer": "field-management-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "field-management-service.internal.field-tasks.execution-proofs",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /internal/field-tasks/execution-proofs/{execution_request_id}"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "field-management-service",
+      "producer": "field-management-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "field-management-service.internal.field-tasks.farm-book",
       "consumers": [],
       "curated": false,
@@ -9600,6 +9630,28 @@
     },
     {
       "approval_required": false,
+      "capability_id": "sahool-platform.inspection-executions.fields.field_id",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/inspection-executions/fields/{field_id}",
+        "POST /api/v1/inspection-executions/fields/{field_id}/requests/{execution_request_id}/receive",
+        "POST /api/v1/inspection-executions/fields/{field_id}/tasks/{task_id}/verify"
+      ],
+      "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "field",
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
       "capability_id": "sahool-platform.internal.events.ai-advice",
       "consumers": [
         "frontend"
@@ -11099,9 +11151,7 @@
       "derived_from": "route",
       "entrypoints": [
         "POST /v1/phase10/learning/feature-store/offline-dataset",
-        "POST /v1/phase10/learning/feature-store/online-materialization",
-        "POST /v1/phase10/learning/feature-store/point-in-time",
-        "POST /v1/phase10/learning/feature-store/register"
+        "POST /v1/phase10/learning/feature-store/point-in-time"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -11242,7 +11292,6 @@
       "derived_from": "route",
       "entrypoints": [
         "POST /v1/phase11/federation/runtime/authority-envelope",
-        "POST /v1/phase11/federation/runtime/event-envelope",
         "POST /v1/phase11/federation/runtime/resolve"
       ],
       "idempotency_required": false,
@@ -15720,7 +15769,9 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "sahool-field-management"
+        ]
       },
       "deployment_units": [
         "sahool-decision-service"
@@ -15976,6 +16027,9 @@
           "field_lifecycle",
           "field_lifecycle_transitions",
           "field_state",
+          "field_task_execution_confirmations",
+          "field_task_execution_links",
+          "field_task_execution_outcome_receipts",
           "field_tasks",
           "fields",
           "geometry_editing_sessions",
@@ -17039,6 +17093,7 @@
           "raster-service",
           "raster-tiler-service",
           "sahool-ai-agronomist",
+          "sahool-field-management",
           "sahool-ollama",
           "sahool-scout-ingest",
           "sahool-vllm-jais",
@@ -17902,20 +17957,20 @@
   ],
   "counts": {
     "backend_components": 33,
-    "capabilities": 844,
+    "capabilities": 847,
     "capabilities_approval_gated": 6,
-    "capabilities_field_scoped": 99,
+    "capabilities_field_scoped": 100,
     "capabilities_idempotent": 76,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 481,
+    "capabilities_tenant_scoped": 482,
     "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1179,
+    "route_rows": 1181,
     "ui_waivers": 53,
-    "unique_method_path": 1056
+    "unique_method_path": 1058
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -18177,7 +18232,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "b424b2f003a8709c2b20f38e7704d7eb2ffb37e4c4d59b4d501261f2c8667c61",
+  "fingerprint": "b8333a846e860b4d5a74ee4e33fec1bbd201520d234f0ed7250e2cb472108c05",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18231,16 +18286,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 1145,
+      "edge_count": 1154,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 47,
         "CONSUMES": 4,
         "EMITS": 3,
-        "READS": 617,
+        "READS": 622,
         "ROUTES_TO": 82,
-        "WRITES": 392
+        "WRITES": 396
       }
     },
     "u3_wiring_ownership": {

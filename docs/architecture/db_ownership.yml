@@ -632,6 +632,21 @@ tables:
     writers: [field-management-service]
     readers: [sahool-platform]
     source: "migrations/v275_inspection_handoffs.sql, migrations/v277_inspection_close_gate.sql"
+  field_task_execution_links:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v291_field_task_execution_delivery.sql"
+  field_task_execution_confirmations:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v291_field_task_execution_delivery.sql"
+  field_task_execution_outcome_receipts:
+    owner: field-management-service
+    writers: [field-management-service]
+    readers: []
+    source: "migrations/v291_field_task_execution_delivery.sql"
   scouting_verification_links:
     owner: field-management-service
     writers: [field-management-service]

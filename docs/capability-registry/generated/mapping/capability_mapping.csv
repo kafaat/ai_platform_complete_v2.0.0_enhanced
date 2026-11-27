@@ -2,7 +2,7 @@ capability_id,domain,title,mapped,coverage_dimensions,backend,routes,database,ev
 DEC-001,decision,Decision evidence,True,3,2,0,0,3,0,0,3,0
 DEC-002,decision,Decision candidate,True,1,0,0,0,0,0,0,1,0
 DEC-003,decision,Human approval,True,2,3,0,0,0,0,0,3,0
-DEC-004,decision,Execution request,True,5,6,5,16,5,0,0,10,0
+DEC-004,decision,Execution request,True,6,10,7,16,5,1,0,13,0
 DEC-005,decision,Dispatch authorization,True,3,0,0,10,1,0,0,3,0
 DEC-006,decision,Execution receipt,True,1,0,0,0,0,0,0,1,0
 DEC-007,decision,Outcome recording,True,6,4,8,4,3,1,0,5,0
@@ -35,9 +35,9 @@ IRR-007,irrigation,Pump and valve control,False,0,0,0,0,0,0,0,0,0
 IRR-008,irrigation,Execution verification,False,0,0,0,0,0,0,0,0,0
 IRR-009,irrigation,Water suitability multi-hazard,True,6,9,1,7,8,2,0,14,0
 IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
-OPS-001,operations,Task management,True,4,0,0,20,9,0,1,4,0
+OPS-001,operations,Task management,True,4,0,0,31,9,0,1,5,0
 OPS-002,operations,Work orders,True,6,4,9,6,4,1,0,8,0
-OPS-003,operations,Scouting,True,7,10,28,48,19,6,18,24,0
+OPS-003,operations,Scouting,True,7,11,28,48,19,6,18,24,0
 OPS-004,operations,Field forms,True,6,3,12,14,12,0,21,28,1
 OPS-005,operations,Offline mobile,True,7,2,2,9,14,1,13,12,0
 OPS-006,operations,Equipment registry,True,1,1,0,0,0,0,0,0,0

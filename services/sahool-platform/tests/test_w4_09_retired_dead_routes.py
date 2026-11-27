@@ -10,6 +10,15 @@ on the phase10 learning and phase11 federation routers, and kept the ceiling at 
 domain margin is positive again (617 <= 623). Their pure functions stay in shared/ with their
 own tests, and each router's /cycle still runs them.
 
+The 2026-11-27 inspection-delivery continuation retires three more service-token
+wrappers with no measured in-repository HTTP consumer: feature registration, online
+materialization, and federation event-envelope construction. The first two were
+listed by a Phase6 presence-only contract; their retirement is explicit there.
+Their shared functions remain used by /cycle, whose inputs are not claimed to be
+an identical replacement for every wrapper option. No production access-log or
+external-client absence is inferred. The three new inspection BFF routes consume
+the recovered slots, keeping the broader ownership budget at 623, with no margin.
+
 GET /api/v1/registry/{workflows,indices,events} were also caller-less but stay: they are the
 only executable root of their modules under platform_module_reachability_guard.
 
@@ -53,6 +62,10 @@ RETIRED = {
     ("POST", "/agents/propose", "api/phase11_federated_agents.py"),
     ("POST", "/experiments/shadow", "api/phase11_federated_agents.py"),
     ("POST", "/runtime/reputation/update", "api/phase11_federated_agents.py"),
+    # Inspection-delivery continuation (2026-11-27); pure cycle functions remain.
+    ("POST", "/feature-store/register", "api/phase10_continuous_learning.py"),
+    ("POST", "/feature-store/online-materialization", "api/phase10_continuous_learning.py"),
+    ("POST", "/runtime/event-envelope", "api/phase11_federated_agents.py"),
 }
 
 
@@ -109,6 +122,8 @@ def test_retired_phase10_routes_answer_404_on_the_live_router():
         "/drift",
         "/retraining/plan",
         "/champion-challenger",
+        "/feature-store/register",
+        "/feature-store/online-materialization",
     ):
         res = client.post(f"/v1/phase10/learning{path}", json={"records": []})
         assert res.status_code == 404, f"{path} still served: HTTP {res.status_code}"
@@ -124,7 +139,12 @@ def test_retired_phase11_routes_answer_404_on_the_live_router():
     app = FastAPI()
     app.include_router(router)
     client = TestClient(app, headers={"X-Agent-Token": os.environ["SAHOOL_AGENT_TOKEN"]})
-    for path in ("/agents/propose", "/experiments/shadow", "/runtime/reputation/update"):
+    for path in (
+        "/agents/propose",
+        "/experiments/shadow",
+        "/runtime/reputation/update",
+        "/runtime/event-envelope",
+    ):
         res = client.post(f"/v1/phase11/federation{path}", json={})
         assert res.status_code == 404, f"{path} still served: HTTP {res.status_code}"
     # Positive control: a kept sibling on the same router is still served (422 on an empty

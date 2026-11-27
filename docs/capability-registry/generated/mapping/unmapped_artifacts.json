@@ -2164,6 +2164,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/InspectionExecutionInbox.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/InspectionExecutionInbox.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/InspectionHandoff.test.tsx",
     "kind": "web"
   },
@@ -5316,6 +5324,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/field-management-service/fm_execution_tasks.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/field-management-service/fm_gateway.py",
     "kind": "backend"
   },
@@ -5330,6 +5342,10 @@
   {
     "path": "services/field-management-service/fm_verification_contracts.py",
     "kind": "backend"
+  },
+  {
+    "path": "services/field-management-service/tests/test_execution_routes_unit.py",
+    "kind": "tests"
   },
   {
     "path": "services/field-segmentation/__init__.py",
@@ -7081,6 +7097,10 @@
   },
   {
     "path": "services/sahool-platform/api/routers/indices.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/inspection_executions.py",
     "kind": "backend"
   },
   {
@@ -9353,6 +9373,14 @@
   },
   {
     "path": "services/sahool-platform/tests/test_input_traceability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_inspection_execution_owner_client.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_inspection_execution_routes.py",
     "kind": "tests"
   },
   {

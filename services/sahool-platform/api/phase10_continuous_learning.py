@@ -18,7 +18,6 @@ from shared.continuous_learning_phase10 import (
 )
 from shared.feature_store import (
     build_point_in_time_snapshot,
-    materialize_online_feature_values,
     register_feature_definitions,
     write_offline_feature_dataset,
 )
@@ -64,14 +63,6 @@ class LearningCycleRequest(BaseModel):
     champion_model: dict[str, Any] | None = None
     challenger_model: dict[str, Any] | None = None
     scenario: dict[str, Any] | None = None
-
-
-class FeatureStoreRegisterRequest(BaseModel):
-    records: list[dict[str, Any]] = Field(default_factory=list)
-    name: str = "canonical_field_features"
-    version: str = "v1"
-    owner: str = "phase10"
-    ttl_hours: int = 24
 
 
 class PointInTimeRequest(BaseModel):
@@ -152,13 +143,13 @@ async def learning_cycle(req: LearningCycleRequest, request: Request) -> dict[st
     return result
 
 
-@router.post("/feature-store/register")
-def feature_store_register(req: FeatureStoreRegisterRequest) -> dict[str, Any]:
-    return register_feature_definitions(
-        req.records, name=req.name, version=req.version, owner=req.owner, ttl_hours=req.ttl_hours
-    )
-
-
+# W4-09 inspection-delivery continuation (2026-11-27): /feature-store/register and
+# /feature-store/online-materialization are retired HTTP wrappers with no in-repo
+# caller or behavioral HTTP test. Their pure functions remain used by /cycle;
+# register_feature_definitions also remains used by /offline-dataset below.
+# /cycle is not a drop-in replacement for custom name/version/owner/ttl arguments.
+# External deployment callers were not measured. The Phase 6 static
+# presence contract and W4 live-router regression explicitly record this retirement.
 @router.post("/feature-store/offline-dataset")
 def feature_store_offline_dataset(req: FeatureRecordsRequest) -> dict[str, Any]:
     registry = register_feature_definitions(req.records, name=req.name, version=req.version)
@@ -167,14 +158,6 @@ def feature_store_offline_dataset(req: FeatureRecordsRequest) -> dict[str, Any]:
         feature_set_id=str(registry.get("feature_set", {}).get("feature_set_id")),
         object_uri=req.object_uri,
         as_of=resolve_requested_as_of(req.as_of, req.records),
-    )
-
-
-@router.post("/feature-store/online-materialization")
-def feature_store_online_materialization(req: FeatureRecordsRequest) -> dict[str, Any]:
-    registry = register_feature_definitions(req.records, name=req.name, version=req.version)
-    return materialize_online_feature_values(
-        req.records, feature_set_id=str(registry.get("feature_set", {}).get("feature_set_id"))
     )
 
 

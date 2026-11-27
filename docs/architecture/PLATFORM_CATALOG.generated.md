@@ -3,10 +3,10 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `b424b2f003a8709c2b20f38e7704d7eb2ffb37e4c4d59b4d501261f2c8667c61`
+- fingerprint: `b8333a846e860b4d5a74ee4e33fec1bbd201520d234f0ed7250e2cb472108c05`
 - components: **37** (backend: 33)
-- route rows: **1179** → unique method/path: **1056**
-- capabilities (derived, uncurated): **844**
+- route rows: **1181** → unique method/path: **1058**
+- capabilities (derived, uncurated): **847**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **53**
@@ -22,7 +22,7 @@
 | decision-service | service | decision-governance | sahool-decision-service | 44 | True |
 | edge-inference | service | edge | sahool-edge | 0 | True |
 | erp-bridge | service | erp-projection | odoo-bridge, sahool-erp-bridge | 15 | True |
-| field-management-service | service | fields-internal | sahool-field-management | 40 | True |
+| field-management-service | service | fields-internal | sahool-field-management | 43 | True |
 | field-segmentation | service | fields-boundary | sahool-field-segmentation | 0 | True |
 | frontend | frontend | user-interface | sahool-frontend | 0 | None |
 | gis-workflow-service | tool_bundle | gis-publication | — | 2 | None |
@@ -56,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **1145**
-- S2 relations: CALLS=47, CONSUMES=4, EMITS=3, READS=617, ROUTES_TO=82, WRITES=392
+- ARCH-S2 dependency truth: `PASS` — edges **1154**
+- S2 relations: CALLS=47, CONSUMES=4, EMITS=3, READS=622, ROUTES_TO=82, WRITES=396
 
 ## Governance gates (U3/U4)
 

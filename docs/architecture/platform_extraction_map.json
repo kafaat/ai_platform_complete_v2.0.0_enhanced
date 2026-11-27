@@ -16,7 +16,7 @@
       "function": "model_serving_resolve",
       "method": "GET",
       "path": "/models/serving/{alias:path}",
-      "line": 233,
+      "line": 216,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::GET /models/serving/{alias:path}::model_serving_resolve"
@@ -26,7 +26,7 @@
       "function": "learning_cycle",
       "method": "POST",
       "path": "/cycle",
-      "line": 143,
+      "line": 134,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /cycle::learning_cycle"
@@ -36,7 +36,7 @@
       "function": "dataset",
       "method": "POST",
       "path": "/dataset",
-      "line": 118,
+      "line": 109,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /dataset::dataset"
@@ -46,47 +46,27 @@
       "function": "feature_store_offline_dataset",
       "method": "POST",
       "path": "/feature-store/offline-dataset",
-      "line": 162,
+      "line": 153,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/offline-dataset::feature_store_offline_dataset"
     },
     {
       "file": "api/phase10_continuous_learning.py",
-      "function": "feature_store_online_materialization",
-      "method": "POST",
-      "path": "/feature-store/online-materialization",
-      "line": 173,
-      "target_owner": "learning-service-target",
-      "owner_type": "system-of-record-target",
-      "route_key": "api/phase10_continuous_learning.py::POST /feature-store/online-materialization::feature_store_online_materialization"
-    },
-    {
-      "file": "api/phase10_continuous_learning.py",
       "function": "feature_store_point_in_time",
       "method": "POST",
       "path": "/feature-store/point-in-time",
-      "line": 181,
+      "line": 164,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /feature-store/point-in-time::feature_store_point_in_time"
     },
     {
       "file": "api/phase10_continuous_learning.py",
-      "function": "feature_store_register",
-      "method": "POST",
-      "path": "/feature-store/register",
-      "line": 155,
-      "target_owner": "field-management-service",
-      "owner_type": "system-of-record-target",
-      "route_key": "api/phase10_continuous_learning.py::POST /feature-store/register::feature_store_register"
-    },
-    {
-      "file": "api/phase10_continuous_learning.py",
       "function": "model_promotion",
       "method": "POST",
       "path": "/models/promote",
-      "line": 128,
+      "line": 119,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/promote::model_promotion"
@@ -96,7 +76,7 @@
       "function": "model_register",
       "method": "POST",
       "path": "/models/register",
-      "line": 195,
+      "line": 178,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/register::model_register"
@@ -106,7 +86,7 @@
       "function": "model_serving_promote",
       "method": "POST",
       "path": "/models/serving/promote",
-      "line": 216,
+      "line": 199,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/promote::model_serving_promote"
@@ -116,7 +96,7 @@
       "function": "model_serving_rollback",
       "method": "POST",
       "path": "/models/serving/rollback",
-      "line": 223,
+      "line": 206,
       "target_owner": "learning-service-target",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase10_continuous_learning.py::POST /models/serving/rollback::model_serving_rollback"
@@ -126,7 +106,7 @@
       "function": "scenario",
       "method": "POST",
       "path": "/scenario",
-      "line": 138,
+      "line": 129,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/phase10_continuous_learning.py::POST /scenario::scenario"
@@ -136,7 +116,7 @@
       "function": "consensus",
       "method": "POST",
       "path": "/consensus",
-      "line": 102,
+      "line": 100,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /consensus::consensus"
@@ -146,7 +126,7 @@
       "function": "context",
       "method": "POST",
       "path": "/context",
-      "line": 92,
+      "line": 90,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /context::context"
@@ -156,7 +136,7 @@
       "function": "cycle",
       "method": "POST",
       "path": "/cycle",
-      "line": 127,
+      "line": 125,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /cycle::cycle"
@@ -166,7 +146,7 @@
       "function": "operation_plan",
       "method": "POST",
       "path": "/operation-plan",
-      "line": 112,
+      "line": 110,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/phase11_federated_agents.py::POST /operation-plan::operation_plan"
@@ -176,7 +156,7 @@
       "function": "quality",
       "method": "POST",
       "path": "/quality",
-      "line": 122,
+      "line": 120,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /quality::quality"
@@ -186,27 +166,17 @@
       "function": "runtime_authority_envelope",
       "method": "POST",
       "path": "/runtime/authority-envelope",
-      "line": 162,
+      "line": 160,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /runtime/authority-envelope::runtime_authority_envelope"
     },
     {
       "file": "api/phase11_federated_agents.py",
-      "function": "runtime_event_envelope",
-      "method": "POST",
-      "path": "/runtime/event-envelope",
-      "line": 169,
-      "target_owner": "supervisor-agent",
-      "owner_type": "orchestrator",
-      "route_key": "api/phase11_federated_agents.py::POST /runtime/event-envelope::runtime_event_envelope"
-    },
-    {
-      "file": "api/phase11_federated_agents.py",
       "function": "runtime_resolve",
       "method": "POST",
       "path": "/runtime/resolve",
-      "line": 151,
+      "line": 149,
       "target_owner": "supervisor-agent",
       "owner_type": "orchestrator",
       "route_key": "api/phase11_federated_agents.py::POST /runtime/resolve::runtime_resolve"
@@ -6290,6 +6260,36 @@
       "target_owner": "sahool-platform",
       "owner_type": "infrastructure-provenance",
       "route_key": "api/routers/platform_health.py::GET /runtime-identity::runtime_evidence_identity"
+    },
+    {
+      "file": "api/routers/inspection_executions.py",
+      "function": "list_inspection_executions",
+      "method": "GET",
+      "path": "/fields/{field_id}",
+      "line": 84,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/inspection_executions.py::GET /fields/{field_id}::list_inspection_executions"
+    },
+    {
+      "file": "api/routers/inspection_executions.py",
+      "function": "receive_inspection_execution",
+      "method": "POST",
+      "path": "/fields/{field_id}/requests/{execution_request_id}/receive",
+      "line": 94,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/inspection_executions.py::POST /fields/{field_id}/requests/{execution_request_id}/receive::receive_inspection_execution"
+    },
+    {
+      "file": "api/routers/inspection_executions.py",
+      "function": "verify_inspection_execution",
+      "method": "POST",
+      "path": "/fields/{field_id}/tasks/{task_id}/verify",
+      "line": 107,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/inspection_executions.py::POST /fields/{field_id}/tasks/{task_id}/verify::verify_inspection_execution"
     }
   ],
   "p2_6_route_budget_reduction": {
@@ -6328,6 +6328,7 @@
       }
     ],
     "infrastructure_budget_policy": "Infrastructure/provenance routes are excluded only through the explicit method-and-normalized-path allowlist using exact HTTP method plus conservatively normalized literal path. Every allowlist entry must exist in the sahool-platform inventory; non-literal route declarations fail closed.",
-    "domain_route_budget": 623
+    "domain_route_budget": 623,
+    "w4_09_field_inspection_followup_20261127_note": "623 kept, never raised: the authorized inspection-delivery continuation retires exactly three repository-callerless service-token wrappers: POST /v1/phase10/learning/feature-store/register, POST /v1/phase10/learning/feature-store/online-materialization, and POST /v1/phase11/federation/runtime/event-envelope. The task coordinator approved this source change after caller, test, SDK, canonical capability and dynamic-construction review; no new human approval is asserted. Shared functions, their tests and existing cycle routes remain; surviving routes are not claimed as equivalent HTTP replacements. Three BFF inspection-execution routes are registered separately. Expected post-change counts: canonical direct raw623/infra4/domain619, full ownership raw627/infra4/domain623, including all four pre-existing api_route proxies. Neither classifier, infrastructure exceptions nor any ceiling is changed. Two RED route tests are preserved (register HTTP200, event-envelope HTTP422); post-change guards and a new native source identity are required. This source-only audit does not establish absence of external production consumers."
   }
 }

@@ -2,7 +2,7 @@ capability_id,title,domain,declared_maturity,assessed_maturity,alignment,evidenc
 DEC-001,Decision evidence,decision,3,2,declared_above_evidence,6,True,True,True,False,True,False,False,True,False,True,False,False
 DEC-002,Decision candidate,decision,2,2,aligned,3,True,False,True,False,False,False,False,True,False,False,False,False
 DEC-003,Human approval,decision,3,3,aligned,6,True,True,True,False,False,False,False,True,True,True,False,False
-DEC-004,Execution request,decision,2,3,evidence_above_declared,8,True,True,True,True,True,False,False,True,True,True,False,False
+DEC-004,Execution request,decision,2,3,evidence_above_declared,9,True,True,True,True,True,True,False,True,True,True,False,False
 DEC-005,Dispatch authorization,decision,2,3,evidence_above_declared,7,True,False,True,True,True,False,False,True,True,True,False,False
 DEC-006,Execution receipt,decision,2,2,aligned,4,True,False,True,False,False,False,False,True,False,True,False,False
 DEC-007,Outcome recording,decision,3,3,aligned,9,True,True,True,True,True,True,False,True,True,True,False,False

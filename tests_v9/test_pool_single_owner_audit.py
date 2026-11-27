@@ -89,7 +89,14 @@ def _fake_create_pool(created, *, hang=False):
 def decision(monkeypatch):
     import asyncpg
 
-    mod = _load("_decision_persistence_pool_audit", os.path.join(DECISION, "persistence.py"))
+    # Load the real sibling module with the fixture's existing restoration rules.
+    mod = _load(
+        "_decision_persistence_pool_audit",
+        os.path.join(DECISION, "persistence.py"),
+        deps={
+            "field_inspection_evidence": os.path.join(DECISION, "field_inspection_evidence.py"),
+        },
+    )
     created: list[FakePool] = []
     monkeypatch.setattr(mod, "database_url", lambda: "postgresql://decision@db/decision")
     monkeypatch.setattr(asyncpg, "create_pool", _fake_create_pool(created))

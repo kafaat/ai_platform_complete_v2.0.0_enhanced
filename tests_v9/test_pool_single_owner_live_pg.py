@@ -102,7 +102,13 @@ async def _require_database(url: str) -> None:
 @pytest.mark.integration
 def test_decision_pool_cold_concurrency_shutdown_and_restart_measured_in_backends(monkeypatch):
     url = _database_url()
-    mod = _load("_decision_persistence_live_pg", os.path.join(DECISION, "persistence.py"))
+    mod = _load(
+        "_decision_persistence_live_pg",
+        os.path.join(DECISION, "persistence.py"),
+        deps={
+            "field_inspection_evidence": os.path.join(DECISION, "field_inspection_evidence.py"),
+        },
+    )
     name = f"sahool-decision-pool-{uuid.uuid4().hex[:12]}"
     monkeypatch.setattr(mod, "database_url", lambda: _with_application_name(url, name))
     # max_size=1: one shared pool serialises the callers on one backend; six pools hold six.

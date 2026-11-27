@@ -121,7 +121,10 @@ field_lifecycle_transitions,v10_command_store_lifecycle.sql,12,False,True,True,1
 field_state,v104_fields_create_contract.sql,109,True,True,True,2,True,False,3,2
 field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
-field_tasks,v9_new_tables.sql,3,True,False,False,2,True,True,15,5
+field_task_execution_confirmations,v291_field_task_execution_delivery.sql,277,True,True,True,2,True,False,1,1
+field_task_execution_links,v291_field_task_execution_delivery.sql,277,True,True,True,2,True,False,1,1
+field_task_execution_outcome_receipts,v291_field_task_execution_delivery.sql,277,True,True,True,2,True,False,1,1
+field_tasks,v9_new_tables.sql,3,True,False,False,2,True,True,16,6
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,0
 fields,v9_foundation.sql,1,True,False,False,2,True,True,75,10
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
@@ -341,7 +344,7 @@ tenant_ai_policies,v124_tenant_ai_policies.sql,130,True,True,True,1,True,False,1
 training_datasets,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 trueup_calibrations,v12_trueup_sharing.sql,15,True,True,False,1,False,True,2,1
 usage_metering_records,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
-users,v9_foundation.sql,1,True,True,False,2,True,True,21,11
+users,v9_foundation.sql,1,True,True,False,2,True,True,22,11
 vri_as_applied_variances,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_machine_translation_artifacts,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_prescription_zones,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0

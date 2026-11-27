@@ -465,7 +465,7 @@
         "runtime": false,
         "runtime_instrumentation": true,
         "unit_tests": true,
-        "web": false
+        "web": true
       },
       "evidence_records": [
         {
@@ -524,12 +524,12 @@
           "type": "unit_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "web"
         }
       ],
-      "evidence_score": 8,
+      "evidence_score": 9,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -562,6 +562,11 @@
           "signal": "pytest.mark.unit"
         },
         {
+          "evidence_type": "unit",
+          "path": "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
           "evidence_type": "integration",
           "path": "services/decision-service/tests/test_snapshot_id_validation.py",
           "signal": "pytest.mark.integration"
@@ -588,6 +593,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/field-management-service/tests/test_execution_tasks_unit.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py",
           "signal": "filename:contract_without_integration_signal"
         },
@@ -602,10 +612,12 @@
         "services/decision-service/tests/test_execution_plan_boundary_normalisation.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_execution_request_plan_binding.py",
+        "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
+        "services/field-management-service/tests/test_execution_tasks_unit.py",
         "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py",
         "tests_v9/test_wx10_11_execution_request_contract.py"
       ]
@@ -6768,6 +6780,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "tests_v9/test_field_task_execution_delivery_live_pg.py",
         "tests_v9/test_field_task_inspection_live_pg.py",
         "tests_v9/test_field_task_on_api_field_live_pg.py",
         "tests_v9/test_field_task_scouting_anomaly_live_pg.py"
@@ -6783,6 +6796,11 @@
           "evidence_type": "unit",
           "path": "services/field-management-service/tests/test_field_task_routes_unit.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_field_task_execution_delivery_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "integration",
