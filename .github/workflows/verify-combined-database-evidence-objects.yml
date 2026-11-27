@@ -1,0 +1,28 @@
+name: Verify combined-database-evidence source objects
+on:
+  push:
+    branches: [ci/verify-combined-database-evidence-3d3153d9]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify the candidate parents and content and retain only on the transfer branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '642ff6dcc44f0f096f307d3f61c767ca4611737e049b8221276586da57bbecd9  candidate.pack' | sha256sum --check --strict
+          git fetch --no-tags --depth=1 origin e5c40853f03d1cc6d775bcb92cd157988ee65c90
+          git index-pack --stdin --fix-thin < candidate.pack
+          test "$(git show -s --format=%P 3d3153d972614c892fa30ff07ae71b7035f40abf)" = "2ec67a39c9f9aceb6bb7859901e638c23706ee36"
+          test "$(git rev-parse 3d3153d972614c892fa30ff07ae71b7035f40abf^{tree})" = "a5913feb8edaf688906b417267e13b09240be22d"
+          git ls-tree -r 3d3153d972614c892fa30ff07ae71b7035f40abf >/dev/null
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          retained=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p 3d3153d972614c892fa30ff07ae71b7035f40abf -m "Retain verified source [skip ci]")
+          git push origin "$retained:refs/heads/ci/verify-combined-database-evidence-3d3153d9"
