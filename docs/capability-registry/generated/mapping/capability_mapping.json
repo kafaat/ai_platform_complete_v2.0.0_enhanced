@@ -15,26 +15,26 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7752,
+    "files_scanned": 7756,
     "files_by_kind": {
       "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2256,
-      "tests": 2715,
-      "web": 579
+      "tests": 2717,
+      "web": 581
     },
-    "unmapped_artifacts": 3692,
+    "unmapped_artifacts": 3695,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4217,
-      "raw": 3535
+      "python_functional": 4218,
+      "raw": 3538
     },
-    "test_dependency_files": 2071,
-    "test_dependency_edges": 5609,
+    "test_dependency_files": 2072,
+    "test_dependency_edges": 5611,
     "test_dependency_bounded_files": 1190,
-    "test_dependency_unresolved_relations": 536
+    "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
     {
@@ -13323,11 +13323,11 @@
           "score": 20
         },
         {
-          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:139",
+          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:151",
           "score": 20
         },
         {
-          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:206",
+          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:218",
           "score": 20
         },
         {
@@ -17519,7 +17519,16 @@
           ]
         }
       ],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_equipment_schedule_wiring.py",
+          "score": 11,
+          "signals": [
+            "content:equipment maintenance",
+            "content:Maintenance"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [],
       "ambiguous": [],
@@ -17533,11 +17542,11 @@
         "events": 0,
         "web": 0,
         "mobile": 1,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 0
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {
@@ -33660,6 +33669,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/EquipmentReadinessCard.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/FieldDetailPanel.tsx",
       "kind": "web"
     },
@@ -34765,6 +34778,14 @@
     },
     {
       "path": "frontend/src/lib/enterpriseGisPhase7.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/equipmentReadiness.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/equipmentReadiness.ts",
       "kind": "web"
     },
     {
@@ -63717,6 +63738,16 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 129
+        },
+        {
+          "source": "services/sahool-platform/api/decision_service_client.py",
+          "kind": "import",
+          "line": 129
+        },
+        {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
           "line": 3
@@ -84222,6 +84253,28 @@
         {
           "line": 205,
           "import": "api.canonical_water_stress"
+        }
+      ]
+    },
+    {
+      "test": "tests_v9/test_equipment_schedule_wiring.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "unresolved_dynamic_relation"
+      ],
+      "edges": [],
+      "unresolved": [
+        {
+          "line": 15,
+          "import": "api"
+        },
+        {
+          "line": 16,
+          "import": "api.routers.equipment"
+        },
+        {
+          "line": 17,
+          "import": "core.canonical_schemas"
         }
       ]
     },

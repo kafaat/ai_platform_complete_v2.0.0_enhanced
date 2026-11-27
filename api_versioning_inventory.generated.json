@@ -5213,7 +5213,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 140,
+    "line": 152,
     "method": "POST",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "handler": "log_maintenance",
@@ -5222,7 +5222,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 207,
+    "line": 219,
     "method": "GET",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "handler": "list_maintenance",

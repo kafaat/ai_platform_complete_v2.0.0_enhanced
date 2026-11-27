@@ -123,7 +123,9 @@ async def test_scoped_queue_proves_the_requested_scope(
         (str(_USER.tenant_id), None, False),
     ],
 )
-async def test_agronomic_evidence_proves_tenant_and_decision(monkeypatch, tenant, inner_id, allowed):
+async def test_agronomic_evidence_proves_tenant_and_decision(
+    monkeypatch, tenant, inner_id, allowed
+):
     from api import decision_service_client
 
     async def fake(decision_id, *, tenant_id=None):
