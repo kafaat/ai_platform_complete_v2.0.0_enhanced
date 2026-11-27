@@ -31,6 +31,21 @@ APT_FALLBACK_MIRROR="${APT_FALLBACK_MIRROR:-archive.ubuntu.com}"
 APT_SOURCE_FILES="${APT_SOURCE_FILES:-/etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list}"
 _APT_HOST_RE='[a-z0-9.-]*\.archive\.ubuntu\.com'
 
+# Playwright elevates apt internally. On a dedicated hosted Ubuntu runner, use
+# its existing signed Ubuntu sources for browser dependencies for this step.
+use_playwright_ubuntu_sources() {
+  local apt_root="$1"
+  [ "${RUNNER_ENVIRONMENT:-}" = github-hosted ] || return 0
+  [ -s "$apt_root/sources.list.d/ubuntu.sources" ] || return 0
+  pw_apt_config=$(sudo mktemp "$apt_root/apt.conf.d/99playwright-XXXXXXXX") || return 1
+  trap 'sudo rm -f -- "$pw_apt_config"' EXIT
+  sudo install -m 0644 /dev/stdin "$pw_apt_config" <<'APT_CONFIG'
+Dir::Etc::sourcelist "sources.list.d/ubuntu.sources";
+Dir::Etc::sourceparts "-";
+APT::Get::List-Cleanup "false";
+APT_CONFIG
+}
+
 switch_apt_mirror() {
   local f switched=""
   # shellcheck disable=SC2086 — قائمةُ مسارات مفصولة بفراغ عمداً، لا كلمةٌ واحدة.
