@@ -84,7 +84,7 @@ async def list_alerts(
             rows = await conn.fetch(
                 "SELECT alert_id, field_id, alert_type, severity, title_ar, "
                 "message_ar, status, created_at "
-                f"FROM alerts WHERE {where} ORDER BY created_at DESC "
+                f"FROM alerts WHERE {where} ORDER BY created_at DESC, alert_id ASC "
                 f"LIMIT {limit_ph} OFFSET {offset_ph}",
                 *args,
             )

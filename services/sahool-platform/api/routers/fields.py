@@ -2969,7 +2969,7 @@ async def list_field_activities(
             rows = await conn.fetch(
                 "SELECT activity_id, field_id, season_id, activity_type, title_ar, "
                 "details, scheduled_for, performed_on, status, created_at "
-                "FROM activities WHERE field_id = $1 ORDER BY created_at DESC "
+                "FROM activities WHERE field_id = $1 ORDER BY created_at DESC, activity_id ASC "
                 "LIMIT $2 OFFSET $3",
                 field_id,
                 lim,
