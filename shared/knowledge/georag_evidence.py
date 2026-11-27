@@ -61,7 +61,9 @@ def _reject(ann: dict, reason: str) -> dict:
     return {"chunk_id": ann.get("chunk_id") if isinstance(ann, dict) else None, "reason": reason}
 
 
-def _classify(ann: Any, tenant_id: str, field_id: str, field_geom) -> tuple[str | None, str]:
+def _classify(
+    ann: Any, tenant_id: str, field_id: str, field_geom, zone_id: str | None
+) -> tuple[str | None, str]:
     """→ (rejection reason | None, spatial_match)."""
     if not isinstance(ann, dict):
         return "annotation_malformed", ""
@@ -80,6 +82,13 @@ def _classify(ann: Any, tenant_id: str, field_id: str, field_geom) -> tuple[str 
         return "spatial_scope_missing", ""
     if scope.get("field_id") is not None and scope["field_id"] != field_id:
         return "field_scope_mismatch", ""
+    annotation_zone = scope.get("zone_id")
+    if annotation_zone is not None and (
+        not isinstance(annotation_zone, str)
+        or not annotation_zone.strip()
+        or annotation_zone != zone_id
+    ):
+        return "zone_scope_mismatch", ""
     if scope.get("geometry") is not None:
         if field_geom is None:
             return "field_geometry_invalid", ""
@@ -112,7 +121,7 @@ def scope_annotations(
     if field_geom is None:
         reasons.append("field_geometry_invalid")
     for ann in annotations or []:
-        why, match = _classify(ann, tenant_id, field_id, field_geom)
+        why, match = _classify(ann, tenant_id, field_id, field_geom, zone_id)
         if why:
             rejected.append(_reject(ann, why))
         else:
