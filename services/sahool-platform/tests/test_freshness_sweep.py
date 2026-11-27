@@ -1,12 +1,4 @@
-"""اختبارات وحدة لفحص نضارة القرار الدوريّ (freshness sweep).
-
-يغطّي الجزء النقيّ ``compute_data_ages`` (تحويل epoch → أيّام/ساعات، تمرير None،
-تثبيت السالب)، وعقد التوصيل: أنّ ``_freshness_sweep`` لم يعُد يستخدم أصفاراً
-مُلفَّقة بل يقرأ أعماراً فعليّة ويسجّلها عبر LEDGER. الجزء المُستعلِم من القاعدة
-يعمل في النشر الحيّ فقط (integration) — هنا نفحص الوصلة عبر inspect.getsource.
-"""
-
-import inspect
+"""أعمار الإشارات وعتبات النضارة. يُختبَر قارئ PostgreSQL والمُجدوِل على حدة."""
 
 import pytest
 from api.agronomic_consistency import check_decision_freshness, compute_data_ages
@@ -105,46 +97,3 @@ def test_epoch_conversion_exact():
     assert ages["weather_age_hours"] == pytest.approx(6.0)
     # عند العتبة بالضبط ⇒ ليس قديماً (الفحص: > لا ≥)
     assert check_decision_freshness(**ages).consistent is True
-
-
-# ─── عقد التوصيل: _freshness_sweep لم يعُد خاملاً ───────────────────────────
-
-
-def _sweep_source() -> str:
-    import api.main as main_mod
-
-    # _freshness_sweep دالّة داخليّة في _start_scheduler — افحص مصدر المُحيط.
-    src = inspect.getsource(main_mod._start_scheduler)
-    assert "_freshness_sweep" in src
-    # اقتطع جسم _freshness_sweep فقط
-    start = src.index("async def _freshness_sweep")
-    nxt = src.index("async def _weather_sweep")
-    return src[start:nxt]
-
-
-def test_freshness_sweep_no_longer_hardcodes_zeros():
-    body = _sweep_source()
-    assert "ndvi_age_days=0" not in body
-    assert "soil_age_days=0" not in body
-    assert "weather_age_hours=0" not in body
-
-
-def test_freshness_sweep_wires_real_pipeline():
-    body = _sweep_source()
-    assert "compute_data_ages(" in body
-    assert "check_decision_freshness(" in body
-    # يستخدم سجلّ الأتمتة (LEDGER) بنفس نمط _alerts_sweep
-    assert "LEDGER.start_run(" in body
-    assert "mark_evaluated()" in body
-    assert "mark_errored(" in body
-    assert ".finish()" in body
-    # يقرأ أعماراً فعليّة (لا None ثابتة فقط) ويتعامل مع غياب البيانات
-    assert "_DB_POOL" in body
-
-
-def test_freshness_sweep_reads_real_sources():
-    body = _sweep_source()
-    # المصادر الفعليّة: NDVI + رطوبة التربة + الطقس
-    assert "last_ndvi_date" in body
-    assert "_latest_soil_moisture" in body
-    assert "weather_automation_cache" in body

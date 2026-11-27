@@ -290,7 +290,7 @@ def test_overview_rejects_bool_or_negative_verified_count(monkeypatch):
 _ASSERTION_KEY = "assertion-signing-key-at-least-32-chars"
 
 
-def _ground(platform_identity, monkeypatch, *, body=None):
+def _ground(platform_identity, monkeypatch, *, body=None, cursor=None, status=200):
     monkeypatch.setattr(mod, "TASK_URL", "http://sahool-field-management:8000")
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "agent-token")
     monkeypatch.setenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", _ASSERTION_KEY)
@@ -302,7 +302,9 @@ def _ground(platform_identity, monkeypatch, *, body=None):
             return httpx.Response(200, json=platform_identity["body"])
         if request.url.path == "/internal/field-tasks/scouting":
             seen.append(request)
-            return httpx.Response(200, json=body or {"items": [{"task_ref": "urn:sahool:task:t1"}]})
+            return httpx.Response(
+                status, json=body or {"items": [{"task_ref": "urn:sahool:task:t1"}]}
+            )
         return httpx.Response(200, json={"anomalies": []})
 
     original = httpx._client.AsyncClient  # the autouse fixture already replaced httpx.AsyncClient
@@ -313,7 +315,11 @@ def _ground(platform_identity, monkeypatch, *, body=None):
     )
     response = client.get(
         "/v1/fields/fld_a/remote-sensing-workspace",
-        params={"season_id": "s1", "include": "ground"},
+        params={
+            "season_id": "s1",
+            "include": "ground",
+            **({"ground_cursor": cursor} if cursor else {}),
+        },
         headers={"Authorization": "Bearer user-jwt", "X-Tenant-Id": "t"},
     )
     return response, seen
@@ -364,3 +370,20 @@ def test_ground_without_service_credentials_is_honest_not_a_user_token_call(
     assert "/internal/field-tasks/scouting" not in paths, (
         f"no task read without credentials: {paths}"
     )
+
+
+def test_ground_forwards_continuation_to_owner(platform_identity, monkeypatch):
+    cursor = "2026-11-26T12:23:45.123456+03:00|43f3147f-a489-407b-a4cb-a45eab2f050e"
+    response, seen = _ground(
+        platform_identity, monkeypatch, cursor=cursor, body={"items": [], "next_cursor": "next"}
+    )
+    assert response.status_code == 200
+    assert seen[0].url.params["cursor"] == cursor
+    assert response.json()["sections"]["ground"]["next_cursor"] == "next"
+
+
+def test_ground_preserves_the_owner_rejection_of_a_page_request(platform_identity, monkeypatch):
+    response, seen = _ground(platform_identity, monkeypatch, cursor="bad", status=400)
+    assert len(seen) == 1
+    assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "invalid_ground_page_request"

@@ -1685,9 +1685,10 @@ export interface FieldIntelJobStatus {
   error?: { code?: string; message?: string } | string;
 }
 
-export const startAnalyzeFieldIntelligence = (input: FieldIntelInput): Promise<FieldIntelJobStatus> =>
+export const startAnalyzeFieldIntelligence = (input: FieldIntelInput, signal?: AbortSignal): Promise<FieldIntelJobStatus> =>
   kongApi
     .post<FieldIntelJobStatus>('/api/v1/field-intelligence/analyze', null, {
+      signal,
       params: {
         field_id: input.field_id,
         ...(input.lat != null ? { lat: input.lat } : {}),
@@ -1697,25 +1698,68 @@ export const startAnalyzeFieldIntelligence = (input: FieldIntelInput): Promise<F
     })
     .then(r => r.data);
 
-export const getFieldIntelligenceJob = (jobId: string): Promise<FieldIntelJobStatus> =>
-  kongApi.get<FieldIntelJobStatus>(`/api/v1/field-intelligence/analyze/jobs/${encodeURIComponent(jobId)}`).then(r => r.data);
+export const getFieldIntelligenceJob = (jobId: string, signal?: AbortSignal): Promise<FieldIntelJobStatus> =>
+  kongApi.get<FieldIntelJobStatus>(`/api/v1/field-intelligence/analyze/jobs/${encodeURIComponent(jobId)}`, { signal }).then(r => r.data);
 
 export const cancelFieldIntelligenceJob = (jobId: string): Promise<FieldIntelJobStatus> =>
   kongApi.post<FieldIntelJobStatus>(`/api/v1/field-intelligence/analyze/jobs/${encodeURIComponent(jobId)}/cancel`).then(r => r.data);
 
-// Compatibility shim: callers that still need the final result can poll explicitly here.
-// New UI should prefer startAnalyzeFieldIntelligence + getFieldIntelligenceJob to show progress.
-export const analyzeFieldIntelligence = async (input: FieldIntelInput): Promise<FieldIntelResult> => {
-  const started = await startAnalyzeFieldIntelligence(input);
-  let job = started;
-  for (let i = 0; i < 120; i += 1) {
-    if (job.status === 'completed' && job.result) return job.result;
-    if (job.status === 'failed') throw new Error(typeof job.error === 'string' ? job.error : job.error?.message || 'field intelligence job failed');
-    if (job.status === 'cancelled') throw new Error('field intelligence job cancelled');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    job = await getFieldIntelligenceJob(started.job_id);
+// Both the progress view and result-only callers use this cadence.
+export const fieldIntelligencePollDelay = (completedPolls: number): number =>
+  completedPolls < 5 ? 1000 : 3000;
+
+function waitForFieldIntelligencePoll(ms: number, signal: AbortSignal): Promise<void> {
+  signal.throwIfAborted();
+  return new Promise(resolve => {
+    const finish = () => {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, ms);
+    signal.addEventListener('abort', finish, { once: true });
+  });
+}
+
+export const analyzeFieldIntelligence = async (
+  input: FieldIntelInput,
+  signal?: AbortSignal,
+  messages = {
+    failed: 'field intelligence job failed',
+    cancelled: 'field intelligence job cancelled',
+    timeout: 'field intelligence job timed out while polling',
+  },
+): Promise<FieldIntelResult> => {
+  signal?.throwIfAborted();
+  let job = await startAnalyzeFieldIntelligence(input, signal);
+  signal?.throwIfAborted();
+  const jobId = job.job_id;
+  const polling = new AbortController();
+  const cancel = () => polling.abort(signal?.reason);
+  const budget = 120_000;
+  const deadline = performance.now() + budget;
+  const timeout = setTimeout(() => polling.abort(new Error(messages.timeout)), budget);
+  signal?.addEventListener('abort', cancel, { once: true });
+  try {
+    for (let completedPolls = 0; ; completedPolls++) {
+      polling.signal.throwIfAborted();
+      if (performance.now() >= deadline) throw new Error(messages.timeout);
+      if (job.status === 'completed' && job.result) return job.result;
+      if (job.status === 'failed') throw new Error(typeof job.error === 'string' ? job.error : job.error?.message || messages.failed);
+      if (job.status === 'cancelled') throw new Error(messages.cancelled);
+      await waitForFieldIntelligencePoll(fieldIntelligencePollDelay(completedPolls), polling.signal);
+      polling.signal.throwIfAborted();
+      if (performance.now() >= deadline) throw new Error(messages.timeout);
+      job = await getFieldIntelligenceJob(jobId, polling.signal);
+    }
+  } catch (error) {
+    // Axios translates an aborted HTTP request into its own cancellation error.
+    polling.signal.throwIfAborted();
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', cancel);
   }
-  throw new Error('field intelligence job timed out while polling');
 };
 
 // ══════════════════════════════════════════════════════════════════

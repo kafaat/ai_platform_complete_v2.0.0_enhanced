@@ -168,6 +168,106 @@ def test_sync_entity_scoped_schema_check(bridge, monkeypatch):
     assert r.json()["detail"]["missing_tables"] == ["inventory_stock"]
 
 
+@pytest.mark.parametrize("entity", ["procurement", "all"])
+def test_market_requests_do_not_satisfy_odoo_procurement_schema(bridge, monkeypatch, entity):
+    main, rt, client = bridge
+    missing_source = {"procurement_orders", "procurement_order_items"}
+    market = {"market_procurement_orders", "market_procurement_items"}
+    _use(monkeypatch, rt, (FULL_SCHEMA - missing_source) | market)
+    monkeypatch.setattr(_HealthyProvider, "name", "odoo")
+
+    async def unexpected_probe(self):
+        pytest.fail("schema rejection must precede contact with Odoo")
+
+    monkeypatch.setattr(_HealthyProvider, "health", unexpected_probe)
+    calls = _record_calls(monkeypatch, main, rt)
+    response = client.post("/v1/sync", json={"entity": entity})
+    assert response.status_code == 503
+    reason = response.json()["detail"]
+    assert reason["error"] == "erp_schema_missing"
+    assert set(reason["missing_tables"]) == missing_source
+    assert "price ceilings" in reason["detail"]
+    assert not calls
+
+
+IMPORT_STEPS = ["products", "suppliers", "warehouses"]
+ODOO_EXPORT_STEPS = ["procurement", "costs"]
+
+
+@pytest.mark.parametrize(
+    "provider,direction,expected",
+    [
+        ("odoo", "odoo_to_sahool", IMPORT_STEPS),
+        ("odoo", "sahool_to_odoo", ODOO_EXPORT_STEPS),
+        ("odoo", "bidirectional", IMPORT_STEPS + ODOO_EXPORT_STEPS),
+        ("odoo", None, IMPORT_STEPS + ODOO_EXPORT_STEPS),
+        ("erpnext", "odoo_to_sahool", IMPORT_STEPS),
+        ("erpnext", "sahool_to_odoo", ["costs"]),
+        ("erpnext", "bidirectional", IMPORT_STEPS + ["costs"]),
+    ],
+)
+def test_manual_sync_queues_only_the_requested_direction(
+    bridge, monkeypatch, provider, direction, expected
+):
+    main, rt, client = bridge
+    monkeypatch.setattr(_HealthyProvider, "name", provider)
+    tables = MIGRATED_TODAY.union(*(rt.ERP_SYNC_ENTITY_TABLES[step] for step in expected))
+    _use(monkeypatch, rt, tables)
+    calls = _record_calls(monkeypatch, main, rt)
+
+    request = {"entity": "all"}
+    if direction is not None:
+        request["direction"] = direction
+    response = client.post("/v1/sync", json=request)
+    assert response.status_code == 200, response.text
+    assert response.json()["steps"] == expected
+    assert response.json()["direction"] == (direction or "bidirectional")
+    functions = {
+        "products": "sync_products",
+        "suppliers": "sync_suppliers",
+        "warehouses": "sync_warehouses",
+        "procurement": "sync_procurement_orders_to_odoo",
+        "costs": "sync_field_costs_to_odoo",
+    }
+    assert calls == [functions[step] for step in expected]
+
+
+@pytest.mark.parametrize(
+    "entity,direction",
+    [(step, "sahool_to_odoo") for step in IMPORT_STEPS]
+    + [(step, "odoo_to_sahool") for step in ODOO_EXPORT_STEPS],
+)
+def test_incompatible_manual_direction_rejected_before_io(bridge, monkeypatch, entity, direction):
+    main, rt, client = bridge
+    schema = _use(monkeypatch, rt, FULL_SCHEMA)
+    monkeypatch.setattr(_HealthyProvider, "name", "odoo")
+
+    async def unexpected(*args, **kwargs):
+        pytest.fail("incompatible direction reached a provider probe or a sync job")
+
+    monkeypatch.setattr(_HealthyProvider, "health", unexpected)
+    monkeypatch.setattr(main, "run_sync_job", unexpected)
+    response = client.post("/v1/sync", json={"entity": entity, "direction": direction})
+    assert response.status_code == 422
+    assert response.json()["detail"] == {
+        "error": "erp_sync_direction_unsupported",
+        "entity": entity,
+        "direction": direction,
+    }
+    assert schema.asked == []
+
+
+def test_procurement_export_still_requires_odoo_provider(bridge, monkeypatch):
+    _, rt, client = bridge
+    schema = _use(monkeypatch, rt, FULL_SCHEMA)
+    response = client.post(
+        "/v1/sync", json={"entity": "procurement", "direction": "sahool_to_odoo"}
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"] == "procurement_sync_requires_odoo_provider"
+    assert schema.asked == []
+
+
 def test_sync_without_database_is_not_queued(bridge, monkeypatch):
     main, rt, client = bridge
     _use(monkeypatch, rt, None)
