@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **2290**
+- Python files parsed: **2298**
 - FastAPI-style route handlers: **1100**
-- Static function-call edges: **125416**
-- Dead-code candidates: **694**
+- Static function-call edges: **125933**
+- Dead-code candidates: **693**
 - Duplicate function groups: **66**
 - Automatic deletions: **0**
 
@@ -15,7 +15,6 @@
 
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
-| `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 60 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 172 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
@@ -65,6 +64,7 @@
 | `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_client_routing_w1_22.py` | 26 |
 | `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py` | 12 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 43 |
+| `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 121 |
 
 ## Duplicate implementation groups
 

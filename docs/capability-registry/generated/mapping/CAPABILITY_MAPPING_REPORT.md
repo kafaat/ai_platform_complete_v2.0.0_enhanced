@@ -12,9 +12,9 @@
 - Mapped: **77**
 - Unmapped: **4**
 - Multi-dimensional mappings: **46**
-- Files scanned: **7773**
+- Files scanned: **7788**
 - Ambiguous artifacts queued: **266**
-- Unmapped artifacts queued: **3704**
+- Unmapped artifacts queued: **3710**
 
 ## Capability coverage
 
@@ -31,13 +31,13 @@
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 93 | 59 | 8 | 0 | 0 | 9 | 5 |
 | FM-001 | farm_management | 17 | 2 | 30 | 12 | 1 | 0 | 49 | 6 |
-| FM-002 | farm_management | 39 | 44 | 100 | 30 | 20 | 35 | 67 | 7 |
+| FM-002 | farm_management | 40 | 44 | 100 | 30 | 20 | 35 | 67 | 7 |
 | FM-003 | farm_management | 15 | 56 | 5 | 62 | 3 | 2 | 18 | 7 |
 | FM-004 | farm_management | 34 | 82 | 68 | 51 | 20 | 15 | 63 | 7 |
 | FM-005 | farm_management | 13 | 0 | 0 | 15 | 6 | 1 | 8 | 5 |
 | FM-006 | farm_management | 1 | 0 | 0 | 0 | 2 | 0 | 1 | 3 |
-| FM-007 | farm_management | 8 | 19 | 8 | 0 | 1 | 4 | 7 | 6 |
-| FM-008 | farm_management | 10 | 31 | 5 | 2 | 0 | 0 | 11 | 5 |
+| FM-007 | farm_management | 9 | 19 | 8 | 0 | 1 | 4 | 9 | 6 |
+| FM-008 | farm_management | 10 | 32 | 5 | 2 | 0 | 0 | 11 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 4 | 0 | 0 | 4 | 0 | 2 | 4 |
 | GIS-003 | gis | 33 | 100 | 11 | 69 | 13 | 4 | 43 | 7 |
@@ -58,11 +58,11 @@
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 20 | 9 | 0 | 1 | 4 | 4 |
 | OPS-002 | operations | 4 | 9 | 6 | 4 | 1 | 0 | 8 | 6 |
-| OPS-003 | operations | 10 | 28 | 48 | 19 | 6 | 18 | 24 | 7 |
+| OPS-003 | operations | 10 | 28 | 50 | 19 | 6 | 18 | 24 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 12 | 0 | 21 | 28 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 14 | 1 | 13 | 12 | 7 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| OPS-007 | operations | 0 | 0 | 3 | 0 | 0 | 1 | 1 | 3 |
+| OPS-007 | operations | 0 | 0 | 3 | 0 | 0 | 1 | 2 | 3 |
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 9 | 34 | 8 | 2 | 1 | 0 | 11 | 6 |
 | PA-002 | precision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
@@ -71,7 +71,7 @@
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 43 | 100 | 5 | 38 | 6 | 0 | 59 | 6 |
 | SAT-002 | satellite | 0 | 1 | 0 | 1 | 1 | 0 | 5 | 4 |
-| SAT-003 | satellite | 58 | 43 | 5 | 100 | 39 | 5 | 71 | 7 |
+| SAT-003 | satellite | 58 | 43 | 5 | 100 | 39 | 5 | 72 | 7 |
 | SAT-004 | satellite | 9 | 4 | 5 | 13 | 3 | 0 | 8 | 6 |
 | SAT-005 | satellite | 6 | 6 | 0 | 1 | 0 | 0 | 14 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |

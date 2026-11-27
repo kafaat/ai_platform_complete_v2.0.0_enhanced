@@ -10,13 +10,13 @@ DEC-008,decision,Learning attribution,True,4,0,1,2,1,0,0,1,0
 DEC-009,decision,Model calibration,True,1,0,0,2,0,0,0,0,0
 DEC-010,decision,Model lifecycle and activation,True,5,4,93,59,8,0,0,9,1
 FM-001,farm_management,Tenant and organization management,True,6,17,2,30,12,1,0,49,0
-FM-002,farm_management,Farm registry,True,7,39,44,100,30,20,35,67,0
+FM-002,farm_management,Farm registry,True,7,40,44,100,30,20,35,67,0
 FM-003,farm_management,Field registry and boundaries,True,7,15,56,5,62,3,2,18,1
 FM-004,farm_management,Season lifecycle,True,7,34,82,68,51,20,15,63,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,13,0,0,15,6,1,8,0
 FM-006,farm_management,Farm economics,True,3,1,0,0,0,2,0,1,0
-FM-007,farm_management,Inventory and procurement,True,6,9,19,8,0,1,4,8,0
-FM-008,farm_management,ERP integration,True,5,10,31,5,2,0,0,11,0
+FM-007,farm_management,Inventory and procurement,True,6,9,19,8,0,1,4,9,0
+FM-008,farm_management,ERP integration,True,5,10,32,5,2,0,0,11,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,4,0,0,4,0,2,0
 GIS-003,gis,Terrain and DEM,True,7,33,100,11,69,13,4,43,0
@@ -37,11 +37,11 @@ IRR-009,irrigation,Water suitability multi-hazard,True,6,9,1,7,8,2,0,14,0
 IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
 OPS-001,operations,Task management,True,4,0,0,20,9,0,1,4,0
 OPS-002,operations,Work orders,True,6,4,9,6,4,1,0,8,0
-OPS-003,operations,Scouting,True,7,10,28,48,19,6,18,24,0
+OPS-003,operations,Scouting,True,7,10,28,50,19,6,18,24,0
 OPS-004,operations,Field forms,True,6,3,12,14,12,0,21,28,1
 OPS-005,operations,Offline mobile,True,7,2,2,9,14,1,13,12,0
 OPS-006,operations,Equipment registry,True,1,1,0,0,0,0,0,0,0
-OPS-007,operations,Maintenance,True,3,0,0,3,0,0,1,1,0
+OPS-007,operations,Maintenance,True,3,0,0,3,0,0,1,2,0
 OPS-008,operations,Workforce and worker identity,False,0,0,0,0,0,0,0,0,0
 PA-001,precision,Management zones,True,6,9,34,8,2,1,0,11,0
 PA-002,precision,Variable rate prescription,True,1,2,0,0,0,0,0,0,0
@@ -50,7 +50,7 @@ PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,43,100,5,38,6,0,59,0
 SAT-002,satellite,True color imagery,True,4,0,1,0,1,1,0,5,0
-SAT-003,satellite,NDVI,True,7,58,43,5,100,39,5,71,0
+SAT-003,satellite,NDVI,True,7,58,43,5,100,39,5,72,0
 SAT-004,satellite,NDMI,True,6,9,4,5,13,3,0,8,0
 SAT-005,satellite,Cloud screening,True,4,6,6,0,1,0,0,14,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0

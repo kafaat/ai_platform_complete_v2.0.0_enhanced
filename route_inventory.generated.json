@@ -1114,7 +1114,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 238,
+    "line": 272,
     "method": "POST",
     "path": "/internal/field-tasks/scouting",
     "function": "create_scouting_task"
@@ -1122,7 +1122,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 281,
+    "line": 315,
     "method": "GET",
     "path": "/internal/field-tasks/scouting",
     "function": "list_scouting_tasks"
@@ -1962,7 +1962,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 112,
+    "line": 122,
     "method": "POST",
     "path": "/v1/sync",
     "function": "trigger_sync"
@@ -2114,7 +2114,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 98,
+    "line": 97,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "function": "gis_admin_boundaries"
@@ -2122,7 +2122,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 147,
+    "line": 146,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "function": "process_from_stac"
@@ -2130,7 +2130,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 272,
+    "line": 271,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "function": "field_historical_backfill"
@@ -4082,7 +4082,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 245,
+    "line": 249,
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "function": "compose_crop_twin"
@@ -4090,7 +4090,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 303,
+    "line": 307,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "function": "crop_decision_candidate_endpoint"
@@ -4098,7 +4098,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 413,
+    "line": 490,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "function": "crop_decision_endpoint"
@@ -4106,7 +4106,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 537,
+    "line": 617,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "function": "profit_aware_decision_endpoint"

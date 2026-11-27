@@ -138,8 +138,8 @@ edge-inference,services/edge-inference/main.py,482,POST,/v1/sync/trigger,trigger
 edge-inference,services/edge-inference/main.py,514,GET,/capabilities,capabilities
 edge-inference,services/edge-inference/main.py,519,GET,/metrics,metrics
 edge-inference,services/edge-inference/main.py,529,GET,/readyz,readyz
-field-management-service,services/field-management-service/fm_scouting_tasks.py,238,POST,/internal/field-tasks/scouting,create_scouting_task
-field-management-service,services/field-management-service/fm_scouting_tasks.py,281,GET,/internal/field-tasks/scouting,list_scouting_tasks
+field-management-service,services/field-management-service/fm_scouting_tasks.py,272,POST,/internal/field-tasks/scouting,create_scouting_task
+field-management-service,services/field-management-service/fm_scouting_tasks.py,315,GET,/internal/field-tasks/scouting,list_scouting_tasks
 field-management-service,services/field-management-service/fm_task_costs.py,88,POST,/internal/field-tasks/farm-book/entries/{entry_id}/task,link_existing_expense
 field-management-service,services/field-management-service/fm_task_costs.py,147,GET,/internal/field-tasks/tasks/{task_id}/cost-trace,task_cost_trace
 field-management-service,services/field-management-service/fm_task_inspection.py,284,GET,/internal/field-tasks/fields/{field_id}/inspection-assignees,list_inspection_assignees
@@ -244,7 +244,7 @@ odoo-bridge,services/odoo-bridge/routers/health.py,77,GET,/healthz,healthz
 odoo-bridge,services/odoo-bridge/routers/health.py,77,GET,/health,healthz
 odoo-bridge,services/odoo-bridge/routers/health.py,87,GET,/readyz,readyz
 odoo-bridge,services/odoo-bridge/routers/health.py,130,GET,/v1/readyz/capabilities,readyz_capabilities
-odoo-bridge,services/odoo-bridge/routers/sync.py,112,POST,/v1/sync,trigger_sync
+odoo-bridge,services/odoo-bridge/routers/sync.py,122,POST,/v1/sync,trigger_sync
 odoo-bridge,services/odoo-bridge/routers/webhooks.py,23,POST,/v1/webhook/odoo,odoo_webhook
 rag-retrieval,services/rag-retrieval/main.py,219,GET,/healthz,healthz
 rag-retrieval,services/rag-retrieval/main.py,224,GET,/metrics,metrics
@@ -263,9 +263,9 @@ raster-service,services/raster-service/routers/analysis.py,193,POST,/v1/salinity
 raster-service,services/raster-service/routers/cdse_tiles.py,146,GET,/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,field_cdse_tile
 raster-service,services/raster-service/routers/cdse_tiles.py,223,GET,/v1/fields/{field_id}/cdse-thumbnail.png,field_cdse_thumbnail
 raster-service,services/raster-service/routers/cdse_tiles.py,291,GET,/v1/fields/{field_id}/cdse-tilejson,field_cdse_tilejson
-raster-service,services/raster-service/routers/fields.py,98,GET,/v1/gis/admin-boundaries,gis_admin_boundaries
-raster-service,services/raster-service/routers/fields.py,147,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac
-raster-service,services/raster-service/routers/fields.py,272,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill
+raster-service,services/raster-service/routers/fields.py,97,GET,/v1/gis/admin-boundaries,gis_admin_boundaries
+raster-service,services/raster-service/routers/fields.py,146,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac
+raster-service,services/raster-service/routers/fields.py,271,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill
 raster-service,services/raster-service/routers/fields.py,659,GET,/v1/fields/{field_id}/imagery/backfill/{run_id},field_backfill_run_status
 raster-service,services/raster-service/routers/fields.py,677,POST,/v1/fields/{field_id}/imagery/process-date,field_process_date
 raster-service,services/raster-service/routers/fields.py,749,POST,/v1/fields/{field_id}/geometry/versions,create_field_geometry_version
@@ -509,10 +509,10 @@ sahool-platform,services/sahool-platform/api/routers/crop_cards.py,96,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/crop_cards.py,113,GET,/api/v1/crop-cards/variety/{variety_id}/disease-watch,variety_disease_watch_endpoint
 sahool-platform,services/sahool-platform/api/routers/crop_operations.py,24,GET,/api/v1/crops/{crop_id}/operations-calendar,crop_operations_calendar_endpoint
 sahool-platform,services/sahool-platform/api/routers/crop_suitability.py,31,POST,/api/v1/crop-suitability,crop_suitability
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,245,POST,/api/v1/crop-twin/compose,compose_crop_twin
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,303,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,413,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,537,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,249,POST,/api/v1/crop-twin/compose,compose_crop_twin
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,307,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,490,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,617,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
 sahool-platform,services/sahool-platform/api/routers/crops.py,26,GET,/api/v1/crops/drought-resilience,crop_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/crops.py,47,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/cultural_calendar.py,24,GET,/api/v1/cultural-calendar,cultural_calendar

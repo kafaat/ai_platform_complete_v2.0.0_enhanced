@@ -1056,6 +1056,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/hooks/useFieldIntelligenceCard.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/hooks/useFieldIntelligenceCard.ts",
     "kind": "web"
   },
@@ -2040,6 +2044,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldIntelligencePage.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldIntelligencePage.tsx",
     "kind": "web"
   },
@@ -2630,6 +2638,10 @@
   {
     "path": "frontend/src/services/duckdb.ts",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/fieldIntelligencePolling.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/services/scoutPhotoGrants.test.ts",
@@ -4528,6 +4540,10 @@
     "kind": "tests"
   },
   {
+    "path": "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
     "kind": "tests"
   },
@@ -5712,6 +5728,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/landsat_st.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/layer_cache_events.py",
     "kind": "backend"
   },
@@ -5949,6 +5969,10 @@
   },
   {
     "path": "services/raster-service/test_job_truth_receipts_and_fencing.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_landsat_field_lst.py",
     "kind": "tests"
   },
   {
@@ -6621,6 +6645,10 @@
   },
   {
     "path": "services/sahool-platform/api/food_grain_varieties_verified_v1.schema.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/freshness_store.py",
     "kind": "backend"
   },
   {
@@ -12281,10 +12309,6 @@
   },
   {
     "path": "tests_v9/test_erp_sync_recovery.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_erp_sync_schema_honesty.py",
     "kind": "tests"
   },
   {

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 840,
+      "evidence_count": 842,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -358,6 +358,7 @@
         "services/sahool-platform/api/field_timeline.py",
         "services/sahool-platform/api/field_type_catalog.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
+        "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/high_value_crops.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
@@ -838,6 +839,7 @@
         "shared/contracts/remote_sensing/schemas/DiagnosisProposedEventV1.schema.json",
         "shared/contracts/remote_sensing/schemas/ObservationPublishedEventV1.schema.json",
         "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
+        "shared/contracts/remote_sensing/thermal.py",
         "shared/contracts/remote_sensing/verification_delivery.py",
         "shared/contracts/soil/__init__.py",
         "shared/contracts/soil/drainage_design.py",
@@ -888,7 +890,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 603,
+      "evidence_count": 604,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1111,6 +1113,7 @@
         "services/sahool-platform/api/field_season_projection.py",
         "services/sahool-platform/api/field_workspace_completion_contract.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
+        "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/geo_zone_locator.py",
         "services/sahool-platform/api/gis_phase7_enterprise.py",
         "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
@@ -3323,6 +3326,7 @@
         "services/sahool-platform/api/field_models.py",
         "services/sahool-platform/api/field_season_projection.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
+        "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_commissioning_runtime.py",
         "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
@@ -3332,11 +3336,10 @@
         "services/sahool-platform/api/irrigation_recommendation_policy.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/api/irrigation_source_binding.py",
-        "services/sahool-platform/api/lab_store.py",
-        "services/sahool-platform/api/learning_feedback.py"
+        "services/sahool-platform/api/lab_store.py"
       ],
-      "source_evidence_count": 840,
-      "target_evidence_count": 603,
+      "source_evidence_count": 842,
+      "target_evidence_count": 604,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3447,7 +3450,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py"
       ],
-      "source_evidence_count": 603,
+      "source_evidence_count": 604,
       "target_evidence_count": 216,
       "static_supported": true,
       "runtime_verified": false
@@ -3809,5 +3812,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "039e7d4ded1b8e195100867bf9a758fabf9b415bcb3bc6fb3b751e50c863102c"
+  "content_sha256": "37238d871bb9b8744cd74469803ee2c90c4072ee608734591da6bbee8942dc6d"
 }
