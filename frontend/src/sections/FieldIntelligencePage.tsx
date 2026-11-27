@@ -10,6 +10,8 @@ import { useCancelFieldIntelligenceJob, useFieldIntelligenceJob, useStartFieldIn
 import FieldSelector from '../components/FieldSelector';
 import { ErrorState } from '../components/StateViews';
 import { useSelectedField } from '../hooks/useSelectedField';
+import { useAuthQueryIdentity } from '../hooks/useAuth';
+import type { FieldOption } from '../lib/fields';
 
 function asText(v: unknown): string {
   if (v == null) return '';
@@ -57,7 +59,13 @@ function KV({ data }: { data: Record<string, unknown> }) {
 }
 
 export default function FieldIntelligencePage() {
-  const { fieldId, field: activeField } = useSelectedField();
+  const { fieldId, field } = useSelectedField();
+  const identity = useAuthQueryIdentity();
+  // Remount the job observer and its mutation callbacks as soon as the selection changes.
+  return <FieldAnalysis key={JSON.stringify([...identity, fieldId])} fieldId={fieldId} activeField={field} />;
+}
+
+function FieldAnalysis({ fieldId, activeField }: { fieldId: string | null; activeField?: FieldOption }) {
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
   const [crop, setCrop] = useState('');

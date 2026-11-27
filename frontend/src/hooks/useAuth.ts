@@ -219,3 +219,11 @@ export const useCurrentUser = () =>
 
 export const useAuthRole = () =>
   useAuthStore(s => s.user?.role || 'viewer');
+
+/** Session identity for query keys and view state that must follow the current account. */
+export function useAuthQueryIdentity() {
+  const tenant = useTenantId();
+  const account = useAuthStore(s => s.user?.id ?? s.user?.email ?? null);
+  const role = useAuthStore(s => s.user?.role ?? null);
+  return [tenant, account, role] as const;
+}

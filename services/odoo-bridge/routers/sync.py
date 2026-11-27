@@ -94,16 +94,26 @@ async def _schema_or_503(*, entity: str, steps: list[str]) -> None:
         {t for step in steps for t in schema["entities"].get(step, {}).get("missing_tables", [])}
     )
     if missing:
+        detail = (
+            "ERP sync tables are not created by any applied migration; "
+            "nothing was queued. Check /readyz."
+        )
+        if "procurement" in steps and (
+            "procurement_orders" in missing or "procurement_order_items" in missing
+        ):
+            detail = (
+                "The procurement export source is missing. The market service stores purchase "
+                "requests with price ceilings. The procurement and ERP owners must identify "
+                "the approved supplier, price, currency and tenant-to-company mapping "
+                "for export. Nothing was queued."
+            )
         raise HTTPException(
             503,
             {
                 "error": "erp_schema_missing",
                 "entity": entity,
                 "missing_tables": missing,
-                "detail": (
-                    "ERP sync tables are not created by any applied migration; "
-                    "nothing was queued. Check /readyz."
-                ),
+                "detail": detail,
             },
         )
 
@@ -146,20 +156,30 @@ async def trigger_sync(
             },
         )
 
-    steps: list[tuple[str, object]] = []
-    if req.entity == "all" or req.entity == "products":
-        steps.append(("products", main.sync_products))
-    if req.entity == "all" or req.entity == "suppliers":
-        steps.append(("suppliers", main.sync_suppliers))
-    if req.entity == "all" or req.entity == "warehouses":
-        steps.append(("warehouses", main.sync_warehouses))
-    if req.entity == "all" or req.entity == "procurement":
-        if main.get_active_erp_provider().name == "odoo":
-            steps.append(("procurement", main.sync_procurement_orders_to_odoo))
-        elif req.entity == "procurement":
-            raise HTTPException(409, "procurement_sync_requires_odoo_provider")
-    if req.entity == "all" or req.entity == "costs":
-        steps.append(("costs", main.sync_field_costs_to_odoo))
+    available = [
+        ("products", "odoo_to_sahool", main.sync_products),
+        ("suppliers", "odoo_to_sahool", main.sync_suppliers),
+        ("warehouses", "odoo_to_sahool", main.sync_warehouses),
+    ]
+    if provider.name == "odoo":
+        available.append(("procurement", "sahool_to_odoo", main.sync_procurement_orders_to_odoo))
+    elif req.entity == "procurement":
+        raise HTTPException(409, "procurement_sync_requires_odoo_provider")
+    available.append(("costs", "sahool_to_odoo", main.sync_field_costs_to_odoo))
+    steps = [
+        (entity, fn)
+        for entity, direction, fn in available
+        if req.entity in ("all", entity) and req.direction in ("bidirectional", direction)
+    ]
+    if not steps:
+        raise HTTPException(
+            422,
+            {
+                "error": "erp_sync_direction_unsupported",
+                "entity": req.entity,
+                "direction": req.direction,
+            },
+        )
 
     # بوّابة ٢ (R4): مخطّط المزامنة غائب/قاعدة غير متاحة → 503 صريح بدل «queued» كاذب.
     await _schema_or_503(entity=req.entity, steps=[name for name, _ in steps])

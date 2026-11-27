@@ -1546,6 +1546,14 @@ jobs:
           COVERAGE_FILE: .coverage.integration-auth
         run: pytest -v -m integration -rs tests_v9/test_h51_field_source_binding_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
 
+      - name: Field freshness page certification (real PostgreSQL, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          FRESHNESS_CERTIFICATION_REQUIRED: "1"
+          COVERAGE_FILE: .coverage.integration-auth
+        run: pytest -v -m integration -rs tests_v9/test_freshness_page_live_pg.py --cov=services --cov-config=config/coverage-live-integration.rc --cov-append --cov-report=
+
       # عزلُ المستأجرين بـRLS — شاهدان (سالبٌ وموجب) وشاهدُ إبطالِ فراغ. يُشغَّل هنا
       # لا في الجولة العامّة لأنّه يحتاج **الدورَ المقيَّد** في `TEST_DATABASE_URL`:
       # المستخدمُ الخارق يتجاوز RLS بحكم المحرّك، فالجولةُ العامّة تُشغّله بـsuperuser
