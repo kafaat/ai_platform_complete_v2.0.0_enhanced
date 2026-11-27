@@ -405,9 +405,11 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
                 return Row(field_id="fld-1")
             return await super().fetchrow(sql, *args)
 
-        async def fetch(self, sql, field_id, now):
+        async def fetch(self, sql, field_id, now, sample_qualities):
             assert "FROM field_irrigation_source_assignments" in sql
+            assert "q.quality = ANY($3::text[])" in sql
             assert field_id == "fld-1"
+            assert sample_qualities == ["certified", "field_validated", "laboratory_verified"]
             return []
 
     user = SimpleNamespace(tenant_id="tenant-1")
