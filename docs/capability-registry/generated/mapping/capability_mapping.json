@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7771,
     "files_by_kind": {
       "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2259,
-      "tests": 2722,
+      "tests": 2723,
       "web": 587
     },
     "unmapped_artifacts": 3703,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4224,
-      "raw": 3546
+      "raw": 3547
     },
     "test_dependency_files": 2075,
     "test_dependency_edges": 5617,
@@ -17557,6 +17557,14 @@
             "content:equipment maintenance",
             "content:Maintenance"
           ]
+        },
+        {
+          "path": "frontend/e2e/equipment-history-keyboard.spec.ts",
+          "score": 9,
+          "signals": [
+            "content:equipment maintenance",
+            "content:Maintenance"
+          ]
         }
       ],
       "governance": [],
@@ -17572,7 +17580,7 @@
         "events": 0,
         "web": 0,
         "mobile": 1,
-        "tests": 1,
+        "tests": 2,
         "governance": 0,
         "other_evidence": 0
       },
