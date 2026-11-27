@@ -358,7 +358,6 @@
         "services/sahool-platform/api/field_timeline.py",
         "services/sahool-platform/api/field_type_catalog.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
-        "services/sahool-platform/api/georag_evidence.py",
         "services/sahool-platform/api/high_value_crops.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
@@ -866,6 +865,7 @@
         "shared/governance/chemical_lineage.py",
         "shared/knowledge/context_resolver.py",
         "shared/knowledge/contracts.py",
+        "shared/knowledge/georag_evidence.py",
         "shared/knowledge/providers.py",
         "shared/mlops/agronomic_candidate.py",
         "shared/mlops/runtime.py",
@@ -1112,7 +1112,6 @@
         "services/sahool-platform/api/field_workspace_completion_contract.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
         "services/sahool-platform/api/geo_zone_locator.py",
-        "services/sahool-platform/api/georag_evidence.py",
         "services/sahool-platform/api/gis_phase7_enterprise.py",
         "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
         "services/sahool-platform/api/imagery_automation.py",
@@ -1501,6 +1500,7 @@
         "shared/federated_agents_phase11.py",
         "shared/field_runtime_cohesion.py",
         "shared/governance/chemical_lineage.py",
+        "shared/knowledge/georag_evidence.py",
         "shared/knowledge/irrigation_context.py",
         "shared/knowledge/providers.py",
         "shared/marketplace_ecosystem_phase12.py",
@@ -1766,7 +1766,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 420,
+      "evidence_count": 421,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2201,6 +2201,7 @@
         "shared/gis/phase5_runtime.py",
         "shared/gis/test_cloud_native_runtime.py",
         "shared/governance/chemical_lineage.py",
+        "shared/knowledge/georag_evidence.py",
         "shared/marketplace_ecosystem_phase12.py",
         "shared/marketplace_plugin_runtime.py",
         "shared/mlops/agronomic_candidate.py",
@@ -3322,7 +3323,6 @@
         "services/sahool-platform/api/field_models.py",
         "services/sahool-platform/api/field_season_projection.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
-        "services/sahool-platform/api/georag_evidence.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_commissioning_runtime.py",
         "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
@@ -3332,7 +3332,8 @@
         "services/sahool-platform/api/irrigation_recommendation_policy.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/api/irrigation_source_binding.py",
-        "services/sahool-platform/api/lab_store.py"
+        "services/sahool-platform/api/lab_store.py",
+        "services/sahool-platform/api/learning_feedback.py"
       ],
       "source_evidence_count": 840,
       "target_evidence_count": 603,
@@ -3550,7 +3551,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 216,
-      "target_evidence_count": 420,
+      "target_evidence_count": 421,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3597,7 +3598,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 420,
+      "source_evidence_count": 421,
       "target_evidence_count": 52,
       "static_supported": true,
       "runtime_verified": false
@@ -3808,5 +3809,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "fac61a4b0326864418dbb1ae4fc11ec319cd5d14ebfefda8f4f8515601ada5e7"
+  "content_sha256": "039e7d4ded1b8e195100867bf9a758fabf9b415bcb3bc6fb3b751e50c863102c"
 }

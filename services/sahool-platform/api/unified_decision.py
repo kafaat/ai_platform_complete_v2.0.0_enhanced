@@ -20,7 +20,7 @@ import json
 import math
 from typing import Any
 
-from api.georag_evidence import envelope_valid, geometry_digest, not_supplied_envelope
+from shared.knowledge.georag_evidence import envelope_valid, geometry_digest, not_supplied_envelope
 
 SCHEMA_VERSION = "agronomic_decision_support.v1"
 

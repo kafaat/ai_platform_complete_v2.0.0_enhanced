@@ -3312,16 +3312,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/georag_evidence.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://fields",
-      "to": "db://fields",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/imagery_automation.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3393,6 +3383,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/break_glass.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/crop_twin.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",

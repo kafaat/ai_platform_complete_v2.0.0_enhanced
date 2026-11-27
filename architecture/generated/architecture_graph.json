@@ -262,7 +262,7 @@
       ],
       "kind": "service",
       "incoming": 8,
-      "outgoing": 31,
+      "outgoing": 30,
       "orphan": false
     },
     {
@@ -289,7 +289,7 @@
         "services/rag-retrieval"
       ],
       "kind": "service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 0,
       "orphan": false
     },
@@ -1166,12 +1166,6 @@
       "target": "indicators-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/routers/indicators.py"
-    },
-    {
-      "source": "platform",
-      "target": "rag-retrieval",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/api/georag_evidence.py"
     },
     {
       "source": "platform",
@@ -2203,11 +2197,11 @@
   "cycles": [],
   "summary": {
     "nodes": 112,
-    "edges": 206,
+    "edges": 205,
     "orphans": 8,
     "cycles": 0,
-    "code_edges": 69,
+    "code_edges": 68,
     "compose_edges": 137
   },
-  "content_sha256": "4486a92d5dea7cc18d0da2dc8967dcab37aae688981ffb892569de77a6fce8c4"
+  "content_sha256": "c5e527e2fb96ede772536694d1bf540d1c5b011e33a3d515e56d9b90bac4bf3d"
 }

@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 
 import asyncpg
@@ -32,7 +33,6 @@ from api.data_quality import assess_data_quality
 from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.decision_sor_mode import crop_twin_direct_decision_enabled
 from api.economic_state import economic_state
-from api.georag_evidence import fetch_annotations, field_at_point, scope_annotations
 from api.irrigation_method import gross_irrigation_mm, method_profile
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.irrigation_policy import PolicyContext, resolve_policy
@@ -42,6 +42,7 @@ from api.soil_water import soil_water_params
 from api.unified_decision import unified_decision
 from api.water_balance import kc_from_ndvi, kc_map_for_crop
 from api.weather_service_client import get_gdd_product
+from shared.knowledge.georag_evidence import fetch_annotations, scope_annotations
 
 router = APIRouter()
 
@@ -381,6 +382,29 @@ class CropDecisionRequest(CropTwinComposeRequest):
     decision_id: str | None = None  # نَسَب: يُمرَّر لإعادة استخدام السلسلة، أو يُسَكّ جديداً
 
 
+async def _field_at_point(
+    conn, tenant_id: str, longitude: float, latitude: float
+) -> tuple[str, dict]:
+    """Resolve a unique stored field polygon under the authenticated tenant transaction."""
+    rows = await conn.fetch(
+        """SELECT field_id, ST_AsGeoJSON(geom, 15) AS geometry
+             FROM fields
+            WHERE tenant_id = $1::uuid
+              AND GeometryType(geom) IN ('POLYGON', 'MULTIPOLYGON')
+              AND ST_IsValid(geom)
+              AND ST_Covers(geom, ST_SetSRID(ST_MakePoint($2, $3), 4326))
+            LIMIT 2""",
+        tenant_id,
+        longitude,
+        latitude,
+    )
+    if not rows:
+        raise HTTPException(404, "georag_point_outside_fields")
+    if len(rows) != 1:
+        raise HTTPException(409, "georag_point_matches_multiple_fields")
+    return rows[0]["field_id"], json.loads(rows[0]["geometry"])
+
+
 async def _preview_spatial_context(req: CropDecisionRequest, user: UserSchema):
     """Resolve the point before field-dependent composition; release the DB before retrieval."""
     if req.georag is None:
@@ -390,7 +414,7 @@ async def _preview_spatial_context(req: CropDecisionRequest, user: UserSchema):
     tenant_id = str(user.tenant_id)
     try:
         async with tenant_connection(user) as conn:
-            field_id, geometry = await field_at_point(
+            field_id, geometry = await _field_at_point(
                 conn, tenant_id, req.georag.longitude, req.georag.latitude
             )
     except (asyncpg.PostgresError, OSError, TimeoutError) as exc:
