@@ -8,10 +8,10 @@ Generated from the field-authority-resolved capability view. Canonical definitio
 - Service linked: **73**
 - API linked: **63**
 - Test linked: **71**
-- UI linked: **14**
+- UI linked: **15**
 - Mobile linked: **23**
 - Owner assigned: **74**
-- Fully traceable across all six surfaces: **8**
+- Fully traceable across all six surfaces: **9**
 
 ## Lowest traceability capabilities
 

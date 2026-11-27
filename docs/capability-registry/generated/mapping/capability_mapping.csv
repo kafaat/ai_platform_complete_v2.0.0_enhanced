@@ -41,7 +41,7 @@ OPS-003,operations,Scouting,True,7,10,28,48,19,6,18,24,0
 OPS-004,operations,Field forms,True,6,3,12,14,12,0,21,28,1
 OPS-005,operations,Offline mobile,True,7,2,2,9,14,1,13,12,0
 OPS-006,operations,Equipment registry,True,1,1,0,0,0,0,0,0,0
-OPS-007,operations,Maintenance,True,3,0,0,3,0,0,1,1,0
+OPS-007,operations,Maintenance,True,3,0,0,3,0,0,1,2,0
 OPS-008,operations,Workforce and worker identity,False,0,0,0,0,0,0,0,0,0
 PA-001,precision,Management zones,True,6,9,34,8,2,1,0,11,0
 PA-002,precision,Variable rate prescription,True,1,2,0,0,0,0,0,0,0

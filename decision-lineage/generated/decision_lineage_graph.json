@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 840,
+      "evidence_count": 841,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -838,6 +838,7 @@
         "shared/contracts/remote_sensing/schemas/DiagnosisProposedEventV1.schema.json",
         "shared/contracts/remote_sensing/schemas/ObservationPublishedEventV1.schema.json",
         "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
+        "shared/contracts/remote_sensing/thermal.py",
         "shared/contracts/remote_sensing/verification_delivery.py",
         "shared/contracts/soil/__init__.py",
         "shared/contracts/soil/drainage_design.py",
@@ -3335,7 +3336,7 @@
         "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/api/learning_feedback.py"
       ],
-      "source_evidence_count": 840,
+      "source_evidence_count": 841,
       "target_evidence_count": 603,
       "static_supported": true,
       "runtime_verified": false
@@ -3809,5 +3810,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "039e7d4ded1b8e195100867bf9a758fabf9b415bcb3bc6fb3b751e50c863102c"
+  "content_sha256": "687e9a7aa7188faf24988c67afeacd460141863024c0167c3a696cd9d58131b4"
 }

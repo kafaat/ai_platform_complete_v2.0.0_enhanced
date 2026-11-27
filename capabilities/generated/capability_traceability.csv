@@ -35,12 +35,12 @@ IRR-007,Pump and valve control,irrigation,actuator-service+sahool-platform,2,21,
 IRR-008,Execution verification,irrigation,decision-service+sahool-platform,2,0,0,0,0,0,33,"api,test,ui,mobile"
 IRR-009,Water suitability multi-hazard,irrigation,sahool-platform,1,7,13,0,0,11,67,"ui,mobile"
 IRR-010,Leaching and drainage safety,irrigation,sahool-platform,1,2,1,0,0,1,67,"ui,mobile"
-OPS-001,Task management,operations,sahool-platform,1,20,16,0,17,7,83,ui
+OPS-001,Task management,operations,sahool-platform,1,20,17,0,17,7,83,ui
 OPS-002,Work orders,operations,sahool-platform,1,1,8,0,0,3,67,"ui,mobile"
 OPS-003,Scouting,operations,field-management-service,1,40,25,0,16,10,83,ui
 OPS-004,Field forms,operations,field-management-service,1,8,25,2,15,5,100,
 OPS-005,Offline mobile,operations,UNASSIGNED,0,3,25,0,20,5,50,"service,ui,owner"
-OPS-006,Equipment registry,operations,sahool-platform,1,4,5,0,8,5,83,ui
+OPS-006,Equipment registry,operations,sahool-platform,1,4,5,1,8,5,100,
 OPS-007,Maintenance,operations,sahool-platform,1,2,0,0,0,0,50,"test,ui,mobile"
 OPS-008,Workforce and worker identity,operations,auth,1,0,1,0,0,0,50,"api,ui,mobile"
 PA-001,Management zones,precision,vegetation-analysis-service,1,3,7,0,0,5,67,"ui,mobile"
