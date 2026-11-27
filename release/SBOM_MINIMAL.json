@@ -32865,7 +32865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "925b8fe220888dd3171180f455edfc5e4e25d1ed529afb60ffd72670bf68b3b3"
+          "content": "01e0161f79158a03aa35a2f9da99a2ce2e63e96f9a7ce6215b413188b44dff0e"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
@@ -43555,7 +43555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4385d2a17241f177adc2c93ea8191f066e6f659d5056208838c42fa4e05401b6"
+          "content": "eb87509cda5179a286485737ccf6c23ee8f8f35fb0746f8251ef52eddc62f353"
         }
       ],
       "name": "shared/knowledge/georag_evidence.py",
