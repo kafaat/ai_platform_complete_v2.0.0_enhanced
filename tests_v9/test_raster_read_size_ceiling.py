@@ -98,13 +98,13 @@ def _calls_guard_before_read(path: Path, func_name: str) -> bool:
         if isinstance(node, ast.FunctionDef) and node.name == func_name
     )
     guard_line = read_line = None
-    for node in ast.walk(fn):
+    for node in sorted(ast.walk(fn), key=lambda n: getattr(n, "lineno", 0)):
         if isinstance(node, ast.Call):
             rendered = ast.unparse(node.func)
             if rendered.endswith("assert_readable_size") and guard_line is None:
                 guard_line = node.lineno
             # ``rasterio.mask.mask`` (المستورَد ``_rio_mask``) يقرأ المجموعة كاملةً أيضاً.
-            allocates = rendered.endswith(".read") or rendered == "_rio_mask"
+            allocates = rendered in {"src.read", "_rio_mask", "cdse_native_product.measured_pixels"}
             if allocates and read_line is None:
                 read_line = node.lineno
     return guard_line is not None and read_line is not None and guard_line < read_line

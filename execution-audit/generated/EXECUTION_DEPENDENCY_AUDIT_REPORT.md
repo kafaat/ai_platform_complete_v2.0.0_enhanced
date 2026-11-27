@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **2290**
+- Python files parsed: **2295**
 - FastAPI-style route handlers: **1100**
-- Static function-call edges: **125329**
+- Static function-call edges: **125874**
 - Dead-code candidates: **694**
-- Duplicate function groups: **67**
+- Duplicate function groups: **66**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -33,8 +33,8 @@
 | `sahool-platform` | `_extract_ec` | function | `services/sahool-platform/api/field_state_projection.py` | 281 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 71 |
 | `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1146 |
-| `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
-| `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
+| `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 194 |
+| `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 212 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 435 |
 | `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1120 |
 | `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1134 |
@@ -102,7 +102,6 @@
 | `62a08c439a5d8220` | 2 |
 | `69e415224b4d3b71` | 4 |
 | `6dcb6ad9fc0cd5a9` | 2 |
-| `6f642e211a717584` | 2 |
 | `732840534ed80cbd` | 5 |
 | `734027586cb4dbe9` | 2 |
 | `7644d918a15bde1e` | 4 |
@@ -120,6 +119,7 @@
 | `9e9d6bb7f5f44b29` | 2 |
 | `9fcb13bf88a96d6a` | 2 |
 | `aa517cd1f9c74cf4` | 3 |
+| `abea79905276671b` | 2 |
 
 ## Interpretation
 

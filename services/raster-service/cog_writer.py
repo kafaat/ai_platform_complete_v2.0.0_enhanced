@@ -92,6 +92,7 @@ def write_cog(
     nodata: float = DEFAULT_NODATA,
     *,
     spatial_sampling: dict | None = None,
+    band_unit: str | None = None,
 ) -> dict:
     """يكتب مصفوفة مؤشّر كـCOG محسّن (ضغط + بلاطات + أهرامات داخليّة).
 
@@ -131,6 +132,8 @@ def write_cog(
 
     def _write(path: str) -> None:
         with rasterio.open(path, "w", **profile) as dst:
+            if band_unit is not None:
+                dst.set_band_unit(1, band_unit)
             if spatial_sampling is not None:
                 dst.update_tags(
                     SAHOOL_SPATIAL_SAMPLING=json.dumps(spatial_sampling, allow_nan=False)

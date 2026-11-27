@@ -35,6 +35,7 @@ from shared.contracts.remote_sensing import (
 )
 from shared.contracts.remote_sensing.admission import POLICY_VERSION, quality_reasons
 from shared.contracts.remote_sensing.observation_v1 import RasterObservationProvenanceV1
+from shared.contracts.remote_sensing.thermal import observation_unit
 
 RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
     "/"
@@ -217,7 +218,7 @@ def canonicalize_bundle(
                     code=str(indicator_code),
                     semantic_version=_algorithm_version(product),
                     value_type=ValueType.CONTINUOUS,
-                    unit="1",
+                    unit=observation_unit(str(indicator_code), provenance.get("algorithm_version")),
                     algorithm_ref=provenance.get("algorithm_version"),
                 ),
                 acquired_at=acquired,
@@ -228,7 +229,9 @@ def canonicalize_bundle(
                     median=_to_decimal(stats.get("median")),
                     p10=_to_decimal(stats.get("p10")),
                     p90=_to_decimal(stats.get("p90")),
-                    stddev=_to_decimal(stats.get("std")) or _to_decimal(stats.get("stddev")),
+                    stddev=_to_decimal(
+                        stats.get("std") if stats.get("std") is not None else stats.get("stddev")
+                    ),
                     minimum=_to_decimal(stats.get("min")),
                     maximum=_to_decimal(stats.get("max")),
                 ),

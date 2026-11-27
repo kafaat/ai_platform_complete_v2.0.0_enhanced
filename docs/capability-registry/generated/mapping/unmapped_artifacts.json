@@ -4528,6 +4528,10 @@
     "kind": "tests"
   },
   {
+    "path": "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
     "kind": "tests"
   },
@@ -5712,6 +5716,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/landsat_st.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/layer_cache_events.py",
     "kind": "backend"
   },
@@ -5949,6 +5957,10 @@
   },
   {
     "path": "services/raster-service/test_job_truth_receipts_and_fencing.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_landsat_field_lst.py",
     "kind": "tests"
   },
   {
@@ -8833,6 +8845,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_crop_decision_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
     "kind": "tests"
   },
   {

@@ -42,6 +42,7 @@ class _InspectionReviewPanelState extends State<InspectionReviewPanel> {
           await api.post(action == 'accept' ? '$path/accept' : '$path/finding', data: {
             'expected_revision':state!['revision'],
             if (action != 'accept') ...{'action':action,'reason':note.text.trim()},
+            if (action == 'submit') 'notes':note.text.trim(),
             if (action == 'submit' && photo != null) 'photo_evidence_id':photo,
             if (action == 'approve' || action == 'return') 'evidence_version':submitted,
           });

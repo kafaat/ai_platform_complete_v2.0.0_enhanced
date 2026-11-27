@@ -2351,7 +2351,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 98,
+    "line": 97,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "handler": "gis_admin_boundaries",
@@ -2360,7 +2360,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 147,
+    "line": 146,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "handler": "process_from_stac",
@@ -2369,7 +2369,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 272,
+    "line": 271,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "handler": "field_historical_backfill",
@@ -4556,7 +4556,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 245,
+    "line": 249,
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "handler": "compose_crop_twin",
@@ -4565,7 +4565,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 303,
+    "line": 307,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "handler": "crop_decision_candidate_endpoint",
@@ -4574,7 +4574,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 413,
+    "line": 490,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "handler": "crop_decision_endpoint",
@@ -4583,7 +4583,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 537,
+    "line": 617,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "handler": "profit_aware_decision_endpoint",
@@ -6896,7 +6896,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 98,
+    "line": 102,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/plan",
     "handler": "irrigation_mpc_plan",
@@ -6905,7 +6905,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 165,
+    "line": 169,
     "method": "GET",
     "path": "/api/v1/irrigation/mpc/capabilities",
     "handler": "irrigation_mpc_capabilities",
@@ -6914,7 +6914,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 296,
+    "line": 310,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/simulate",
     "handler": "irrigation_mpc_simulate",
@@ -6923,7 +6923,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 329,
+    "line": 343,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
     "handler": "irrigation_mpc_recommendation",
@@ -6932,7 +6932,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 553,
+    "line": 567,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
     "handler": "irrigation_mpc_hourly_recommendation",
@@ -6941,7 +6941,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 594,
+    "line": 608,
     "method": "POST",
     "path": "/api/v1/irrigation/executions/reconcile",
     "handler": "reconcile_irrigation_execution",

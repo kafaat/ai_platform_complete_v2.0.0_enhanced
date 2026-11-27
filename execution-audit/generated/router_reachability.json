@@ -424,7 +424,7 @@
     },
     {
       "kind": "router",
-      "line": 90,
+      "line": 89,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -865,7 +865,7 @@
     },
     {
       "kind": "router",
-      "line": 41,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.crop_twin",
       "node_id": "services.sahool-platform.api.routers.crop_twin:router",
       "route_count": 4,
@@ -1414,7 +1414,7 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.irrigation_mpc",
       "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
       "route_count": 6,
@@ -2511,7 +2511,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 64,
+  "include_edge_count": 65,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2667,6 +2667,15 @@
       "target": null
     },
     {
+      "expression": "crop_twin.router",
+      "line": 94,
+      "module": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_crop_georag_point_pg:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "gis_cloud_native.router",
       "line": 34,
       "module": "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
@@ -2776,7 +2785,7 @@
     },
     {
       "expression": "route.router",
-      "line": 173,
+      "line": 176,
       "module": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
       "prefix": null,
       "resolved": false,
@@ -3090,7 +3099,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f2812e33558ac9510f9049dbc1c356dc9f372b036009a92fcc120c2d3cfed2da",
+  "inventory_sha256": "2eedefdfedd260284daf1121e6074ff7a30a1a18552e433e9f8e6c11c0dd0076",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -3306,7 +3315,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 90,
+      "line": 89,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -3776,7 +3785,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 41,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.crop_twin",
       "node_id": "services.sahool-platform.api.routers.crop_twin:router",
       "route_count": 4,
@@ -4386,7 +4395,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.irrigation_mpc",
       "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
       "route_count": 6,
@@ -5491,7 +5500,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 58,
+  "unresolved_include_count": 59,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5607,6 +5616,14 @@
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+      "line": 94,
+      "module": "services.sahool-platform.tests.test_crop_georag_point_pg",
+      "source": null,
+      "target_expression": "crop_twin.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
       "line": 34,
       "module": "services.sahool-platform.tests.test_d1_raster_owner_write_commands",
@@ -5704,7 +5721,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-      "line": 173,
+      "line": 176,
       "module": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator",
       "source": null,
       "target_expression": "route.router"

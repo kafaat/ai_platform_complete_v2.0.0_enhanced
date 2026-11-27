@@ -24,7 +24,7 @@ function EvidenceLine({ label, item }: { label: string; item: Evidence }) {
 }
 
 type Command = {
-  action: Event['action']; expected_revision: number; assigned_to?: number; reason?: string;
+  action: Event['action']; expected_revision: number; assigned_to?: number; reason?: string; notes?: string;
   evidence_version?: number; photo_evidence_id?: string;
 };
 
@@ -91,7 +91,7 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
       {(data.can_submit ? ['submit'] as const : ['approve','return'] as const).map(action =>
         <button key={action} type="button" disabled={change.isPending || !finding.trim()}
           onClick={() => change.mutate(action === 'submit'
-            ? {action, reason:finding.trim(), expected_revision:data.revision,
+            ? {action, reason:finding.trim(), notes:finding.trim(), expected_revision:data.revision,
                ...(data.current_evidence?.photo_evidence_id ? {photo_evidence_id:data.current_evidence.photo_evidence_id} : {})}
             : {action, reason:finding.trim(), expected_revision:data.revision, evidence_version:submitted ?? undefined})}>
           {{submit:'رفع النتيجة للمراجعة', approve:'اعتماد نتيجة التفتيش', return:'إعادة للاستكمال'}[action]}

@@ -66,7 +66,7 @@ async def list_tasks(
             raise
         except Exception as exc:  # noqa: BLE001
             raise _db_unavailable("قراءة ملاحظات الري", exc) from exc
-    order = "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC"
+    order = "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC, task_id ASC"
     where = "WHERE field_id = $1 " if field_id else ""
     base_args: list[object] = [field_id] if field_id else []
     paginate = limit is not None

@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import httpx
+import raster_settings
 from fastapi import HTTPException
 from scene_policy import parse_cloud_cover_pct
 
@@ -30,15 +31,7 @@ LANDSAT_UNIQUE_INDICES = {"lst", "cwsi", "tvdi", "tci", "vhi", "et_inputs"}
 LANDSAT_DIRECT_RASTER_INDICES = {"lst"}
 LANDSAT_DERIVED_INDICES = {"cwsi", "tvdi", "tci", "vhi", "et_inputs"}
 LANDSAT_DUPLICATE_SENTINEL_INDICES = set()
-LANDSAT_THERMAL_ASSET_CANDIDATES = (
-    "lwir11",
-    "surface_temperature",
-    "st",
-    "st_b10",
-    "tir",
-    "thermal",
-    "thermal_ir",
-)
+LANDSAT_THERMAL_ASSET_CANDIDATES = raster_settings.LANDSAT_THERMAL_ASSET_CANDIDATES
 
 
 def configure(
@@ -436,25 +429,19 @@ async def stac_search_radar(bbox: list[float], dt_start: str, dt_end: str, limit
 def landsat_thermal_href(assets: dict) -> str | None:
     """Select only the thermal/LST asset from Landsat C2 L2 STAC assets."""
 
-    for key in LANDSAT_THERMAL_ASSET_CANDIDATES:
-        href = (assets.get(key) or {}).get("href") if isinstance(assets.get(key), dict) else None
-        if href:
-            return href
-    for key, asset in (assets or {}).items():
-        lower_key = str(key).lower()
-        title = str((asset or {}).get("title", "")).lower() if isinstance(asset, dict) else ""
-        href = (asset or {}).get("href") if isinstance(asset, dict) else None
-        if href and (
-            "surface temperature" in title or "temperature" in lower_key or "thermal" in lower_key
-        ):
-            return href
-    return None
+    from landsat_st import select_asset
+
+    _, asset = select_asset(assets, LANDSAT_THERMAL_ASSET_CANDIDATES)
+    return asset.get("href")
 
 
 def landsat_unique_payload(feat: dict, provider: str = "element84") -> dict | None:
     props = feat.get("properties", {}) or {}
     assets = feat.get("assets", {}) or {}
-    thermal_href = landsat_thermal_href(assets)
+    from landsat_st import catalog_contract, select_asset
+
+    key, thermal = select_asset(assets, LANDSAT_THERMAL_ASSET_CANDIDATES)
+    thermal_href = thermal.get("href")
     if not thermal_href:
         return None
     platform = props.get("platform", "landsat")
@@ -470,6 +457,7 @@ def landsat_unique_payload(feat: dict, provider: str = "element84") -> dict | No
         "provider": f"landsat-{provider}",
         "data_type": "thermal_unique",
         "thermal_urls": {"lst": thermal_href},
+        "thermal_contract": catalog_contract(feat, key, thermal),
         "direct_indices": sorted(LANDSAT_DIRECT_RASTER_INDICES),
         "derived_indices": sorted(LANDSAT_DERIVED_INDICES),
         "excluded_duplicate_sentinel_indices": sorted(LANDSAT_DUPLICATE_SENTINEL_INDICES),

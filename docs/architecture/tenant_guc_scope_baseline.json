@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "49052e839d379c009001745d99a51064c45dbe93",
+  "measured_on": "4d433453010ca38d7dbaeb46e6a3cc81837424d2",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "85df82f27fba912586691cf024e53c6f5088598288f2727447dafefd840823bd",
+  "measurement_input_digest": "180e7ccaa614c81e2095f208bc9f6858fd71e0f55c23b1d5365d5b26c306dea1",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "351af0dd3d757e9e1f51f91c391e1b59d3f01b9690688f1b82df6c3cb7a97659",
+  "measurement_basis_digest": "546d95b9eb190f903752c41e153bd0f5911325875383f4127b80725fef60a4a9",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -108,7 +108,7 @@
     },
     {
       "path": "services/raster-service/backfill_scan_worker.py",
-      "sha256": "b7a7474adb3b3b3c5bb05ca51ad6ca78dde9ea4bb737ada2e3d206a6db8099dc"
+      "sha256": "f80be4d11a007eeddff39cf5e0c07f1bf17d568dda36aa4e0f0879dfb656ba93"
     },
     {
       "path": "services/raster-service/cache_invalidation_worker.py",
@@ -243,7 +243,7 @@
   "offenders": [
     "services/actuator-service/actuator_runtime.py:1772",
     "services/auth/main.py:993",
-    "services/raster-service/backfill_scan_worker.py:170",
+    "services/raster-service/backfill_scan_worker.py:207",
     "services/raster-service/cache_invalidation_worker.py:126",
     "services/sahool-platform/api/imagery_automation.py:201",
     "services/sahool-platform/api/phase_runtime_store.py:100",

@@ -58,12 +58,12 @@ def _inputs() -> dict:
     }
 
 
-def test_builds_verified_capability_and_uses_weakest_flow_limit() -> None:
-    capability = build_canonical_well_capability(**_inputs())
-    assert capability.status == "verified"
-    assert capability.operational_eligible is True
-    # Allocation: 3000 m3 / 86400 s = 34.7222 L/s, lower than the certified 42 L/s.
-    assert round(capability.maximum_flow_lps, 4) == 34.7222
+def test_preserves_hydraulic_measurements_while_abstraction_is_unverified() -> None:
+    capability = build_canonical_well_capability(**_with_aquifer(sustainable_abstraction_lps=45.0))
+    assert capability.status == "blocked"
+    assert capability.remaining_daily_volume_m3 == 3000
+    assert capability.well_hydraulic_flow_lps == 42
+    assert capability.maximum_flow_lps == 0
     assert capability.drawdown_m == 10.0
     assert capability.specific_capacity_lps_per_m == 4.8
     assert len(capability.capability_digest) == 64
@@ -99,12 +99,109 @@ def test_digest_changes_when_allocation_changes() -> None:
     assert first.capability_digest != second.capability_digest
 
 
-def test_mpc_adapter_is_fail_closed_and_carries_digest() -> None:
-    capability = build_canonical_well_capability(**_inputs())
+def test_mpc_adapter_rejects_older_verified_snapshots() -> None:
+    capability = build_canonical_well_capability(**_with_aquifer()).to_dict()
+    capability.update(status="verified", operational_eligible=True, maximum_flow_lps=30.0)
     constraints = well_capability_to_mpc_constraints(capability)
-    assert constraints["status"] == "available"
-    assert constraints["source_well_id"] == "well-1"
-    assert constraints["well_capability_digest"] == capability.capability_digest
+    assert constraints["status"] == "blocked"
+    assert constraints["blocking_reasons"] == ["AQUIFER_ALLOCATION_UNVERIFIED"]
 
     blocked = well_capability_to_mpc_constraints({"status": "blocked", "reason": "missing"})
     assert blocked["status"] == "blocked"
+
+
+# ───────── P1: pumping test alone never proves sustainable aquifer abstraction ─────────
+
+
+def _aquifer(**over) -> dict:
+    ev = {
+        "evidence_id": "aq-ev-1",
+        "water_source_id": "source-1",
+        "tenant_id": "tenant-1",
+        "aquifer_id": "aquifer-1",
+        "status": "certified",
+        "basis": "hydrogeological_assessment",
+        "issuer": "regulator-x",
+        "assessed_at": (NOW - timedelta(days=100)).isoformat(),
+        "valid_until": (NOW + timedelta(days=100)).isoformat(),
+        "sustainable_abstraction_lps": 30.0,
+    }
+    ev.update(over)
+    return ev
+
+
+def _with_aquifer(**over) -> dict:
+    values = _inputs()
+    values["water_source"]["evidence"]["aquifer_safe_yield"] = _aquifer(**over)
+    return values
+
+
+def test_pumping_test_alone_is_not_operational_eligible() -> None:
+    capability = build_canonical_well_capability(**_inputs())
+    assert capability.operational_eligible is False
+    assert capability.status == "blocked"
+    assert "AQUIFER_SAFE_YIELD_EVIDENCE_REQUIRED" in capability.blocking_reasons
+    assert well_capability_to_mpc_constraints(capability)["status"] == "blocked"
+
+
+def test_source_report_preserves_the_shared_claim_without_authorizing_abstraction() -> None:
+    capability = build_canonical_well_capability(**_with_aquifer())
+    assert capability.operational_eligible is False
+    assert capability.evidence["reported_aquifer_ceiling_lps"] == 30.0
+    assert capability.aquifer_safe_yield_lps is None
+    assert capability.maximum_flow_lps == 0.0
+    assert capability.well_hydraulic_flow_lps == 42.0
+    assert capability.evidence["aquifer_safe_yield_evidence_id"] == "aq-ev-1"
+
+
+def test_aquifer_evidence_failures_fail_closed() -> None:
+    bad = {
+        "scope_mismatch": {"water_source_id": "other-source"},
+        "tenant_mismatch": {"tenant_id": "other-tenant"},
+        "uncertified": {"status": "draft"},
+        "expired": {"valid_until": (NOW - timedelta(days=1)).isoformat()},
+        "no_expiry": {"valid_until": None},
+        "zero": {"sustainable_abstraction_lps": 0},
+        "bool": {"sustainable_abstraction_lps": True},
+        "no_id": {"evidence_id": ""},
+        "no_issuer": {"issuer": ""},
+        "no_aquifer": {"aquifer_id": ""},
+    }
+    for name, over in bad.items():
+        cap = build_canonical_well_capability(**_with_aquifer(**over))
+        assert cap.operational_eligible is False, name
+        assert "AQUIFER_SAFE_YIELD_EVIDENCE_INVALID" in cap.blocking_reasons, name
+
+
+def test_pumping_test_flow_in_well_evidence_is_not_accepted_as_aquifer_evidence() -> None:
+    values = _inputs()
+    values["well"]["evidence"]["aquifer_safe_yield"] = _aquifer()
+    cap = build_canonical_well_capability(**values)
+    assert cap.operational_eligible is False
+
+
+def test_malformed_jsonb_never_raises_or_authorizes_a_well():
+    from api.canonical_well_capability import evaluate_aquifer_safe_yield_evidence
+
+    for malformed in (["not-an-object"], [], True, 3, "text", {"aquifer_safe_yield": []}):
+        result = evaluate_aquifer_safe_yield_evidence(
+            water_source={"evidence": malformed},
+            tenant_id="tenant-1",
+            water_source_id="source-1",
+            now=NOW,
+        )
+        assert result["limit_lps"] is None
+        assert result["blockers"] == ["AQUIFER_SAFE_YIELD_EVIDENCE_INVALID"]
+
+
+def test_six_wells_cannot_each_claim_the_shared_abstraction_limit():
+    for index in range(6):
+        source = f"source-{index}"
+        inputs = _with_aquifer(water_source_id=source)
+        inputs["water_source"]["id"] = source
+        inputs["well"].update(id=f"well-{index}", water_source_id=source)
+        cap = build_canonical_well_capability(**inputs)
+        assert cap.operational_eligible is False
+        assert cap.maximum_flow_lps == 0.0
+        assert "AQUIFER_ALLOCATION_UNVERIFIED" in cap.blocking_reasons
+        assert cap.well_hydraulic_flow_lps == 42.0

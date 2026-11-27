@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7778,
     "files_by_kind": {
-      "backend": 1321,
+      "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
-      "other": 2259,
-      "tests": 2722,
+      "other": 2261,
+      "tests": 2727,
       "web": 587
     },
-    "unmapped_artifacts": 3703,
+    "unmapped_artifacts": 3707,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4224,
-      "raw": 3546
+      "python_functional": 4230,
+      "raw": 3548
     },
-    "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
-    "test_dependency_bounded_files": 1193,
+    "test_dependency_files": 2078,
+    "test_dependency_edges": 5637,
+    "test_dependency_bounded_files": 1195,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -6220,6 +6220,14 @@
             "path:field workspace",
             "content:field workspace"
           ]
+        },
+        {
+          "path": "tests_v9/test_p2_georag_decision.py",
+          "score": 9,
+          "signals": [
+            "content:field boundary",
+            "content:field geometry"
+          ]
         }
       ],
       "governance": [
@@ -6393,7 +6401,7 @@
         "events": 62,
         "web": 3,
         "mobile": 2,
-        "tests": 17,
+        "tests": 18,
         "governance": 1,
         "other_evidence": 18
       },
@@ -10562,7 +10570,7 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:270",
           "score": 16
         },
         {
@@ -10594,7 +10602,7 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:145",
           "score": 16
         },
         {
@@ -10614,7 +10622,7 @@
           "score": 16
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:96",
           "score": 16
         },
         {
@@ -13706,27 +13714,27 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:552",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:566",
           "score": 9
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:328",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:342",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:593",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:607",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:164",
+          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:168",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:97",
+          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:101",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:295",
+          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:309",
           "score": 9
         }
       ],
@@ -13778,7 +13786,7 @@
           "score": 12
         },
         {
-          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:47",
+          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:51",
           "score": 9
         }
       ],
@@ -13855,7 +13863,7 @@
       "backend": [
         {
           "path": "services/sahool-platform/api/irrigation_source_binding.py",
-          "score": 18,
+          "score": 20,
           "signals": [
             "content:field water source",
             "content:Field water-source binding",
@@ -17557,6 +17565,14 @@
             "content:equipment maintenance",
             "content:Maintenance"
           ]
+        },
+        {
+          "path": "frontend/e2e/equipment-history-keyboard.spec.ts",
+          "score": 9,
+          "signals": [
+            "content:equipment maintenance",
+            "content:Maintenance"
+          ]
         }
       ],
       "governance": [],
@@ -17572,7 +17588,7 @@
         "events": 0,
         "web": 0,
         "mobile": 1,
-        "tests": 1,
+        "tests": 2,
         "governance": 0,
         "other_evidence": 0
       },
@@ -18956,7 +18972,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:270",
           "score": 18
         },
         {
@@ -18988,7 +19004,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:145",
           "score": 18
         },
         {
@@ -19008,7 +19024,7 @@
           "score": 18
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:96",
           "score": 18
         },
         {
@@ -21456,19 +21472,19 @@
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:244",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:248",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:412",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:489",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:306",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:536",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:616",
           "score": 8
         },
         {
@@ -23372,19 +23388,19 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:244",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:248",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:412",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:489",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:306",
           "score": 8
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:536",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:616",
           "score": 8
         }
       ],
@@ -38048,6 +38064,10 @@
       "kind": "tests"
     },
     {
+      "path": "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
+      "kind": "tests"
+    },
+    {
       "path": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
       "kind": "tests"
     },
@@ -39232,6 +39252,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/raster-service/landsat_st.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/raster-service/layer_cache_events.py",
       "kind": "backend"
     },
@@ -39469,6 +39493,10 @@
     },
     {
       "path": "services/raster-service/test_job_truth_receipts_and_fencing.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_landsat_field_lst.py",
       "kind": "tests"
     },
     {
@@ -42353,6 +42381,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_crop_decision_endpoint.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
       "kind": "tests"
     },
     {
@@ -57575,6 +57607,16 @@
           "source": "services/indicators-service/observation_runtime.py",
           "kind": "source_read",
           "line": 7
+        },
+        {
+          "source": "services/indicators-service/observation_timeline.py",
+          "kind": "import",
+          "line": 53
+        },
+        {
+          "source": "shared/contracts/remote_sensing/thermal.py",
+          "kind": "import",
+          "line": 55
         }
       ],
       "unresolved": []
@@ -59416,6 +59458,41 @@
           "source": "services/raster-service/raster_stage_receipt.py",
           "kind": "import",
           "line": 30
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_landsat_field_lst.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/raster-service/db_persist.py",
+          "kind": "import",
+          "line": 7
+        },
+        {
+          "source": "services/raster-service/raster_api_models.py",
+          "kind": "import",
+          "line": 10
+        },
+        {
+          "source": "services/raster-service/raster_processing_runtime.py",
+          "kind": "import",
+          "line": 11
+        },
+        {
+          "source": "services/raster-service/raster_settings.py",
+          "kind": "import",
+          "line": 247
+        },
+        {
+          "source": "services/raster-service/stac_search.py",
+          "kind": "import",
+          "line": 13
         }
       ],
       "unresolved": []
@@ -62788,6 +62865,39 @@
           "source": "services/sahool-platform/api/routers/crop_twin.py",
           "kind": "import",
           "line": 10
+        },
+        {
+          "source": "services/sahool-platform/core/canonical_schemas.py",
+          "kind": "import",
+          "line": 18
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 16
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 16
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 17
+        },
+        {
+          "source": "services/sahool-platform/api/routers/crop_twin.py",
+          "kind": "import",
+          "line": 17
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
@@ -66866,12 +66976,12 @@
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 148
+          "line": 151
         },
         {
           "source": "services/sahool-platform/api/routers/irrigation_mpc.py",
           "kind": "import",
-          "line": 148
+          "line": 151
         }
       ],
       "unresolved": []
@@ -80821,17 +80931,17 @@
         {
           "source": "services/weather-service/canonical_weather_state.py",
           "kind": "import",
-          "line": 522
+          "line": 535
         },
         {
           "source": "services/weather-service/et0.py",
           "kind": "import",
-          "line": 523
+          "line": 536
         },
         {
           "source": "services/weather-service/open_meteo.py",
           "kind": "import",
-          "line": 524
+          "line": 537
         }
       ],
       "unresolved": [
@@ -80908,19 +81018,19 @@
           "import": "api.canonical_water_state"
         },
         {
-          "line": 438,
+          "line": 451,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 439,
+          "line": 452,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 519,
+          "line": 532,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 555,
+          "line": 568,
           "import": "api.canonical_water_state"
         }
       ]
@@ -83842,11 +83952,11 @@
           "call": "spec_from_file_location"
         },
         {
-          "line": 1004,
+          "line": 1014,
           "call": "spec_from_file_location"
         },
         {
-          "line": 1062,
+          "line": 1072,
           "call": "spec_from_file_location"
         }
       ]
@@ -87735,14 +87845,39 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 303
+        },
+        {
           "source": "services/sahool-platform/api/canonical_well_capability.py",
           "kind": "import",
           "line": 49
         },
         {
+          "source": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+          "kind": "import",
+          "line": 303
+        },
+        {
           "source": "services/sahool-platform/api/irrigation_source_binding.py",
           "kind": "import",
           "line": 53
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 304
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 305
+        },
+        {
+          "source": "services/sahool-platform/api/routers/irrigation_mpc.py",
+          "kind": "import",
+          "line": 305
         }
       ],
       "unresolved": []
@@ -92530,6 +92665,29 @@
           "source": "scripts/ci/p1_main_decomposition_guard.py",
           "kind": "source_read",
           "line": 13
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_p2_georag_decision.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/unified_decision.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "import",
+          "line": 26
+        },
+        {
+          "source": "shared/knowledge/georag_evidence.py",
+          "kind": "import",
+          "line": 28
         }
       ],
       "unresolved": []

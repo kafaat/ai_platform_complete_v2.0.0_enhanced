@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from api.canonical_water_state import resolve_canonical_water_state
+from api.canonical_well_capability import AQUIFER_ALLOCATION_UNVERIFIED
 from api.field_context import _field_weather_context
 from api.hourly_energy_aware_irrigation_mpc import solve_hourly_energy_aware_mpc
+from api.irrigation_source_binding import aquifer_allocation_blocker
 from api.persisted_canonical_repositories import decode_jsonb
 from api.weather_service_client import get_hourly_etc_product
 from shared.knowledge.context_resolver import ContextResolver
@@ -100,7 +102,7 @@ def _blocked(*, field_id: str, reason: str, missing: list[str] | None = None) ->
 async def _latest_capability_graph(conn, *, field_id: str, season_id: str) -> dict[str, Any] | None:
     row = await conn.fetchrow(
         """
-        SELECT payload, capability_digest, status, operational_eligible
+        SELECT payload, well_id, capability_digest, status, operational_eligible
           FROM canonical_irrigation_capability_graphs
          WHERE field_id=$1 AND season_id=$2
          ORDER BY created_at DESC
@@ -112,6 +114,8 @@ async def _latest_capability_graph(conn, *, field_id: str, season_id: str) -> di
     if row is None:
         return None
     payload = _jsonb_object(row["payload"], column="canonical_irrigation_capability_graphs.payload")
+    if row["well_id"] is not None:
+        payload["well_id"] = str(row["well_id"])
     payload.setdefault("irrigation_capability_digest", str(row["capability_digest"]))
     payload.setdefault("capability_digest", str(row["capability_digest"]))
     payload.setdefault("status", str(row["status"]))
@@ -347,6 +351,12 @@ async def orchestrate_irrigation_recommendation(
 ) -> dict[str, Any]:
     """Resolve and schedule a server-owned operational irrigation recommendation."""
     horizon_hours = max(1, min(int(horizon_hours), 72))
+    now = datetime.now(UTC)
+    blocker = await aquifer_allocation_blocker(
+        conn, field_id, tenant_id=tenant_id, start=now, end=now + timedelta(hours=horizon_hours)
+    )
+    if blocker:
+        return _blocked(field_id=field_id, reason=blocker)
     water = await resolve_canonical_water_state(
         conn,
         tenant_id=tenant_id,
@@ -390,6 +400,17 @@ async def orchestrate_irrigation_recommendation(
     if gate is None:
         return _blocked(field_id=field_id, reason="commissioning_executability_gate_missing")
 
+    # A persisted well graph can outlive the binding, the evidence or the allocation.
+    evidence = capability.get("evidence", {})
+    if not isinstance(evidence, dict):
+        return _blocked(
+            field_id=field_id,
+            reason="canonical_runtime_row_malformed",
+            missing=["canonical_irrigation_capability_graphs.payload.evidence"],
+        )
+    if capability.get("well_id") or evidence.get("well_capability_digest"):
+        return _blocked(field_id=field_id, reason=AQUIFER_ALLOCATION_UNVERIFIED)
+
     # عقدُ المعرفة يُحَلّ **قبل** الجدولة: المعرفة التي تقوم عليها التوصية
     # مُعلَنةٌ في مكانٍ واحد ويُفشِل غيابُها هنا بسببٍ يسمّي المفتاح، بدل أن
     # يظهر لاحقاً بـ`COMPLETE_ENGINEERING_CAPABILITY_REQUIRED` الذي يجمع خمسة
@@ -422,6 +443,17 @@ async def orchestrate_irrigation_recommendation(
             reason=str(hourly_product.get("reason") or "native_hourly_etc_unavailable"),
             missing=hourly_product.get("missing"),
         )
+    # Weather-normalized instants are the actual solver windows. Check their full intervals.
+    hours = [datetime.fromisoformat(item["hour"].replace("Z", "+00:00")) for item in hourly]
+    blocker = await aquifer_allocation_blocker(
+        conn,
+        field_id,
+        tenant_id=tenant_id,
+        start=min(datetime.now(UTC), min(hours)),
+        end=max(hours) + timedelta(hours=1),
+    )
+    if blocker:
+        return _blocked(field_id=field_id, reason=blocker)
     schedule = solve_hourly_energy_aware_mpc(
         tenant_id=tenant_id,
         field_id=field_id,

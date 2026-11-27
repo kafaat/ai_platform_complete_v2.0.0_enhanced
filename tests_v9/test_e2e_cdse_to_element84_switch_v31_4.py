@@ -931,12 +931,22 @@ class TestBackfillWorkerElement84Integration:
         )
 
     def test_worker_element84_provider_fallback_to_cdse(self):
-        """إن لم يُضبَط provider، يُفترَض cdse (المزوّد الافتراضيّ)."""
-        src = _read(_RASTER / "backfill_scan_worker.py")
-        # الكود: scene.get("provider") or "cdse"
-        assert '(scene.get("provider") or "cdse")' in src, (
-            "العامل يجب أن يسقط إلى cdse افتراضيّاً إن لم يُضبَط provider"
-        )
+        """Preserve an explicit provider, with product-specific defaults for missing values."""
+        tree = ast.parse(_read(_RASTER / "backfill_scan_worker.py"))
+        assignments = [
+            node.value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "provider_key"
+                for target in node.targets
+            )
+        ]
+        expected = ast.parse(
+            'scene.get("provider") or ("landsat-element84" if is_landsat_thermal else "cdse")',
+            mode="eval",
+        ).body
+        assert [ast.dump(value) for value in assignments] == [ast.dump(expected)]
 
     def test_worker_stac_search_call_passes_geometry(self):
         """العامل يمرّر geometry= للبحث — ضروريّ لقصّ CDSE/element84 بدقّة."""

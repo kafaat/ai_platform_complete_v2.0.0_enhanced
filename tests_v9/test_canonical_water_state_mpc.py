@@ -386,7 +386,19 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
     import api.routers.irrigation_mpc as route
     from api.canonical_water_state import resolve_canonical_water_state
 
+    aquifer_checks = []
+
     class FieldConnection(FakeConn):
+        async def fetchval(self, sql, *args):
+            if "FROM field_irrigation_source_assignments" in sql:
+                assert "s.source_type = 'well'" in sql
+                field_id, start, end, tenant_id = args
+                assert (field_id, tenant_id) == ("fld-1", "tenant-1")
+                assert end - start == timedelta(days=1)
+                aquifer_checks.append(field_id)
+                return False
+            return await super().fetchval(sql, *args)
+
         async def fetchrow(self, sql, *args):
             if "SELECT 1 FROM fields" in sql:
                 assert args == ("fld-1",)
@@ -422,6 +434,7 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
     request = route.RecommendationRequest(horizon_days=1)
     out = asyncio.run(route.irrigation_mpc_recommendation("fld-1", request, user=user))
 
+    assert aquifer_checks == ["fld-1"]
     (snapshot,) = snapshots
     assert out["mode"] == "operational"
     provenance = out["facts_provenance"]

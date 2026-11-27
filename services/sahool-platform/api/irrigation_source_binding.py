@@ -26,7 +26,10 @@ from typing import Any
 
 from core.irrigation_water_analysis import BLEND_ION_FIELDS, compute_blend_water_quality
 
-from api.canonical_well_capability import DECISION_GRADE_SAMPLE_QUALITIES
+from api.canonical_well_capability import (
+    AQUIFER_ALLOCATION_UNVERIFIED,
+    DECISION_GRADE_SAMPLE_QUALITIES,
+)
 
 # Sorted for a deterministic bound parameter (list, not set — asyncpg binds text[]).
 DECISION_GRADE_SAMPLE_QUALITY_LIST = sorted(DECISION_GRADE_SAMPLE_QUALITIES)
@@ -60,6 +63,37 @@ LIMIT 1
 ANY_SAMPLE_EXISTS_SQL = """
 SELECT EXISTS(SELECT 1 FROM irrigation_water_quality_samples WHERE water_source_id = $1)
 """
+
+
+async def aquifer_allocation_blocker(
+    conn: Any, field_id: str, *, tenant_id: str, start: datetime, end: datetime
+) -> str | None:
+    """Check every well binding overlapping the planning interval, including other blend components."""
+    import asyncpg
+
+    try:
+        has_well = await conn.fetchval(
+            """
+            SELECT CASE WHEN current_setting('app.current_tenant', true) = $4::text
+            THEN EXISTS (
+                SELECT 1 FROM field_irrigation_source_assignments a
+                JOIN irrigation_water_sources s
+                  ON (s.id, s.tenant_id) = (a.water_source_id, a.tenant_id)
+                WHERE a.tenant_id = ($4::text)::uuid AND a.field_id = $1
+                  AND a.status = 'active' AND s.source_type = 'well'
+                  AND a.valid_from < $3 AND (a.valid_to IS NULL OR a.valid_to > $2)
+            ) END
+            """,
+            field_id,
+            start,
+            end,
+            str(tenant_id),
+        )
+    except (asyncpg.PostgresError, asyncpg.InterfaceError, OSError, TimeoutError):
+        return "water_source_binding_unresolved"
+    if has_well is None:
+        return "water_source_binding_unresolved"
+    return AQUIFER_ALLOCATION_UNVERIFIED if has_well else None
 
 
 def _float(value: Any) -> float | None:

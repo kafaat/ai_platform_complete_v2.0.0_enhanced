@@ -47,6 +47,7 @@ class FakeConn:
                         ],
                     }
                 ),
+                "well_id": None,
                 "capability_digest": D,
                 "status": "verified",
                 "operational_eligible": True,
@@ -65,6 +66,8 @@ class FakeConn:
         return None
 
     async def fetchval(self, sql, *args):
+        if "field_irrigation_source_assignments" in sql:
+            return False
         return 50.0
 
     async def execute(self, sql, *args):
@@ -239,3 +242,25 @@ async def test_orchestrator_fails_closed_without_capability(monkeypatch):
     )
     assert out["status"] == "blocked"
     assert out["reason"] == "canonical_irrigation_capability_graph_missing"
+
+
+@pytest.mark.asyncio
+async def test_well_fk_on_old_graph_blocks_even_when_payload_omits_the_well(monkeypatch):
+    class WellGraph(FakeConn):
+        async def fetchrow(self, sql, *args):
+            row = await super().fetchrow(sql, *args)
+            if "canonical_irrigation_capability_graphs" in sql:
+                row["well_id"] = "old-well"
+            return row
+
+    conn = WellGraph()
+    monkeypatch.setattr(
+        mod, "resolve_canonical_water_state", AsyncMock(return_value={"season_id": "s1"})
+    )
+    result = await mod.orchestrate_irrigation_recommendation(
+        conn, tenant_id="t1", field_id="f1", persist=True
+    )
+    assert result["status"] == "blocked"
+    assert result["reason"] == "AQUIFER_ALLOCATION_UNVERIFIED"
+    assert result["execution_allowed"] is False
+    assert conn.executed == []

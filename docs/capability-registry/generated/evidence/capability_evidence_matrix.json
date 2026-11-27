@@ -2608,6 +2608,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "tests_v9/test_p2_georag_decision.py",
+          "signal": "pytest.mark.unit"
         }
       ],
       "title": "Field registry and boundaries",
@@ -2626,7 +2631,8 @@
         "tests_v9/test_field_boundary_ai_v59.py",
         "tests_v9/test_field_boundary_backends_v59_5.py",
         "tests_v9/test_field_geometry_save_guard_20260703.py",
-        "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py"
+        "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py",
+        "tests_v9/test_p2_georag_decision.py"
       ]
     },
     {
@@ -7974,6 +7980,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "frontend/e2e/equipment-history-keyboard.spec.ts",
         "tests_v9/test_equipment_schedule_wiring.py"
       ],
       "learning_linked": false,
@@ -7983,6 +7990,11 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "frontend/e2e/equipment-history-keyboard.spec.ts",
+          "signal": "filename:e2e"
+        },
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_equipment_schedule_wiring.py",
