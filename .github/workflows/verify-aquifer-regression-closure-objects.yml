@@ -1,0 +1,28 @@
+name: Verify aquifer-regression-closure source objects
+on:
+  push:
+    branches: [ci/verify-aquifer-regression-closure-db520fe1]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify the candidate parents and content and retain only on the transfer branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '00fe97c2354cc5c425bec1f2abe05d27ca00bc0422ab82afdd39d6fb708b48c3  candidate.pack' | sha256sum --check --strict
+          git fetch --no-tags --depth=1 origin c161582d56887313762b6ad479354e7de805d2f9
+          git index-pack --stdin --fix-thin < candidate.pack
+          test "$(git show -s --format=%P db520fe17957280d78e6514ae7daa97ca41a6cee)" = "b65d56c078e9210e5fd9002a7b767206f36dd7b4"
+          test "$(git rev-parse db520fe17957280d78e6514ae7daa97ca41a6cee^{tree})" = "f441c5522a0c20c5b0732b09710ae03e63902ac5"
+          git ls-tree -r db520fe17957280d78e6514ae7daa97ca41a6cee >/dev/null
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          retained=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p db520fe17957280d78e6514ae7daa97ca41a6cee -m "Retain verified source [skip ci]")
+          git push origin "$retained:refs/heads/ci/verify-aquifer-regression-closure-db520fe1"
