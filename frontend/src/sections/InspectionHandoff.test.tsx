@@ -75,3 +75,14 @@ it('keeps the approved version visible, marks a later photo record as pending an
   await waitFor(() => expect(post).toHaveBeenCalledWith(path + '/finding',
     {action:'submit', reason:'مع الصورة', notes:'مع الصورة', expected_revision:3, photo_evidence_id:'e-2'}));
 });
+
+it('requires a new review for changed notes even when neither evidence version has a photo', async () => {
+  const v1 = {version:1, photo_evidence_id:null, photo_content_sha256:null, notes:'فحص أول'};
+  const v2 = {version:2, photo_evidence_id:null, photo_content_sha256:null, notes:'ملاحظات محدثة'};
+  open({...original, revision:4, accepted:true, review_state:'submit', evidence:[v1, v2],
+    approved_evidence:v1, current_evidence:v2, evidence_approved:false, evidence_pending_review:true} as typeof original);
+  expect(await screen.findByText(/النسخة المعتمدة 1 · بلا صورة · فحص أول/)).toBeInTheDocument();
+  expect(screen.getByText(/نسخة بانتظار المراجعة 2 · بلا صورة · ملاحظات محدثة/)).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('الملاحظات أو الصورة');
+  expect(screen.getByRole('status')).toHaveTextContent('لا تُغلق الزيارة قبل اعتماد النسخة الجديدة');
+});

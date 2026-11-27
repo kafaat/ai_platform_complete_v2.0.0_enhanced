@@ -4,17 +4,18 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { kongApi } from '../services/api';
+import { toastStore } from '../services/websocket';
 import TasksPage from './TasksPage';
 
 afterEach(() => vi.restoreAllMocks());
 
-function visit(role: string, rejectUpdate = false) {
+function visit(role: string, updateError?: unknown) {
   useAuthStore.setState({ tenantId: 'execution-test', user: { role, email: 'executor@example.test' } });
   const task = { task_id: 'execution-task', field_id: 'field-one', task_type: 'scouting',
     status: 'pending', actual_cost_usd: 18.25 };
   vi.spyOn(kongApi, 'get').mockImplementation(async () => ({ data: { tasks: [{ ...task }] } }));
   const patch = vi.spyOn(kongApi, 'patch').mockImplementation(async (_path, payload) => {
-    if (rejectUpdate) throw { response: { status: 409, data: { detail: 'inspection_review_required' } } };
+    if (updateError !== undefined) throw updateError;
     Object.assign(task, payload);
     return { data: { ...task } };
   });
@@ -62,12 +63,26 @@ it.each(['agronomist', 'expert', 'viewer', 'unknown'])('%s cannot execute task u
   expect(patch).not.toHaveBeenCalled();
 });
 
-it('keeps the worker task open when the server rejects completion pending inspection review', async () => {
-  const patch = visit('worker', true);
+it.each([
+  ['review required', { response: { status: 409, data: { detail: {
+    error: 'inspection_review_required', message: 'تتطلب زيارة التفتيش اعتماد نتيجتها قبل الإغلاق',
+  } } } }, /اطلب اعتماد النسخة الحالية من المراجع/],
+  ['evidence changed', { response: { status: 409, data: { detail: {
+    error: 'inspection_evidence_changed', message: 'تغيرت صورة الزيارة بعد الاعتماد. يلزم اعتماد النسخة الجديدة',
+  } } } }, /ارفع الأدلة الحالية للمراجعة/],
+  ['other conflict', { response: { status: 409, data: { detail: { error: 'illegal_task_transition' } } } }, /تغيّرت حالة المهمة أو سجلها/],
+  ['permission denied', { response: { status: 403 } }, /لا تملك صلاحية تحديث هذه المهمة/],
+  ['service failure', { response: { status: 503 } }, /مشكلة في الخدمة/],
+  ['network failure', new Error('Network Error'), /لم يتأكد حفظ المهمة/],
+] as const)('keeps the worker task open and explains %s without claiming completion', async (_label, error, message) => {
+  const toast = vi.spyOn(toastStore, 'add');
+  const patch = visit('worker', error);
   await screen.findByText('execution-task');
   fireEvent.click(screen.getByRole('button', { name: 'إنجاز', exact: true }));
   await waitFor(() => expect(patch).toHaveBeenCalledOnce());
   await waitFor(() => expect(screen.getByRole('button', { name: 'إنجاز', exact: true })).toBeEnabled());
   expect(screen.getByRole('button', { name: 'بدء', exact: true })).toBeVisible();
   expect(screen.queryByRole('button', { name: 'حفظ تصحيح التكلفة', exact: true })).not.toBeInTheDocument();
+  expect(toast).toHaveBeenCalledWith('error', '⚠️ تعذّر إنجاز المهمة', expect.stringMatching(message));
+  expect(toast.mock.calls.some(([type]) => type === 'success')).toBe(false);
 });

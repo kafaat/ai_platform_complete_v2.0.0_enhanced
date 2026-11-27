@@ -71,7 +71,7 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
     {data.approved_evidence && <EvidenceLine label="النسخة المعتمدة" item={data.approved_evidence} />}
     {data.current_evidence && data.approved_evidence && data.current_evidence.version !== data.approved_evidence.version
       && <EvidenceLine label="نسخة بانتظار المراجعة" item={data.current_evidence} />}
-    {data.evidence_pending_review && data.approved_evidence && <p role="status">تغيرت صورة الدبوس بعد الاعتماد. لا تُغلق الزيارة قبل اعتماد النسخة الجديدة</p>}
+    {data.evidence_pending_review && data.approved_evidence && <p role="status">تغيّرت أدلة التفتيش (الملاحظات أو الصورة) بعد الاعتماد. لا تُغلق الزيارة قبل اعتماد النسخة الجديدة</p>}
     <details><summary>سجل التسليم</summary>
       <p>كلّف {data.assigned_by} المفتش {data.initial_assignee} · {new Date(data.assigned_at).toLocaleString('ar')}</p>
       <ol>{data.events.map(event => <li key={event.revision}>

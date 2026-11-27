@@ -13,7 +13,7 @@ import {
   Wrench, Droplets, Sprout, Bug, Wheat, RefreshCw,
   CheckCircle, Calendar,
 } from 'lucide-react';
-import { kongApi } from '../services/api';
+import { apiErrorMessage, asApiError, kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useTasks, useCompleteTask } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
@@ -57,6 +57,30 @@ const TASK_CONFIG: Record<string, { icon: typeof Wrench; label: string; color: s
 // خريطة الألوان الداكنة المحلّيّة السابقة.
 
 const PRIORITY_MAP: Record<number, string> = { 1: 'حرج', 2: 'عالٍ', 3: 'متوسط', 4: 'منخفض', 5: 'روتيني' };
+
+function taskUpdateError(error: unknown): string {
+  const err = asApiError(error);
+  const status = err.response?.status;
+  if (status === 409) {
+    const detail = err.response?.data?.detail;
+    if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+      const conflict = detail as { error?: unknown; message?: unknown };
+      if (conflict.error === 'inspection_review_required') {
+        return 'يلزم اعتماد نتيجة التفتيش قبل إنجاز المهمة. اطلب اعتماد النسخة الحالية من المراجع في سجل تسليم التفتيش، ثم أعد المحاولة.';
+      }
+      if (conflict.error === 'inspection_evidence_changed') {
+        return 'تغيّرت أدلة التفتيش بعد الاعتماد. ارفع الأدلة الحالية للمراجعة، ثم أعد إنجاز المهمة بعد اعتمادها.';
+      }
+      if (typeof conflict.message === 'string' && conflict.message.trim()) return conflict.message;
+    }
+    return 'تغيّرت حالة المهمة أو سجلها. حدّث البيانات وراجع سجل التسليم قبل إعادة المحاولة.';
+  }
+  if (status === 401) return 'انتهت الجلسة. سجّل الدخول من جديد قبل تحديث المهمة.';
+  if (status === 403) return 'لا تملك صلاحية تحديث هذه المهمة.';
+  if (status && status >= 500) return 'تعذّر تحديث المهمة بسبب مشكلة في الخدمة. حدّث البيانات قبل إعادة المحاولة.';
+  if (!status) return 'تعذّر الاتصال بالخادم، ولم يتأكد حفظ المهمة. حدّث البيانات قبل إعادة المحاولة.';
+  return apiErrorMessage(error, 'تعذّر تحديث المهمة. حدّث البيانات قبل إعادة المحاولة.');
+}
 
 export default function TasksPage() {
   const { user, tenantId } = useAuthStore();
@@ -103,9 +127,9 @@ export default function TasksPage() {
         return { ...previous, [taskId]: rest };
       });
       toastStore.add('success', '✅ تم إنجاز المهمة', '');
-    } catch {
+    } catch (error) {
       // صدق: لا نُعلن نجاحاً عند فشل الحفظ (كان يُعلَن نجاح زائف ويُخفي العطل).
-      toastStore.add('error', '⚠️ تعذّر إنجاز المهمة', 'فشل الاتصال بالخادم — لم تُحفظ');
+      toastStore.add('error', '⚠️ تعذّر إنجاز المهمة', taskUpdateError(error));
     } finally {
       setCompleting(null);
     }
@@ -116,8 +140,8 @@ export default function TasksPage() {
     try {
       await kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'in_progress' });
       setStatus(taskId, { status: 'in_progress' });
-    } catch {
-      toastStore.add('error', '⚠️ تعذّر بدء المهمة', 'فشل الاتصال بالخادم');
+    } catch (error) {
+      toastStore.add('error', '⚠️ تعذّر بدء المهمة', taskUpdateError(error));
     }
   };
 
