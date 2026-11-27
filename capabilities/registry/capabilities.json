@@ -457,7 +457,7 @@
       },
       "evidence_truncated": {
         "apis": 245,
-        "tests": 171,
+        "tests": 172,
         "mobile_consumers": 50
       }
     },
@@ -1469,7 +1469,7 @@
         "POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:2045",
         "POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:2030",
         "POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:830",
-        "POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:147",
+        "POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146",
         "POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114",
         "POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33"
       ],
@@ -1853,7 +1853,7 @@
         "POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:873",
         "POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3467",
         "POST /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:96",
-        "POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:272"
+        "POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271"
       ],
       "ui_consumers": [
         "frontend/e2e/gis-tools-timeline-comparison.spec.ts"
@@ -2116,7 +2116,7 @@
         "GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1553",
         "GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1299",
         "GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1215",
-        "GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:98",
+        "GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97",
         "GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22",
         "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:66",
         "GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:189",
@@ -2200,7 +2200,7 @@
       },
       "evidence_truncated": {
         "apis": 66,
-        "tests": 174
+        "tests": 175
       }
     },
     {

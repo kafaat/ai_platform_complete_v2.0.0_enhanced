@@ -70,7 +70,6 @@ from raster_field_runtime import (
     _resolve_field_layer,
     _run_cdse_processing,
     _run_processing,
-    _safe_raster_source,
     _select_backfill_scenes_by_policy,
     _stac_search,
     _stac_search_landsat_unique,
@@ -516,18 +515,19 @@ async def field_historical_backfill(
                         preq = ProcessRequest(
                             tenant_id=tenant_id,
                             field_id=field_id,
-                            raster_url=_safe_raster_source(thermal_url),
+                            raster_url=thermal_url,
                             indicator=IndicatorKind.lst,
                             source_format=SourceFormat.landsat8,
                             bands=BandMapping(),
                             precomputed_index=True,
                             clip_polygon_geojson=clip,
-                            apply_cloud_mask=False,
+                            apply_cloud_mask=req.apply_cloud_mask,
                             scene_id=sc.get("item_id"),
                             capture_datetime=sc.get("datetime"),
-                            provider="landsat-element84",
+                            provider=sc.get("provider") or "landsat-element84",
                             geometry_revision=revision,
                         )
+                        preq._landsat_st = sc.get("thermal_contract")
                         _run_processing(jid, preq)
                         return
 

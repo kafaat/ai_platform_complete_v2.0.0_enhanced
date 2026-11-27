@@ -5712,6 +5712,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/landsat_st.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/layer_cache_events.py",
     "kind": "backend"
   },
@@ -5949,6 +5953,10 @@
   },
   {
     "path": "services/raster-service/test_job_truth_receipts_and_fencing.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_landsat_field_lst.py",
     "kind": "tests"
   },
   {

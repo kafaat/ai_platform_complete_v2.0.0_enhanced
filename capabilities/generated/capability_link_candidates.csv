@@ -676,7 +676,7 @@ FM-003,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/f
 FM-003,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1553,4,applied
 FM-003,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1299,4,applied
 FM-003,api,GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1215,4,applied
-FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:98,2,applied
+FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97,2,applied
 FM-003,api,GET /v1/indices @ services/raster-service/routers/observability.py:326,2,applied
 FM-003,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2796,2,applied
 FM-003,api,GET /v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:91,2,applied
@@ -774,12 +774,12 @@ FM-003,api,POST /v1/fields/{field_id}/cache-invalidations @ services/raster-serv
 FM-003,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1157,4,applied
 FM-003,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:749,4,applied
 FM-003,api,POST /v1/fields/{field_id}/imagery-ingestion-requests @ services/raster-service/routers/follow_up.py:101,4,applied
-FM-003,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:272,4,applied
+FM-003,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271,4,applied
 FM-003,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:677,4,applied
 FM-003,api,POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:43,4,applied
 FM-003,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1077,4,applied
 FM-003,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:830,4,applied
-FM-003,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:147,4,applied
+FM-003,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146,4,applied
 FM-003,api,POST /v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:284,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/actions/{action_type}/evaluate @ services/soil-service/routers/p4_workflow.py:38,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/analog-estimate @ services/soil-service/routers/p3_products.py:78,4,applied
@@ -945,6 +945,7 @@ FM-003,test,services/raster-service/test_field_terrain.py,3,applied
 FM-003,test,services/raster-service/test_field_terrain_multipolygon_extent.py,3,applied
 FM-003,test,services/raster-service/test_field_tile_asset_cache.py,3,applied
 FM-003,test,services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py,3,applied
+FM-003,test,services/raster-service/test_landsat_field_lst.py,3,applied
 FM-003,test,services/raster-service/test_raster_assets_text_field_id.py,3,applied
 FM-003,test,services/raster-service/test_raster_field_coverage.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_boundary_confidence.py,3,applied
@@ -2084,7 +2085,7 @@ SAT-001,api,POST /v1/activation/satellite_cdse/complete @ services/decision-serv
 SAT-001,api,POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:2045,4,applied
 SAT-001,api,POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:2030,4,applied
 SAT-001,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:830,3,applied
-SAT-001,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:147,3,applied
+SAT-001,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146,3,applied
 SAT-001,api,POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114,3,applied
 SAT-001,api,POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33,3,applied
 SAT-001,mobile,mobile/sahool_app/lib/features/satellite/data/satellite_api.dart,2,applied
@@ -2218,7 +2219,7 @@ SAT-006,api,GET /v1/weather/historical @ services/weather-service/main.py:32,2,a
 SAT-006,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:873,2,applied
 SAT-006,api,POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3467,2,applied
 SAT-006,api,POST /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:96,2,applied
-SAT-006,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:272,5,applied
+SAT-006,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271,5,applied
 SAT-006,service,services/raster-service/main.py,10,applied
 SAT-006,test,services/decision-service/tests/test_backfill_row_coverage.py,3,applied
 SAT-006,test,services/indicators-service/tests/test_observation_timeline.py,3,applied
@@ -2316,7 +2317,7 @@ SAT-009,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/
 SAT-009,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1553,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1299,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1215,3,applied
-SAT-009,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:98,3,applied
+SAT-009,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97,3,applied
 SAT-009,api,GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22,3,applied
 SAT-009,api,GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:66,3,applied
 SAT-009,api,GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:189,3,applied
@@ -2362,11 +2363,11 @@ SAT-009,api,POST /v1/fields/{field_id}/cache-invalidations @ services/raster-ser
 SAT-009,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1157,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:749,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/imagery-ingestion-requests @ services/raster-service/routers/follow_up.py:101,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:272,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:677,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1077,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:830,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:147,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146,3,applied
 SAT-009,api,POST /v1/fvc/compute @ services/raster-service/routers/analysis.py:98,3,applied
 SAT-009,api,POST /v1/imagery/mosaic/plan @ services/raster-service/routers/imagery.py:91,3,applied
 SAT-009,api,POST /v1/imagery/scenes/rank @ services/raster-service/routers/imagery.py:78,3,applied
@@ -2456,6 +2457,7 @@ SAT-009,test,services/raster-service/test_indicator_provenance_transport.py,3,ap
 SAT-009,test,services/raster-service/test_indicator_values_integrity.py,3,applied
 SAT-009,test,services/raster-service/test_job_tenant_binding.py,3,applied
 SAT-009,test,services/raster-service/test_job_truth_receipts_and_fencing.py,3,applied
+SAT-009,test,services/raster-service/test_landsat_field_lst.py,3,applied
 SAT-009,test,services/raster-service/test_landsat_thermal_unique_contract.py,3,applied
 SAT-009,test,services/raster-service/test_layer_lookup_chronology.py,3,applied
 SAT-009,test,services/raster-service/test_masked_read_cast_before_fill.py,3,applied

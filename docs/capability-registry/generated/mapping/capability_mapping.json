@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7773,
     "files_by_kind": {
-      "backend": 1321,
+      "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
-      "other": 2259,
-      "tests": 2722,
+      "other": 2260,
+      "tests": 2723,
       "web": 587
     },
-    "unmapped_artifacts": 3703,
+    "unmapped_artifacts": 3705,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4224,
+      "python_functional": 4227,
       "raw": 3546
     },
-    "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
+    "test_dependency_files": 2076,
+    "test_dependency_edges": 5624,
     "test_dependency_bounded_files": 1193,
     "test_dependency_unresolved_relations": 539
   },
@@ -10562,7 +10562,7 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:270",
           "score": 16
         },
         {
@@ -10594,7 +10594,7 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:145",
           "score": 16
         },
         {
@@ -10614,7 +10614,7 @@
           "score": 16
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:96",
           "score": 16
         },
         {
@@ -18956,7 +18956,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:270",
           "score": 18
         },
         {
@@ -18988,7 +18988,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:145",
           "score": 18
         },
         {
@@ -19008,7 +19008,7 @@
           "score": 18
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:96",
           "score": 18
         },
         {
@@ -39232,6 +39232,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/raster-service/landsat_st.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/raster-service/layer_cache_events.py",
       "kind": "backend"
     },
@@ -39469,6 +39473,10 @@
     },
     {
       "path": "services/raster-service/test_job_truth_receipts_and_fencing.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_landsat_field_lst.py",
       "kind": "tests"
     },
     {
@@ -57575,6 +57583,16 @@
           "source": "services/indicators-service/observation_runtime.py",
           "kind": "source_read",
           "line": 7
+        },
+        {
+          "source": "services/indicators-service/observation_timeline.py",
+          "kind": "import",
+          "line": 53
+        },
+        {
+          "source": "shared/contracts/remote_sensing/thermal.py",
+          "kind": "import",
+          "line": 55
         }
       ],
       "unresolved": []
@@ -59416,6 +59434,41 @@
           "source": "services/raster-service/raster_stage_receipt.py",
           "kind": "import",
           "line": 30
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_landsat_field_lst.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "services/raster-service/db_persist.py",
+          "kind": "import",
+          "line": 7
+        },
+        {
+          "source": "services/raster-service/raster_api_models.py",
+          "kind": "import",
+          "line": 10
+        },
+        {
+          "source": "services/raster-service/raster_processing_runtime.py",
+          "kind": "import",
+          "line": 11
+        },
+        {
+          "source": "services/raster-service/raster_settings.py",
+          "kind": "import",
+          "line": 247
+        },
+        {
+          "source": "services/raster-service/stac_search.py",
+          "kind": "import",
+          "line": 13
         }
       ],
       "unresolved": []
