@@ -107,7 +107,8 @@ class WeatherAutomation:
                     "EXTRACT(EPOCH FROM c.fetched_at) AS fetched_epoch "
                     "FROM weather_automation_cache c "
                     "JOIN weather_automation_locations l "
-                    "  ON l.location_key = c.location_key"
+                    "  ON l.location_key = c.location_key "
+                    "WHERE c.fetched_at IS NOT NULL"
                 )
                 import json as _json
 

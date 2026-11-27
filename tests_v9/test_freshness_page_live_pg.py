@@ -1,11 +1,13 @@
 """Compare batched freshness signals and the per-field reads on the migrated tenant schema."""
 
 import asyncio
+import json
 import logging
 import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -34,22 +36,26 @@ async def _seed(conn, tenant, other, prefix):
            VALUES ($1, $2, 0, 0, 1, 1, '2025-01-01')""",
         [(prefix + "001", tenant), (prefix + "002", other)],
     )
-    for key, field_id, fetched in (
-        ("old", "001", "2025-01-01T20:00:00+03"),
-        ("new", "001", "2025-01-02T01:00:00+03"),
-        ("unknown", "002", None),
+    for key, field_id, lat, fetched in (
+        ("old", "001", 1, "2025-01-01T20:00:00+03"),
+        ("undated", "001", 2, None),
+        ("new", "001", 3, "2025-01-02T01:00:00+03"),
+        ("unknown", "002", 4, None),
+        ("other-tenant", "foreign", 5, "2025-01-09T00:00:00+00"),
     ):
         await conn.execute(
             "INSERT INTO weather_automation_locations (location_key, lat, lon, field_id) "
-            "VALUES ($1, 1, 1, $2)",
+            "VALUES ($1, $3, 1, $2)",
             prefix + key,
             prefix + field_id,
+            lat,
         )
         await conn.execute(
             "INSERT INTO weather_automation_cache (location_key, data_json, fetched_at) "
-            "VALUES ($1, '{}', $2::text::timestamptz)",
+            "VALUES ($1, $3::jsonb, $2::text::timestamptz)",
             prefix + key,
             fetched,
+            json.dumps({"location": key}),
         )
 
     # First field has newer invalid/non-sensor/rejected/foreign measurements. In the second
@@ -105,9 +111,8 @@ async def _per_field_rows(conn, tenant):
         )
         soil = await _latest_soil_moisture(conn, field_id)
         weather = await conn.fetchval(
-            "SELECT extract(epoch FROM c.fetched_at) FROM weather_automation_cache c "
-            "JOIN weather_automation_locations l USING (location_key) WHERE l.field_id=$1 "
-            "ORDER BY c.fetched_at DESC LIMIT 1",
+            "SELECT extract(epoch FROM max(c.fetched_at)) FROM weather_automation_cache c "
+            "JOIN weather_automation_locations l USING (location_key) WHERE l.field_id=$1",
             field_id,
         )
         rows.append(
@@ -133,12 +138,11 @@ def database_urls():
     return admin_url, app_url
 
 
-async def test_batch_matches_scoped_per_field_reads_with_two_queries_per_page(database_urls):
-    admin_url, app_url = database_urls
-
+@pytest.fixture
+async def weather_rows(database_urls):
     import asyncpg
-    from api.freshness_store import PAGE_SIZE, read_freshness_page
 
+    admin_url, app_url = database_urls
     app = await asyncpg.connect(app_url)
     try:
         role = await app.fetchval(
@@ -156,46 +160,102 @@ async def test_batch_matches_scoped_per_field_reads_with_two_queries_per_page(da
         tenant, other = uuid4(), uuid4()
         prefix = uuid4().hex[:16]
         await _seed(conn, tenant, other, prefix)
-
-        # Explicit tenant predicates also protect inputs when the connection can see every row.
-        privileged = await read_freshness_page(conn, tenant, None)
-        assert privileged[0][2] == datetime(2025, 1, 1, 1, tzinfo=UTC).timestamp()
-        assert privileged[1][1:] == (None, None, None)
-
-        # Same transaction keeps both tenants' data private to this test, including on failure.
-        await conn.execute(f"SET LOCAL ROLE {role}")
-        await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant))
-        await conn.execute("SET LOCAL TIME ZONE 'Asia/Riyadh'")
-        old_queries, page_queries, empty_queries = [], [], []
-        with conn.query_logger(old_queries.append):
-            baseline = await _per_field_rows(conn, tenant)
-        rows, sizes = [], []
-        with conn.query_logger(page_queries.append):
-            while True:
-                page = await read_freshness_page(conn, tenant, rows[-1][0] if rows else None)
-                rows.extend(page)
-                sizes.append(len(page))
-                if len(page) < PAGE_SIZE:
-                    break
-        with conn.query_logger(empty_queries.append):
-            assert await read_freshness_page(conn, tenant, rows[-1][0]) == []
-        await asyncio.sleep(0)  # asyncpg schedules synchronous query loggers with call_soon.
-
-        assert sizes == [100, 100, 5]
-        assert len(old_queries) == 616  # One field list + three reads per field.
-        assert len(page_queries) == 6
-        assert len(empty_queries) == 1
-        assert rows == baseline
-        assert [row[0] for row in rows] == [prefix + f"{i:03}" for i in range(1, 206)]
-        assert rows[0][1:] == (
-            datetime(2024, 12, 31, 21, tzinfo=UTC).timestamp(),  # midnight in session time zone
-            datetime(2025, 1, 1, 1, tzinfo=UTC).timestamp(),
-            datetime(2025, 1, 1, 22, tzinfo=UTC).timestamp(),
-        )
-        assert all(row[1:] == (None, None, None) for row in rows[1:])
+        yield conn, tenant, prefix, role
     finally:
         await transaction.rollback()
         await conn.close()
+
+
+async def test_batch_matches_scoped_per_field_reads_with_two_queries_per_page(weather_rows):
+    from api.freshness_store import PAGE_SIZE, read_freshness_page
+
+    conn, tenant, prefix, role = weather_rows
+    # Explicit tenant predicates also protect inputs when the connection can see every row.
+    privileged = await read_freshness_page(conn, tenant, None)
+    assert privileged[0][2] == datetime(2025, 1, 1, 1, tzinfo=UTC).timestamp()
+    assert privileged[1][1:] == (None, None, None)
+
+    # Same transaction keeps both tenants' data private to this test, including on failure.
+    await conn.execute(f"SET LOCAL ROLE {role}")
+    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant))
+    await conn.execute("SET LOCAL TIME ZONE 'Asia/Riyadh'")
+    old_queries, page_queries, empty_queries = [], [], []
+    with conn.query_logger(old_queries.append):
+        baseline = await _per_field_rows(conn, tenant)
+    rows, sizes = [], []
+    with conn.query_logger(page_queries.append):
+        while True:
+            page = await read_freshness_page(conn, tenant, rows[-1][0] if rows else None)
+            rows.extend(page)
+            sizes.append(len(page))
+            if len(page) < PAGE_SIZE:
+                break
+    with conn.query_logger(empty_queries.append):
+        assert await read_freshness_page(conn, tenant, rows[-1][0]) == []
+    await asyncio.sleep(0)  # asyncpg schedules synchronous query loggers with call_soon.
+
+    assert sizes == [100, 100, 5]
+    assert len(old_queries) == 616  # One field list + three reads per field.
+    assert len(page_queries) == 6
+    assert len(empty_queries) == 1
+    assert rows == baseline
+    assert [row[0] for row in rows] == [prefix + f"{i:03}" for i in range(1, 206)]
+    assert rows[0][1:] == (
+        datetime(2024, 12, 31, 21, tzinfo=UTC).timestamp(),  # midnight in session time zone
+        datetime(2025, 1, 1, 1, tzinfo=UTC).timestamp(),
+        datetime(2025, 1, 1, 22, tzinfo=UTC).timestamp(),
+    )
+    assert all(row[1:] == (None, None, None) for row in rows[1:])
+
+
+async def test_projection_uses_only_dated_weather_for_age_and_et0(weather_rows, monkeypatch):
+    from api import field_state_projection
+
+    conn, tenant, prefix, role = weather_rows
+    payloads = []
+
+    async def capture_et0(payload, *args, **kwargs):
+        payloads.append(json.loads(payload)["location"])
+        return None
+
+    monkeypatch.setattr(field_state_projection, "_et0_from_weather_payload", capture_et0)
+    await conn.execute(f"SET LOCAL ROLE {role}")
+    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant))
+    now = await conn.fetchval("SELECT now()")
+    latest = datetime(2025, 1, 1, 22, tzinfo=UTC)
+    ages = []
+    for field in ("001", "002", "foreign"):
+        result = await field_state_projection.recompute_field_state(conn, prefix + field)
+        ages.append(result["state"]["inputs"]["weather_age_hours"])
+    assert (ages, payloads) == (
+        [pytest.approx((now - latest).total_seconds() / 3600), None, None],
+        ["new"],
+    )
+
+
+async def test_cache_restart_restores_dated_locations_and_keeps_undated_tracked(
+    weather_rows, caplog
+):
+    from api.weather_automation import WeatherAutomation
+
+    conn, tenant, _, role = weather_rows
+    await conn.execute(f"SET LOCAL ROLE {role}")
+    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant))
+    pool = MagicMock()
+    pool.acquire.return_value.__aenter__.return_value = conn
+    weather = WeatherAutomation()
+    weather.set_pool(pool)
+    with caplog.at_level(logging.WARNING, logger="sahool.weather_automation"):
+        await weather.load_from_db()
+
+    assert caplog.messages == []
+    assert weather.registered_count() == 4
+    assert weather.get_cached(1, 1).data == {"location": "old"}
+    assert weather.get_cached(3, 1).data == {"location": "new"}
+    assert weather.get_cached(3, 1).fetched_at == datetime(2025, 1, 1, 22, tzinfo=UTC).timestamp()
+    assert weather.get_cached(2, 1) is None
+    assert weather.get_cached(4, 1) is None
+    assert weather.get_cached(5, 1) is None
 
 
 async def test_scheduler_records_partial_run_and_resumes_with_next_tenant(

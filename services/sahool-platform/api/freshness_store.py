@@ -35,7 +35,7 @@ async def read_freshness_page(
         LEFT JOIN LATERAL (
             SELECT c.fetched_at
             FROM weather_automation_locations l JOIN weather_automation_cache c USING (location_key)
-            WHERE l.field_id = p.field_id
+            WHERE l.field_id = p.field_id AND c.fetched_at IS NOT NULL
             ORDER BY c.fetched_at DESC
             LIMIT 1
         ) w ON true
