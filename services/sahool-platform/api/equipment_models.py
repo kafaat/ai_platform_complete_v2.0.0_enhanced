@@ -20,6 +20,10 @@ class EquipmentRequest(BaseModel):
     operating_hours: float = Field(default=0, ge=0)
     purchase_date: str | None = None
     notes: str | None = None
+    # Asset hierarchy and recorded preventive policy (v291). All optional: absence stays absence.
+    parent_equipment_id: str | None = Field(default=None, min_length=1, max_length=50)
+    service_interval_hours: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    last_service_hours: float | None = Field(default=None, ge=0, allow_inf_nan=False)
 
 
 class MaintenanceRequest(BaseModel):
@@ -29,3 +33,6 @@ class MaintenanceRequest(BaseModel):
     performed_date: str | None = None
     cost_usd: float | None = None
     notes: str | None = None
+    # Meter reading taken at the service. Only a completed scheduled service carrying a reading
+    # updates the equipment's last-service baseline; it is never inferred from operating_hours.
+    meter_hours: float | None = Field(default=None, ge=0, allow_inf_nan=False)

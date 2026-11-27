@@ -49,10 +49,20 @@ async def create_equipment(
     async with tenant_connection(user) as conn:
 
         async def _work():
+            if req.parent_equipment_id is not None:
+                # Tenant-scoped lookup (RLS plus explicit predicate); the DB trigger is the backstop.
+                parent_ok = await conn.fetchval(
+                    "SELECT 1 FROM equipment WHERE equipment_id = $1 AND tenant_id = $2::uuid",
+                    req.parent_equipment_id,
+                    str(user.tenant_id),
+                )
+                if not parent_ok:
+                    raise HTTPException(status_code=422, detail="parent_equipment_not_found")
             await conn.execute(
                 """INSERT INTO equipment
-                    (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
+                    (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes,
+                     parent_equipment_id, service_interval_hours, last_service_hours)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
                 equipment_id,
                 str(user.tenant_id),
                 req.name,
@@ -60,6 +70,9 @@ async def create_equipment(
                 req.operating_hours,
                 purchase,
                 req.notes,
+                req.parent_equipment_id,
+                req.service_interval_hours,
+                req.last_service_hours,
             )
             await _emit_domain_event(
                 conn,
@@ -67,7 +80,11 @@ async def create_equipment(
                 "EQUIPMENT_CREATED",
                 "equipment",
                 equipment_id,
-                {"name": req.name, "type": req.type},
+                {
+                    "name": req.name,
+                    "type": req.type,
+                    "parent_equipment_id": req.parent_equipment_id,
+                },
             )
             return {
                 "equipment_id": equipment_id,
@@ -117,7 +134,8 @@ async def list_equipment(
         if summary:
             rows = await conn.fetch(
                 "SELECT e.equipment_id, e.name, e.type, e.status, e.operating_hours, "
-                "e.purchase_date, (SELECT MIN(m.scheduled_date) "
+                "e.purchase_date, e.parent_equipment_id, e.service_interval_hours, "
+                "e.last_service_hours, (SELECT MIN(m.scheduled_date) "
                 "FROM equipment_maintenance m WHERE m.equipment_id = e.equipment_id "
                 "AND m.tenant_id = e.tenant_id AND m.kind = 'scheduled' "
                 "AND m.status = 'planned' AND m.performed_date IS NULL) AS next_service_date "
@@ -145,6 +163,12 @@ async def list_equipment(
         scheduled = row["next_service_date"]
         if scheduled is not None:
             asset["next_service_date"] = scheduled.isoformat()
+        # Recorded facts only, and only when present, so absent policy stays absent.
+        if row["parent_equipment_id"] is not None:
+            asset["parent_equipment_id"] = row["parent_equipment_id"]
+        for key in ("service_interval_hours", "last_service_hours"):
+            if row[key] is not None:
+                asset[key] = float(row[key])
     return {"assets": assets, "intelligence": summarize_equipment(assets=assets).to_dict()}
 
 
@@ -171,8 +195,8 @@ async def log_maintenance(
             await conn.execute(
                 """INSERT INTO equipment_maintenance
                     (maintenance_id, tenant_id, equipment_id, kind, status,
-                     scheduled_date, performed_date, cost_usd, notes)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
+                     scheduled_date, performed_date, cost_usd, notes, meter_hours)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
                 maintenance_id,
                 str(user.tenant_id),
                 equipment_id,
@@ -182,7 +206,16 @@ async def log_maintenance(
                 performed,
                 req.cost_usd,
                 req.notes,
+                req.meter_hours,
             )
+            if req.kind == "scheduled" and req.status == "done" and req.meter_hours is not None:
+                await conn.execute(
+                    "UPDATE equipment SET last_service_hours = $2 "
+                    "WHERE equipment_id = $1 AND tenant_id = $3::uuid",
+                    equipment_id,
+                    req.meter_hours,
+                    str(user.tenant_id),
+                )
             # عطل قيد التنفيذ ⇒ حدّث حالة المعدّة (تتبّع تشغيليّ)
             if req.kind == "breakdown" and req.status != "done":
                 await conn.execute(

@@ -378,11 +378,12 @@ def test_the_default_catalog_is_the_highest_numbered_migration_not_the_last_mani
 def test_a_migration_that_creates_no_table_never_becomes_the_empty_default_catalog(
     pg_env, probe_role
 ):
-    # v290 adds only a trigger to v289's outbox. As the default it printed tables=0, which hid
-    # both v289's row-level security and v290's own trigger; the default now stays on v289 and
-    # v290's trigger shows on the outbox row.
+    # v290 adds only a trigger to v289's outbox (and v291 only alters existing equipment tables).
+    # As the default either printed tables=0, which hid v289's row-level security and v290's own
+    # trigger; the default now stays on v289 and v290's trigger shows on the outbox row.
     _manifest, numbered = _numbered_manifest()
-    assert numbered[-1] == "v290_scouting_verification_initial_state.sql"
+    assert numbered[-1] == "v291_equipment_hierarchy_preventive_plan.sql"
+    assert "v290_scouting_verification_initial_state.sql" in numbered
     assert not _creates_a_table(numbered[-1])
     result = _probe(pg_env, **probe_role)
     assert result.returncode == 0, result.stdout + result.stderr

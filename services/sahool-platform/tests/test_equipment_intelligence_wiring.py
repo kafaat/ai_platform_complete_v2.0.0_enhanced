@@ -232,12 +232,23 @@ def _executable_source(path: Path) -> str:
     return ast.unparse(tree)
 
 
+# v291 persists and transports the recorded policy (interval, last-service meter). These two
+# modules only store and pass the values through; the due/overdue decision stays in the core.
+# They are admitted by name AND must stay free of any due/overdue computation.
+_POLICY_TRANSPORT = {"equipment_models.py", "equipment.py"}
+_DUE_LOGIC_TOKENS = ("overdue", "STATUS_DUE", "elapsed", "_assess")
+
+
 def test_no_duplicate_service_due_implementation_outside_the_core():
     """Ownership: the service-due rule is implemented in exactly one module."""
     platform = Path(__file__).resolve().parents[1]
     owners = set()
     for path in list((platform / "api").rglob("*.py")) + list((platform / "core").rglob("*.py")):
         if path.name == "equipment_intelligence.py":
+            continue
+        if path.name in _POLICY_TRANSPORT and path.parent.name in {"api", "routers"}:
+            transport = _executable_source(path)
+            assert not any(t in transport for t in _DUE_LOGIC_TOKENS), path.name
             continue
         try:
             source = _executable_source(path)
