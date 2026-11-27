@@ -35,31 +35,31 @@ it.each(['owner', 'admin', 'manager', 'worker', 'farmer'])('%s starts and comple
   } else {
     expect(screen.getByRole('spinbutton')).toBeVisible();
   }
-  fireEvent.click(screen.getByRole('button', { name: 'بدء', exact: true }));
+  fireEvent.click(screen.getByRole('button', { name: 'بدء' }));
   await waitFor(() => expect(patch).toHaveBeenNthCalledWith(1, '/api/v1/tasks/execution-task', { status: 'in_progress' }));
-  await waitFor(() => expect(screen.queryByRole('button', { name: 'بدء', exact: true })).not.toBeInTheDocument());
-  fireEvent.click(screen.getByRole('button', { name: 'إنجاز', exact: true }));
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'بدء' })).not.toBeInTheDocument());
+  fireEvent.click(screen.getByRole('button', { name: 'إنجاز' }));
   await waitFor(() => expect(patch).toHaveBeenCalledTimes(2));
   const [url, body] = patch.mock.calls[1];
   expect(url).toBe('/api/v1/tasks/execution-task');
   expect(body).toMatchObject({ status: 'completed' });
   expect(body).not.toHaveProperty('actual_cost_usd');
-  await waitFor(() => expect(screen.queryByRole('button', { name: 'إنجاز', exact: true })).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'إنجاز' })).not.toBeInTheDocument());
   if (worker) {
-    expect(screen.queryByRole('button', { name: 'حفظ تصحيح التكلفة', exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'حفظ تصحيح التكلفة' })).not.toBeInTheDocument();
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
     expect(screen.queryByText(/18\.25/)).not.toBeInTheDocument();
   } else {
-    expect(screen.getByRole('button', { name: 'حفظ تصحيح التكلفة', exact: true })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'حفظ تصحيح التكلفة' })).toBeVisible();
   }
 });
 
 it.each(['agronomist', 'expert', 'viewer', 'unknown'])('%s cannot execute task updates without activity:execute', async role => {
   const patch = visit(role);
   await screen.findByText('execution-task');
-  expect(screen.queryByRole('button', { name: 'بدء', exact: true })).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'إنجاز', exact: true })).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'حفظ تصحيح التكلفة', exact: true })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'بدء' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'إنجاز' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'حفظ تصحيح التكلفة' })).not.toBeInTheDocument();
   expect(patch).not.toHaveBeenCalled();
 });
 
@@ -78,11 +78,11 @@ it.each([
   const toast = vi.spyOn(toastStore, 'add');
   const patch = visit('worker', error);
   await screen.findByText('execution-task');
-  fireEvent.click(screen.getByRole('button', { name: 'إنجاز', exact: true }));
+  fireEvent.click(screen.getByRole('button', { name: 'إنجاز' }));
   await waitFor(() => expect(patch).toHaveBeenCalledOnce());
-  await waitFor(() => expect(screen.getByRole('button', { name: 'إنجاز', exact: true })).toBeEnabled());
-  expect(screen.getByRole('button', { name: 'بدء', exact: true })).toBeVisible();
-  expect(screen.queryByRole('button', { name: 'حفظ تصحيح التكلفة', exact: true })).not.toBeInTheDocument();
+  await waitFor(() => expect(screen.getByRole('button', { name: 'إنجاز' })).toBeEnabled());
+  expect(screen.getByRole('button', { name: 'بدء' })).toBeVisible();
+  expect(screen.queryByRole('button', { name: 'حفظ تصحيح التكلفة' })).not.toBeInTheDocument();
   expect(toast).toHaveBeenCalledWith('error', '⚠️ تعذّر إنجاز المهمة', expect.stringMatching(message));
   expect(toast.mock.calls.some(([type]) => type === 'success')).toBe(false);
 });
