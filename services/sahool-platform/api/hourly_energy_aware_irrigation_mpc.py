@@ -12,11 +12,13 @@ import hashlib
 import json
 import math
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
+from decimal import ROUND_CEILING, ROUND_DOWN, Decimal
 from typing import Any
 
 SCHEMA_VERSION = "hourly_energy_aware_irrigation_mpc.v1"
 SOLVER_VERSION = "hourly-lex-mpc.v1"
+SCHEDULE_PRECISION = Decimal("0.000001")
 
 
 def _digest(payload: Any) -> str:
@@ -222,6 +224,14 @@ def solve_hourly_energy_aware_mpc(
     ):
         reasons.append("COMPLETE_ENGINEERING_CAPABILITY_REQUIRED")
 
+    seasonal_balance = irrigation_capability.get("remaining_seasonal_volume_m3")
+    seasonal_volume = _num(seasonal_balance)
+    if seasonal_balance is not None:
+        if seasonal_volume is None or seasonal_volume < 0:
+            reasons.append("INVALID_REMAINING_SEASONAL_VOLUME")
+        elif seasonal_volume == 0:
+            reasons.append("SEASONAL_WATER_ALLOCATION_EXHAUSTED")
+
     if not hourly_forecast:
         reasons.append("HOURLY_FORECAST_REQUIRED")
     if reasons:
@@ -308,7 +318,6 @@ def solve_hourly_energy_aware_mpc(
     required_refill = max(0.0, dr - target_dr)
     forecast_net_demand = sum(h["etc_mm"] - h["rain_mm"] for h in hours)
     required_refill = min(taw, max(required_refill, max(0.0, dr + forecast_net_demand - raw)))
-    event_limit = min(max_event_depth, max_daily_depth)
     if required_refill <= 1e-9:
         actions: list[HourlyMPCAction] = []
         _final_dr = min(taw, max(0.0, dr + forecast_net_demand))
@@ -333,6 +342,14 @@ def solve_hourly_energy_aware_mpc(
         actions = []
         last_action_time: datetime | None = None
         state_dr = dr
+        daily_limit = Decimal(str(max_daily_depth))
+        daily_depth_left: dict[date, Decimal] = {}
+        volume_per_mm = Decimal(str(area)) * 10
+        seasonal_volume_left = (
+            Decimal(str(seasonal_volume)).quantize(SCHEDULE_PRECISION, rounding=ROUND_DOWN)
+            if seasonal_volume is not None
+            else Decimal("Infinity")
+        )
         for h in hours:
             state_dr = min(taw, max(0.0, state_dr + h["etc_mm"] - h["rain_mm"]))
             if remaining <= 1e-9:
@@ -346,13 +363,21 @@ def solve_hourly_energy_aware_mpc(
                 continue
             depth_from_full_hour = max_flow_lps * 3.6 / (area * 10.0)
             min_depth = max_flow_lps * minimum_runtime_minutes * 0.06 / (area * 10.0)
-            depth = min(remaining, event_limit, depth_from_full_hour, state_dr)
+            day = h["hour"].date()  # Forecast windows are normalized to UTC above.
+            daily_remaining = daily_depth_left.get(day, daily_limit)
+            requested_depth = min(remaining, max_event_depth, depth_from_full_hour, state_dr)
+            # Round down to the published depth precision before deriving volume and energy.
+            budgeted_depth = min(
+                Decimal(str(requested_depth)), daily_remaining, seasonal_volume_left / volume_per_mm
+            ).quantize(SCHEDULE_PRECISION, rounding=ROUND_DOWN)
+            depth = float(budgeted_depth)
             if depth < min_depth and remaining > min_depth:
                 continue
             if depth <= 1e-9:
                 continue
             runtime = depth * area * 10.0 / (max_flow_lps * 0.06)
-            volume = depth * area * 10.0
+            budgeted_volume = budgeted_depth * volume_per_mm
+            volume = float(budgeted_volume)
             energy = volume * specific_energy
             action = HourlyMPCAction(
                 hour=h["hour"].isoformat().replace("+00:00", "Z"),
@@ -367,6 +392,9 @@ def solve_hourly_energy_aware_mpc(
                 source_window_digest=h["window_digest"],
             )
             actions.append(action)
+            daily_depth_left[day] = daily_remaining - budgeted_depth
+            # Reserve any fraction of a published volume unit against the seasonal balance.
+            seasonal_volume_left -= budgeted_volume.quantize(SCHEDULE_PRECISION, rounding=ROUND_CEILING)
             state_dr = max(0.0, state_dr - depth)
             remaining -= depth
             last_action_time = h["hour"]

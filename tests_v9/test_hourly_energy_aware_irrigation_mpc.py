@@ -1,5 +1,6 @@
 import sys
 from datetime import UTC, datetime, timedelta, timezone
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -134,6 +135,78 @@ def test_required_load_not_permitted_blocks_windows():
         row["permitted_load_ids"] = ["pivot-1"]
     result = solve(hourly_forecast=rows)
     assert "NO_FEASIBLE_HOURLY_ENERGY_WINDOW" in result.blocking_reasons
+
+
+def test_daily_depth_accumulates_across_actions_and_renews_at_utc_midnight():
+    rows = forecast(hours=8)
+    # All eight rows have the same local date, but UTC midnight falls between them.
+    local_midnight = datetime(2026, 7, 14, tzinfo=timezone(timedelta(hours=4)))
+    for index, row in enumerate(rows):
+        row["hour"] = (local_midnight + timedelta(hours=index)).isoformat()
+    cap = {**capability(), "maximum_daily_depth_mm": 6.0, "maximum_safe_depth_mm_event": 4.0}
+    result = solve(irrigation_capability=cap, area_ha=4.5, hourly_forecast=rows)
+
+    assert [(a["hour"], a["irrigation_depth_mm"]) for a in result.actions] == [
+        ("2026-07-13T20:00:00Z", 4.0),
+        ("2026-07-13T21:00:00Z", 2.0),
+        ("2026-07-14T00:00:00Z", 4.0),
+        ("2026-07-14T01:00:00Z", 2.0),
+    ]
+    assert result.scheduled_irrigation_mm == 12.0
+    assert result.status == "degraded"
+    assert result.execution_allowed is False
+
+
+def test_seasonal_volume_is_shared_across_all_days_in_one_schedule():
+    cap = {**capability(), "remaining_seasonal_volume_m3": 95.0}
+    rows = forecast(hours=3)
+    for index, row in enumerate(rows):
+        row["hour"] = (NOW.replace(hour=23) + timedelta(hours=index)).isoformat()
+    result = solve(
+        irrigation_capability=cap,
+        hourly_forecast=rows,
+        area_ha=0.5,
+        minimum_runtime_minutes=1,
+    )
+
+    assert [a["irrigation_volume_m3"] for a in result.actions] == [50.0, 45.0]
+    assert result.scheduled_volume_m3 == 95.0
+    assert result.status == "degraded"
+    assert result.recommendation_only is True
+
+
+@pytest.mark.parametrize("invalid", [-1, "missing", True, float("nan"), float("inf")])
+def test_malformed_seasonal_balance_blocks(invalid):
+    result = solve(irrigation_capability={**capability(), "remaining_seasonal_volume_m3": invalid})
+    assert result.status == "blocked"
+    assert result.actions == []
+    assert "INVALID_REMAINING_SEASONAL_VOLUME" in result.blocking_reasons
+
+
+def test_zero_seasonal_balance_blocks_irrigation():
+    result = solve(irrigation_capability={**capability(), "remaining_seasonal_volume_m3": 0})
+    assert result.status == "blocked"
+    assert result.scheduled_volume_m3 == 0
+    assert "SEASONAL_WATER_ALLOCATION_EXHAUSTED" in result.blocking_reasons
+
+
+def test_fractional_published_actions_stay_inside_both_budgets():
+    cap = {
+        **capability(),
+        "remaining_seasonal_volume_m3": 3.000003,
+        "maximum_daily_depth_mm": 1.000001,
+        "maximum_safe_depth_mm_event": 0.3333338,
+    }
+    result = solve(
+        irrigation_capability=cap,
+        hourly_forecast=forecast(hours=8),
+        area_ha=0.3,
+        minimum_runtime_minutes=0,
+    )
+    total_depth = sum(Decimal(str(action["irrigation_depth_mm"])) for action in result.actions)
+    total_volume = sum(Decimal(str(action["irrigation_volume_m3"])) for action in result.actions)
+    assert Decimal("0.99999") <= total_depth <= Decimal("1.000001")
+    assert Decimal("2.99999") <= total_volume <= Decimal("3.000003")
 
 
 pytestmark = pytest.mark.unit
