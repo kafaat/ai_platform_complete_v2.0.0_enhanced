@@ -77,6 +77,26 @@ void main() {
     expect(find.byKey(const ValueKey('batch:bat_other')), findsNothing);
   });
 
+  testWidgets('mixed units show original quantities without a sufficient-stock badge', (t) async {
+    final adapter = routeAdapter({
+      'GET /api/v1/inventory/items': (_) => const FakeReply(200, [
+        {
+          'item_id': 'inv_1', 'unit': 'kg', 'reorder_level': 5,
+          'total_quantity': null, 'low_stock': null,
+          'quantities_by_unit': [
+            {'unit': 'kg', 'quantity': 2},
+            {'unit': null, 'quantity': 0.0001},
+          ],
+        },
+      ]),
+      'GET /api/v1/inventory/expiring': (_) => const FakeReply(200, []),
+    });
+    await pumpItem(t, adapter);
+    expect(find.text('الكميّات حسب الوحدة: 2 kg · 0.0001 وحدة غير محددة'), findsOneWidget);
+    expect(find.text('تعذّر تقييم حدّ الطلب'), findsOneWidget);
+    expect(find.text('كافٍ'), findsNothing);
+  });
+
   testWidgets('stock-out is disabled with the backend reason', (t) async {
     await pumpItem(t, adapterFor('fertilizer'));
     final out = t.widget<OutlinedButton>(

@@ -1804,8 +1804,9 @@ export interface InventoryItem {
   name:           string;
   unit:           string | null;
   reorder_level:  number | null;
-  total_quantity: number;
-  low_stock:      boolean;
+  total_quantity: number | null;
+  low_stock:      boolean | null;
+  quantities_by_unit?: { unit: string | null; quantity: number }[];
 }
 export interface ExpiringBatch {
   batch_id:    string;
@@ -1833,7 +1834,8 @@ export interface NewInventoryBatch {
 }
 
 export const getInventoryItems = (): Promise<InventoryItem[]> =>
-  kongApi.get<InventoryItem[]>('/api/v1/inventory/items').then(r => (Array.isArray(r.data) ? r.data : []));
+  kongApi.get<InventoryItem[]>('/api/v1/inventory/items', { params: { unit_breakdown: true } })
+    .then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const getExpiringBatches = (days = 30): Promise<ExpiringBatch[]> =>
   kongApi.get<ExpiringBatch[]>('/api/v1/inventory/expiring', { params: { days } }).then(r => (Array.isArray(r.data) ? r.data : []));

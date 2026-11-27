@@ -47,6 +47,7 @@ class InventoryItem {
     required this.reorderLevel,
     required this.totalQuantity,
     required this.lowStock,
+    this.quantitiesByUnit = const [],
   });
 
   factory InventoryItem.fromJson(Map<String, dynamic> m) {
@@ -61,7 +62,11 @@ class InventoryItem {
       unit: (m['unit'] ?? '').toString(),
       reorderLevel: _toDouble(m['reorder_level']),
       totalQuantity: _toDouble(m['total_quantity']),
-      lowStock: m['low_stock'] == true,
+      lowStock: m['low_stock'] as bool?,
+      quantitiesByUnit: [
+        for (final row in m['quantities_by_unit'] as List? ?? const [])
+          (unit: row['unit'] as String?, quantity: row['quantity'] as num),
+      ],
     );
   }
 
@@ -77,7 +82,12 @@ class InventoryItem {
   final double? totalQuantity;
 
   /// يحسبه الخادم: الكمّيّة ≤ حدّ إعادة الطلب.
-  final bool lowStock;
+  final bool? lowStock;
+  final List<({String? unit, num quantity})> quantitiesByUnit;
+
+  String get quantityBreakdown => quantitiesByUnit
+      .map((row) => '${row.quantity} ${row.unit ?? 'وحدة غير محددة'}')
+      .join(' · ');
 
   String get categoryLabel => inventoryCategoryLabel(category);
 }

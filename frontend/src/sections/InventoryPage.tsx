@@ -240,14 +240,20 @@ export default function InventoryPage() {
       render: it => (
         <span className="inline-flex items-center gap-2 flex-wrap">
           <span style={{ color: T.ink }}>{it.name}</span>
+          {it.low_stock === null && <Pill>تعذّر تقييم حدّ الطلب</Pill>}
           {it.low_stock && (
             <Pill tone="danger" icon={<AlertTriangle className="w-2.5 h-2.5" />}>مخزون منخفض</Pill>
           )}
         </span>
       ),
     },
-    { key: 'total_quantity', label: 'الكميّة', render: it => it.total_quantity.toLocaleString('en-US') },
-    { key: 'unit', label: 'الوحدة', render: it => it.unit ?? '—' },
+    {
+      key: 'total_quantity', label: 'الكميّة',
+      render: it => it.total_quantity != null
+        ? it.total_quantity.toLocaleString('en-US')
+        : it.quantities_by_unit?.map(({ quantity, unit }) => `${quantity} ${unit ?? 'وحدة غير محددة'}`).join(' · ') || '—',
+    },
+    { key: 'unit', label: 'الوحدة', render: it => it.total_quantity == null && it.quantities_by_unit?.length ? 'حسب الدفعات' : it.unit ?? '—' },
     ...(mayMutate
       ? [{
           key: 'item_id' as const, label: 'إجراء',
