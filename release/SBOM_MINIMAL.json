@@ -21975,7 +21975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "45efe5984793146ae5c193856208dcdac05e36cfecc96a0575bba2a8683b2fa8"
+          "content": "fea3b10a92a7b3b6688dc9247b7313ca7011188de07cac67699d37fbb8a6c1eb"
         }
       ],
       "name": "services/indicators-service/observation_runtime.py",
@@ -21995,7 +21995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e75314e7bd07ac95361a966e51d49125a9a07a4278c2f85c532f45ed2cfd8ffc"
+          "content": "a699ad4e33c60079bf845c030cc76fdaa0ea372789f4a25e60486d9c054314c8"
         }
       ],
       "name": "services/indicators-service/observation_timeline.py",
@@ -22045,7 +22045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb76c187336fbe7f0c36715866c5b54ee3a7f4f78d8ddd3fef49730800d2502c"
+          "content": "7a2d140929af5a0c1fce36e065641eaa87b27f154e1280a3a4f300490b06e5da"
         }
       ],
       "name": "services/indicators-service/tests/test_observation_runtime.py",
@@ -22735,7 +22735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b7a7474adb3b3b3c5bb05ca51ad6ca78dde9ea4bb737ada2e3d206a6db8099dc"
+          "content": "f80be4d11a007eeddff39cf5e0c07f1bf17d568dda36aa4e0f0879dfb656ba93"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -22835,7 +22835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39a03b51471d5da2abfcc33ed7f3b6e903ea733ad58ee8251b4642292fe146ef"
+          "content": "ebe5988aef0b08fc106eb775cd4cdbbf1960618a82e7867b73d3c25ef356b041"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -22955,7 +22955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb39a5135a55a2b924db1d57c93e81d7218edc6a273be7007ef1e10411fe2301"
+          "content": "2daa57dd560d0bc3a5f6a07db440fd607dfb745d0677bac8c308549c59521e42"
         }
       ],
       "name": "services/raster-service/indicator_product_identity.py",
@@ -22975,6 +22975,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0e7977191ac53ba2e49f61cb86745facb1e7657388cbdd1247856ebd7149a651"
+        }
+      ],
+      "name": "services/raster-service/landsat_st.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c918b7a70be1bb012257970e3c75b3d92e15c90a6ca48061ffc05ca8dd627b59"
         }
       ],
@@ -22985,7 +22995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc52f186945c6e7947546c4316e76743516289fc149146c4e8726de9307af013"
+          "content": "42840ece59ec3995241c68f18af65724df9cf4cc2c40a16a3f0fb761b44d2000"
         }
       ],
       "name": "services/raster-service/layer_lookup.py",
@@ -23065,7 +23075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00b83751fd9d7c94870152ff7b1a870ee5374022d413a4fa41939b26f90a5b6c"
+          "content": "fc784fb5542ee7e37cd007253bbe34396e22f6e0b63889a37a160aaf7bd841d1"
         }
       ],
       "name": "services/raster-service/raster_api_models.py",
@@ -23095,7 +23105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8afceadfe29cb63609a0d837c813887b7ea97310ca731b08158fb89e8ff414f5"
+          "content": "ac72428f84d67e04c9ac78ec206044d86c770cde3cd954c26685a8e0998ba2f7"
         }
       ],
       "name": "services/raster-service/raster_asset_persistence.py",
@@ -23295,7 +23305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "159d09e6fff3afc39e6eb69ad9d079202a9e45f83b559efba74ccc94888fd4bf"
+          "content": "831d941c0bd858c35cac8fa8ff7aea7e3f4e1eed74eafed58cd7cdb32f60cd8e"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -23365,7 +23375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fb5e1be2bd0ed093d8f7c21cf2594d919b269d1ca8f3e1d251022278b6bdc90"
+          "content": "9e8ca5440a2492fe00744fecda7ca655608640196dbe446a9bb52d5b10dd22fa"
         }
       ],
       "name": "services/raster-service/raster_settings.py",
@@ -23475,7 +23485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a8f4ac2b1be4798148a73ca4733090b9c1f144a1ac22f4db69d2390be9df452"
+          "content": "62e38b2c63b4d8c9d132f306048827ec025ca25f3f1cff347868571df57db450"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -23715,7 +23725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc374bb2da07df97ca89ef51a25389a4941acbffd8807c0f6b5e89fec431c3a6"
+          "content": "b569c9579ce07ad2fd9571e1c5c00da1f60cdb73e75da5adb3299e3946f0741b"
         }
       ],
       "name": "services/raster-service/stac_search.py",
@@ -24379,6 +24389,16 @@
         }
       ],
       "name": "services/raster-service/test_job_truth_receipts_and_fencing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2b105b8c5d9af0405f524ffc9b09f7632813b2a784765bd1acf79821dc79af9e"
+        }
+      ],
+      "name": "services/raster-service/test_landsat_field_lst.py",
       "type": "file"
     },
     {
@@ -43009,6 +43029,16 @@
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "887cd33f2012363ea32abe3354bf22088e95cc545288b5388132c4021eae0708"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/thermal.py",
       "type": "file"
     },
     {
