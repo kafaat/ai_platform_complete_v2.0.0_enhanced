@@ -505,10 +505,10 @@ sahool-platform,services/sahool-platform/api/routers/crop_cards.py,96,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/crop_cards.py,113,GET,/api/v1/crop-cards/variety/{variety_id}/disease-watch,variety_disease_watch_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/crop_operations.py,24,GET,/api/v1/crops/{crop_id}/operations-calendar,crop_operations_calendar_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/crop_suitability.py,31,POST,/api/v1/crop-suitability,crop_suitability,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,245,POST,/api/v1/crop-twin/compose,compose_crop_twin,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,303,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,413,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,537,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,249,POST,/api/v1/crop-twin/compose,compose_crop_twin,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,307,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,490,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,617,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/crops.py,26,GET,/api/v1/crops/drought-resilience,crop_drought_resilience,versioned
 sahool-platform,services/sahool-platform/api/routers/crops.py,47,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience,versioned
 sahool-platform,services/sahool-platform/api/routers/cultural_calendar.py,24,GET,/api/v1/cultural-calendar,cultural_calendar,versioned

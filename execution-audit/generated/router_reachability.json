@@ -865,7 +865,7 @@
     },
     {
       "kind": "router",
-      "line": 41,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.crop_twin",
       "node_id": "services.sahool-platform.api.routers.crop_twin:router",
       "route_count": 4,
@@ -2511,7 +2511,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 64,
+  "include_edge_count": 65,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2664,6 +2664,15 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.api.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "crop_twin.router",
+      "line": 94,
+      "module": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_crop_georag_point_pg:<dynamic-source>",
       "target": null
     },
     {
@@ -3090,7 +3099,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f2812e33558ac9510f9049dbc1c356dc9f372b036009a92fcc120c2d3cfed2da",
+  "inventory_sha256": "9934fb86889d52dbb003196d7fd66b1f0ea53bc83e7c0143b7450e69fc0ffd09",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -3776,7 +3785,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 41,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.crop_twin",
       "node_id": "services.sahool-platform.api.routers.crop_twin:router",
       "route_count": 4,
@@ -5491,7 +5500,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 58,
+  "unresolved_include_count": 59,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5604,6 +5613,14 @@
       "module": "services.sahool-platform.api.router_registry",
       "source": null,
       "target_expression": "service_proxy_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+      "line": 94,
+      "module": "services.sahool-platform.tests.test_crop_georag_point_pg",
+      "source": null,
+      "target_expression": "crop_twin.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

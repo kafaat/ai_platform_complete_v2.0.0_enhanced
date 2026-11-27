@@ -5315,7 +5315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a3208535a2711e827716f53b8fb7212a2d0af905a790e70cff50e34c72e1894f"
+          "content": "4f727ebfc0d4d47db76ace2cd1975ac84ccb999a7bee0b6282e62be1dfa34a3f"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -28195,7 +28195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d405507adb9f2d8dce4ebce15b1d725092f262b0505200cd4cd4143b10f5ee46"
+          "content": "6163217aab3fb5bef704a9f8f04c821724c6d9102eddef8615224111f715f995"
         }
       ],
       "name": "services/sahool-platform/api/routers/crop_twin.py",
@@ -29895,7 +29895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c7371e83ce680c36407dfe20d2058e7442ba5b27c4a7a44ce95c072a784b9a8"
+          "content": "d5892f7cb4ba16997e94d356bedd23e99477f57dc652c1106e406a14955174f7"
         }
       ],
       "name": "services/sahool-platform/api/unified_decision.py",
@@ -32865,7 +32865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9d85f6e7a08111882435695060f2c30599c975cf67809f163c2ed9f65357c53"
+          "content": "925b8fe220888dd3171180f455edfc5e4e25d1ed529afb60ffd72670bf68b3b3"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
@@ -34689,6 +34689,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_decision_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5496fd25a3c184ec26cbfe4cedf23396264af6d433724caff80bc87211c1a281"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
       "type": "file"
     },
     {
@@ -43539,6 +43549,16 @@
         }
       ],
       "name": "shared/knowledge/contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4385d2a17241f177adc2c93ea8191f066e6f659d5056208838c42fa4e05401b6"
+        }
+      ],
+      "name": "shared/knowledge/georag_evidence.py",
       "type": "file"
     },
     {
