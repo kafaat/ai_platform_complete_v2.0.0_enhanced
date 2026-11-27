@@ -34705,7 +34705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e628dbbd4a50662d86682fa65ffe156954716c71f85f48ed0ddc28f0f51a9e1"
+          "content": "5496fd25a3c184ec26cbfe4cedf23396264af6d433724caff80bc87211c1a281"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_georag_point_pg.py",

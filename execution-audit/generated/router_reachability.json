@@ -2668,7 +2668,7 @@
     },
     {
       "expression": "crop_twin.router",
-      "line": 90,
+      "line": 94,
       "module": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
       "prefix": null,
       "resolved": false,
@@ -3099,7 +3099,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "4628974a69d7cf773d8b28ee220a181d1d795d0bb4908a129c13d31eb4a3ae9e",
+  "inventory_sha256": "89fb4f3e9623bfc87d8c574f91b4673eac8e4a2c691dc4f0ab23d256903fbdfe",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -5617,7 +5617,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
-      "line": 90,
+      "line": 94,
       "module": "services.sahool-platform.tests.test_crop_georag_point_pg",
       "source": null,
       "target_expression": "crop_twin.router"
