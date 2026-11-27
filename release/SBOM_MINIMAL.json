@@ -20975,7 +20975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a6d94636c5890e6a63bfd39b221f409339598f3279c025f1449be7482d3f2e1"
+          "content": "3b155ff71167785028a5a4bff52699fffe7062848216629bb458709100483afa"
         }
       ],
       "name": "services/edge-inference/Dockerfile.arm64",
