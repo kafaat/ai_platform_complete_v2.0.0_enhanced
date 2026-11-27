@@ -841,14 +841,16 @@
       "services": [],
       "apis": [
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:861",
-        "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187",
-        "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92",
+        "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:203",
+        "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:95",
         "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:876",
-        "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:41",
-        "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:123",
+        "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:44",
+        "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:139",
         "POST /v1/procurement @ services/mcp_servers/market_server.py:868"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/inventory-units.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/inventory/data/inventory_api.dart",
         "mobile/sahool_app/lib/features/inventory/data/inventory_models.dart",
@@ -906,7 +908,7 @@
           "path": "services/sahool-platform/core/data_inventory.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=17, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=17, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

@@ -3517,6 +3517,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "frontend/e2e/inventory-units.spec.ts",
         "tests_v9/test_inventory_equipment.py"
       ],
       "learning_linked": false,
@@ -3526,6 +3527,11 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "frontend/e2e/inventory-units.spec.ts",
+          "signal": "filename:e2e"
+        },
         {
           "evidence_type": "unit",
           "path": "mobile/sahool_app/test/features/inventory/inventory_api_test.dart",

@@ -15,7 +15,7 @@ FM-003,farm_management,Field registry and boundaries,True,7,15,56,5,62,3,2,17,1
 FM-004,farm_management,Season lifecycle,True,7,34,82,68,51,20,15,63,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,13,0,0,15,6,1,8,0
 FM-006,farm_management,Farm economics,True,3,1,0,0,0,2,0,1,0
-FM-007,farm_management,Inventory and procurement,True,6,8,19,8,0,1,4,7,0
+FM-007,farm_management,Inventory and procurement,True,6,9,19,8,0,1,4,8,0
 FM-008,farm_management,ERP integration,True,5,10,31,5,2,0,0,11,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,4,0,0,4,0,2,0

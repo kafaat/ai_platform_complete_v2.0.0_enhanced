@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7772,
     "files_by_kind": {
-      "backend": 1321,
+      "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2259,
-      "tests": 2722,
+      "tests": 2723,
       "web": 587
     },
     "unmapped_artifacts": 3703,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4224,
-      "raw": 3546
+      "python_functional": 4225,
+      "raw": 3547
     },
     "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
+    "test_dependency_edges": 5619,
     "test_dependency_bounded_files": 1193,
     "test_dependency_unresolved_relations": 539
   },
@@ -9013,6 +9013,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/inventory_units.py",
+          "score": 11,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "services/odoo-bridge/erp_provider.py",
           "score": 9,
           "signals": [
@@ -9031,19 +9039,19 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:186",
+          "value": "/api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:202",
           "score": 14
         },
         {
-          "value": "/api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40",
+          "value": "/api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:43",
           "score": 14
         },
         {
-          "value": "/api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:91",
+          "value": "/api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:94",
           "score": 14
         },
         {
-          "value": "/api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:122",
+          "value": "/api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:138",
           "score": 14
         },
         {
@@ -9198,6 +9206,14 @@
       ],
       "tests": [
         {
+          "path": "frontend/e2e/inventory-units.spec.ts",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/test/features/inventory/inventory_api_test.dart",
           "score": 14,
           "signals": [
@@ -9308,13 +9324,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 8,
+        "backend": 9,
         "routes": 19,
         "database": 8,
         "events": 0,
         "web": 1,
         "mobile": 4,
-        "tests": 7,
+        "tests": 8,
         "governance": 0,
         "other_evidence": 5
       },
@@ -85524,6 +85540,11 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 395
+        },
+        {
           "source": "services/sahool-platform/api/main.py",
           "kind": "import",
           "line": 82
@@ -85537,6 +85558,11 @@
           "source": "services/sahool-platform/api/routers/farm_operations_ledger.py",
           "kind": "import",
           "line": 83
+        },
+        {
+          "source": "services/sahool-platform/api/routers/inventory.py",
+          "kind": "import",
+          "line": 473
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",

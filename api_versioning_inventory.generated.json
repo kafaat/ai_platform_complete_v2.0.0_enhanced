@@ -6617,7 +6617,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 41,
+    "line": 44,
     "method": "POST",
     "path": "/api/v1/inventory/items",
     "handler": "create_inventory_item",
@@ -6626,7 +6626,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 92,
+    "line": 95,
     "method": "GET",
     "path": "/api/v1/inventory/items",
     "handler": "list_inventory_items",
@@ -6635,7 +6635,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 123,
+    "line": 139,
     "method": "POST",
     "path": "/api/v1/inventory/items/{item_id}/batches",
     "handler": "add_inventory_batch",
@@ -6644,7 +6644,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 187,
+    "line": 203,
     "method": "GET",
     "path": "/api/v1/inventory/expiring",
     "handler": "list_expiring_batches",

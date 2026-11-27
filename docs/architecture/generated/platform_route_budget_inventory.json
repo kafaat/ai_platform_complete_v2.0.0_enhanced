@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "f5582f8ec19d6d37a7e7a2b0b42062d3e226da17db52bfadf22824712150aa15",
+  "inventory_sha256": "28cfa795a427792005ec23fc7f75c9679ab6162180af03d9ca53ccf6e16da1fe",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "332a10134f0dac591e2a85043321e6a944fdd1d0f38f76f81b25a5388add6a92"
+    "policy_sha256": "2facab281cfb5bbc058ac566bd012999a8044bd6493ca9394080110c60f5134d"
   },
   "routes": [
     {
@@ -1570,7 +1570,7 @@
     {
       "classification": "domain",
       "function": "list_expiring_batches",
-      "line": 186,
+      "line": 202,
       "method": "GET",
       "path": "/api/v1/inventory/expiring",
       "source": "api/routers/inventory.py"
@@ -1578,7 +1578,7 @@
     {
       "classification": "domain",
       "function": "list_inventory_items",
-      "line": 91,
+      "line": 94,
       "method": "GET",
       "path": "/api/v1/inventory/items",
       "source": "api/routers/inventory.py"
@@ -3850,7 +3850,7 @@
     {
       "classification": "domain",
       "function": "create_inventory_item",
-      "line": 40,
+      "line": 43,
       "method": "POST",
       "path": "/api/v1/inventory/items",
       "source": "api/routers/inventory.py"
@@ -3858,7 +3858,7 @@
     {
       "classification": "domain",
       "function": "add_inventory_batch",
-      "line": 122,
+      "line": 138,
       "method": "POST",
       "path": "/api/v1/inventory/items/{item_id}/batches",
       "source": "api/routers/inventory.py"
