@@ -81004,17 +81004,17 @@
         {
           "source": "services/weather-service/canonical_weather_state.py",
           "kind": "import",
-          "line": 535
+          "line": 537
         },
         {
           "source": "services/weather-service/et0.py",
           "kind": "import",
-          "line": 536
+          "line": 538
         },
         {
           "source": "services/weather-service/open_meteo.py",
           "kind": "import",
-          "line": 537
+          "line": 539
         }
       ],
       "unresolved": [
@@ -81091,19 +81091,19 @@
           "import": "api.canonical_water_state"
         },
         {
-          "line": 451,
+          "line": 453,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 452,
+          "line": 454,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 532,
+          "line": 534,
           "import": "api.canonical_water_state"
         },
         {
-          "line": 568,
+          "line": 570,
           "import": "api.canonical_water_state"
         }
       ]
@@ -84311,27 +84311,27 @@
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "loader",
-          "line": 29
+          "line": 34
         },
         {
           "source": "services/edge-inference/sync_service.py",
           "kind": "source_read",
-          "line": 29
+          "line": 34
         },
         {
           "source": "services/sahool-platform/api/edge_models.py",
           "kind": "loader",
-          "line": 46
+          "line": 51
         },
         {
           "source": "services/sahool-platform/api/edge_models.py",
           "kind": "source_read",
-          "line": 47
+          "line": 52
         },
         {
           "source": "shared/security/service_tenant_assertion.py",
           "kind": "import",
-          "line": 222
+          "line": 227
         }
       ],
       "unresolved": []

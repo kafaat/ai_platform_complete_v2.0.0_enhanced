@@ -10,7 +10,7 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **292**
+- حرّاس تحجب في CI: **293**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **64**
 - إجماليّ الطفرات المُسجَّلة: **501**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **398** على 139 مصدراً
@@ -20,7 +20,7 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **228** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **229** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -1191,7 +1191,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (228)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (229)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1234,6 +1234,7 @@
 | `capability_roadmap_linker.py` | Validate and generate the curated roadmap-to-capability linkage. | `capability-registry` |
 | `capability_runtime_evidence.py` | Extract conservative runtime observability evidence for SAHOOL capabilities. | `capability-registry` |
 | `capability_shadow_reconciliation.py` | Shadow reconciliation between the canonical registry and the legacy projection. | `capability-registry` |
+| `capability_traceability_report.py` | Generate traceability reports from the field-authority-resolved capability view. | `capability-registry` |
 | `certify_artifact_contract.py` | عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha`` و``run_attempt``، وexactly-one، وهويّةٌ تُس… | `certify` |
 | `collect_full_branch_ci_evidence.py` | يجمع شاهدَ `P-CERT-1` من **عدّاء CI الحقيقيّ على هذه البصمة**، لا من مِسبارِ دخان. | `full-branch-ci-evidence` |
 | `collect_guard_surface_evidence.py` | شاهدُ `GUARDS`: أيُّ حارسٍ حاجبٍ **شُغِّل فعلاً** على هذه البصمة — والفارقُ لا العدد. | `guard-surface-evidence` |

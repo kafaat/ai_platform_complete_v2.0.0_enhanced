@@ -6855,7 +6855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e39efd92ccdb3c889494da1a401f190bf48703fb0913944fa2894ea486557ba6"
+          "content": "b9299356d6cc1046142024ecc3389b6229bc2a7f7b05db0300f6c425fe8b35ed"
         }
       ],
       "name": "frontend/src/sections/InspectionHandoff.test.tsx",
@@ -6865,7 +6865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c7477376d744f3f96bda447dbfc00097c1d1423a70f82efa41996571638640e"
+          "content": "52d35e182afd0676bbbd5d680e113d55c796f4bebfe3bb50d6bfc087bf6b343d"
         }
       ],
       "name": "frontend/src/sections/InspectionHandoff.tsx",
@@ -7805,7 +7805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08eb34ca65df21384a41de55ef471848be1a1b3aac168dd6b6354844720ff0a7"
+          "content": "0aa6cebbe7efd6e87c36e4d6544beb2387a03bcdb6edbb11782a28c0e85d6440"
         }
       ],
       "name": "frontend/src/sections/TasksPage.execution.test.tsx",
@@ -7815,7 +7815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d391afc7c4f0b66938dd9903298c4ceda6b13d1a8503735d8c992fe734538332"
+          "content": "457caf64a6b030a50c3236a6ec277f594de4af54dde23ed185482561c3e397eb"
         }
       ],
       "name": "frontend/src/sections/TasksPage.tsx",

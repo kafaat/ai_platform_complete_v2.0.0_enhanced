@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "inputs": {
     "docs/capability-registry/generated/capability_registry.json": "6a4f6abbb4253b1feae96e4a376d14d749d2bdc151e9f5bc2285ed4f17c3dfdf",
-    "docs/capability-registry/generated/mapping/capability_mapping.json": "bc0d62b86bb6be0cbd7f6c4947e74db2a8b52dd962b8e01dce363a47104b6ccc",
+    "docs/capability-registry/generated/mapping/capability_mapping.json": "615f74dce0cf02dee78b06108c3b68bfb91e4c76cc999731ad903420f314e460",
     "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": "bf0fd2ecf6dae71acca161e72ab6b5f75506105b42b387a5dba7b4a24dd20576",
     "docs/capability-registry/generated/benchmark/capability_parity_matrix.json": "a3a03129ca61b80f7a4ba86cef078580b46eacba5ed5e4d746d030b3735ec1d9",
     "docs/capability-registry/generated/benchmark/capability_investment_matrix.json": "bb15a8ccad4ad6ca6ccf794179c2a539599d7649e8d5b5c5b2efab3505e3e034",
