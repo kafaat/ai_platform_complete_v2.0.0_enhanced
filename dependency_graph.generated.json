@@ -1,5 +1,5 @@
 {
-  "edge_count": 1145,
+  "edge_count": 1148,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -3312,6 +3312,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/freshness_store.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/imagery_automation.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3973,6 +3983,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/field_state_projection.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://imagery_automation_fields",
+      "to": "db://imagery_automation_fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/freshness_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5462,6 +5482,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/freshness_store.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_observations",
+      "to": "db://soil_observations",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/simple_farm_book.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -5732,7 +5762,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/main.py",
+      "evidence": "services/sahool-platform/api/freshness_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5762,7 +5792,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/main.py",
+      "evidence": "services/sahool-platform/api/freshness_store.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -11470,7 +11500,7 @@
     "CALLS": 47,
     "CONSUMES": 4,
     "EMITS": 3,
-    "READS": 617,
+    "READS": 620,
     "ROUTES_TO": 82,
     "WRITES": 392
   },
@@ -11487,8 +11517,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 1010,
-      "resolved": 1009,
+      "observed": 1013,
+      "resolved": 1012,
       "unresolved_component_paths": 0
     }
   }

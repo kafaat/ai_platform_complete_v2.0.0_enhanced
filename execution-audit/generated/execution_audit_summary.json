@@ -2,10 +2,10 @@
   "schema_version": 1,
   "evidence_scope": "static_repository_only",
   "runtime_verified": false,
-  "python_files_parsed": 2290,
+  "python_files_parsed": 2291,
   "route_handlers": 1100,
-  "call_edges": 125329,
-  "dead_code_candidates": 694,
+  "call_edges": 125341,
+  "dead_code_candidates": 693,
   "duplicate_function_groups": 67,
   "route_owners": 27,
   "automatic_deletions": 0

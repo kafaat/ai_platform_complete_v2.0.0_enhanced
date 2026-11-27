@@ -1,5 +1,4 @@
 confidence,owner,kind,symbol,file,line,reference_count,action,decorated_route
-high,ai-agronomist,function,_zone_polygon,services/ai_agronomist/productivity_zones.py,60,0,review_before_delete,False
 high,decision-service,function,_memberships,services/decision-service/decision_sor_role_certify.py,163,0,review_before_delete,False
 high,decision-service,function,_service_token_guard,services/decision-service/main.py,172,0,review_before_delete,False
 high,decision-service,function,_require_live_when_certifying,services/decision-service/tests/test_eligibility_assessment_live_pg.py,119,0,review_before_delete,False
@@ -78,7 +77,7 @@ medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_b
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,87,0,review_before_delete,False
 medium,decision-service,function,mirror_runtime,services/decision-service/tests/test_p4_decision_service_runtime.py,12,0,review_before_delete,False
 medium,edge-inference,function,model_capability,services/edge-inference/model_artifact_gate.py,60,0,review_before_delete,False
-medium,field-management-service,function,build_router,services/field-management-service/fm_scouting_tasks.py,232,0,review_before_delete,False
+medium,field-management-service,function,build_router,services/field-management-service/fm_scouting_tasks.py,266,0,review_before_delete,False
 medium,gis-workflow-service,function,assemble_print_map_svg,services/gis-workflow-service/svg_print_map.py,82,0,review_before_delete,False
 medium,guardrails-engine,function,invalid_request_handler,services/guardrails-engine/main.py,384,0,review_before_delete,False
 medium,guardrails-engine,function,workflow_unavailable_handler,services/guardrails-engine/main.py,391,0,review_before_delete,False
@@ -179,7 +178,7 @@ medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-plat
 medium,sahool-platform,function,live_water_sets,services/sahool-platform/api/lab_store.py,518,0,review_before_delete,False
 medium,sahool-platform,function,append_water_analysis_revision,services/sahool-platform/api/lab_store.py,529,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,123,0,review_before_delete,False
-medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,862,0,review_before_delete,False
+medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,829,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
 medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,253,0,review_before_delete,False
 medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,279,0,review_before_delete,False

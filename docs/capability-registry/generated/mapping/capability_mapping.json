@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7778,
     "files_by_kind": {
-      "backend": 1321,
-      "database": 360,
+      "backend": 1322,
+      "database": 362,
       "governance": 92,
       "mobile": 429,
       "other": 2259,
-      "tests": 2722,
-      "web": 587
+      "tests": 2725,
+      "web": 589
     },
-    "unmapped_artifacts": 3703,
+    "unmapped_artifacts": 3706,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4224,
-      "raw": 3546
+      "python_functional": 4227,
+      "raw": 3551
     },
-    "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
-    "test_dependency_bounded_files": 1193,
+    "test_dependency_files": 2077,
+    "test_dependency_edges": 5625,
+    "test_dependency_bounded_files": 1195,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -8997,19 +8997,19 @@
           ]
         },
         {
-          "path": "services/odoo-bridge/routers/sync.py",
-          "score": 11,
-          "signals": [
-            "content:procurement",
-            "content:warehouse"
-          ]
-        },
-        {
           "path": "services/sahool-platform/core/data_inventory.yaml",
           "score": 11,
           "signals": [
             "path:inventory",
             "content:inventory"
+          ]
+        },
+        {
+          "path": "services/odoo-bridge/routers/sync.py",
+          "score": 10,
+          "signals": [
+            "content:procurement",
+            "content:warehouse"
           ]
         },
         {
@@ -9103,8 +9103,8 @@
           "score": 12
         },
         {
-          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:111",
-          "score": 11
+          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:121",
+          "score": 10
         }
       ],
       "database": [
@@ -9149,6 +9149,10 @@
         {
           "value": "workflow_transitions @ migrations/v9_odoo_bridge.sql:17",
           "score": 16
+        },
+        {
+          "value": "odoo_sync_log @ tests_v9/test_odoo_procurement_pool_live_pg.py:49",
+          "score": 14
         }
       ],
       "events": [],
@@ -9246,8 +9250,24 @@
           ]
         },
         {
+          "path": "tests_v9/test_odoo_procurement_pool_live_pg.py",
+          "score": 14,
+          "signals": [
+            "path:procurement",
+            "content:procurement"
+          ]
+        },
+        {
           "path": "tests_v9/test_odoo_bridge_tenant_honesty.py",
           "score": 12,
+          "signals": [
+            "content:inventory",
+            "content:procurement"
+          ]
+        },
+        {
+          "path": "tests_v9/test_erp_sync_schema_honesty.py",
+          "score": 9,
           "signals": [
             "content:inventory",
             "content:procurement"
@@ -9310,11 +9330,11 @@
       "evidence_counts": {
         "backend": 8,
         "routes": 19,
-        "database": 8,
+        "database": 9,
         "events": 0,
         "web": 1,
         "mobile": 4,
-        "tests": 7,
+        "tests": 9,
         "governance": 0,
         "other_evidence": 5
       },
@@ -9424,7 +9444,7 @@
           "score": 12
         },
         {
-          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:111",
+          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:121",
           "score": 12
         },
         {
@@ -14856,19 +14876,19 @@
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:440",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:499",
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:460",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:519",
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:502",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:561",
           "score": 14
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:513",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:572",
           "score": 14
         },
         {
@@ -14958,7 +14978,7 @@
           "score": 14
         },
         {
-          "value": "v282_field_task_scouting_anomaly.sql @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:470",
+          "value": "v282_field_task_scouting_anomaly.sql @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:529",
           "score": 14
         }
       ],
@@ -15384,11 +15404,11 @@
           "score": 16
         },
         {
-          "value": "/scouting @ services/field-management-service/fm_scouting_tasks.py:237",
+          "value": "/scouting @ services/field-management-service/fm_scouting_tasks.py:271",
           "score": 16
         },
         {
-          "value": "/scouting @ services/field-management-service/fm_scouting_tasks.py:280",
+          "value": "/scouting @ services/field-management-service/fm_scouting_tasks.py:314",
           "score": 16
         },
         {
@@ -15522,19 +15542,19 @@
           "score": 16
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:440",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:499",
           "score": 16
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:460",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:519",
           "score": 16
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:502",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:561",
           "score": 16
         },
         {
-          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:513",
+          "value": "field_tasks @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:572",
           "score": 16
         },
         {
@@ -15699,6 +15719,24 @@
           ]
         },
         {
+          "path": "migrations/v291_scouting_task_page_index.sql",
+          "score": 12,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
+          "path": "migrations/v291_scouting_task_page_index.down.sql",
+          "score": 11,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "dedup:Scouting=scouting"
+          ]
+        },
+        {
           "path": "migrations/v260_scout_photo_evidence.sql",
           "score": 8,
           "signals": [
@@ -15757,7 +15795,7 @@
           "score": 16
         },
         {
-          "value": "v282_field_task_scouting_anomaly.sql @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:470",
+          "value": "v282_field_task_scouting_anomaly.sql @ tests_v9/test_field_task_scouting_anomaly_live_pg.py:529",
           "score": 16
         },
         {
@@ -16276,7 +16314,7 @@
       "evidence_counts": {
         "backend": 10,
         "routes": 28,
-        "database": 48,
+        "database": 50,
         "events": 19,
         "web": 6,
         "mobile": 18,
@@ -21983,6 +22021,10 @@
           "score": 8
         },
         {
+          "value": "soil-observation.v1 @ tests_v9/test_freshness_page_live_pg.py:63",
+          "score": 8
+        },
+        {
           "value": "soil.drought.warn @ services/sahool-platform/tests/test_yield_heuristics.py:153",
           "score": 8
         },
@@ -22048,10 +22090,6 @@
         },
         {
           "value": "weather.rain @ services/sahool-platform/api/event_replay.py:316",
-          "score": 8
-        },
-        {
-          "value": "weather.rain @ services/sahool-platform/tests/test_yield_heuristics.py:157",
           "score": 8
         }
       ],
@@ -22902,6 +22940,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_freshness_page_live_pg.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "dedup:NDVI=ndvi"
+          ]
+        },
+        {
           "path": "tests_v9/test_imagery_batch_wait_before_read.py",
           "score": 8,
           "signals": [
@@ -23276,7 +23322,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 2
+        "events": 3
       },
       "evidence_counts": {
         "backend": 58,
@@ -23285,7 +23331,7 @@
         "events": 100,
         "web": 39,
         "mobile": 5,
-        "tests": 71,
+        "tests": 72,
         "governance": 0,
         "other_evidence": 33
       },
@@ -34576,6 +34622,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/hooks/useFieldIntelligenceCard.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/hooks/useFieldIntelligenceCard.ts",
       "kind": "web"
     },
@@ -35560,6 +35610,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/FieldIntelligencePage.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/FieldIntelligencePage.tsx",
       "kind": "web"
     },
@@ -36150,6 +36204,10 @@
     {
       "path": "frontend/src/services/duckdb.ts",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/services/fieldIntelligencePolling.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/services/scoutPhotoGrants.test.ts",
@@ -40141,6 +40199,10 @@
     },
     {
       "path": "services/sahool-platform/api/food_grain_varieties_verified_v1.schema.json",
+      "kind": "backend"
+    },
+    {
+      "path": "services/sahool-platform/api/freshness_store.py",
       "kind": "backend"
     },
     {
@@ -45797,10 +45859,6 @@
     },
     {
       "path": "tests_v9/test_erp_sync_recovery.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_erp_sync_schema_honesty.py",
       "kind": "tests"
     },
     {
@@ -52138,7 +52196,7 @@
         },
         {
           "capability_id": "FM-007",
-          "score": 11,
+          "score": 10,
           "signals": [
             "content:procurement",
             "content:warehouse"
@@ -61473,7 +61531,7 @@
         {
           "source": "shared/security/service_tenant_assertion.py",
           "kind": "import",
-          "line": 323
+          "line": 329
         }
       ],
       "unresolved": []
@@ -65857,12 +65915,7 @@
         {
           "source": "services/sahool-platform/api/agronomic_consistency.py",
           "kind": "import",
-          "line": 12
-        },
-        {
-          "source": "services/sahool-platform/api/main.py",
-          "kind": "import",
-          "line": 114
+          "line": 4
         }
       ],
       "unresolved": []
@@ -86766,6 +86819,49 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_freshness_page_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 205
+        },
+        {
+          "source": "services/sahool-platform/api/field_context.py",
+          "kind": "import",
+          "line": 93
+        },
+        {
+          "source": "services/sahool-platform/api/freshness_store.py",
+          "kind": "import",
+          "line": 140
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 205
+        },
+        {
+          "source": "services/sahool-platform/api/scheduler.py",
+          "kind": "import",
+          "line": 205
+        },
+        {
+          "source": "services/sahool-platform/core/__init__.py",
+          "kind": "import",
+          "line": 206
+        },
+        {
+          "source": "services/sahool-platform/core/automation_ledger.py",
+          "kind": "import",
+          "line": 206
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -92068,6 +92164,24 @@
           "call": "spec_from_file_location"
         }
       ]
+    },
+    {
+      "test": "tests_v9/test_odoo_procurement_pool_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/odoo-bridge/erp_runtime.py",
+          "kind": "loader",
+          "line": 22
+        },
+        {
+          "source": "services/odoo-bridge/erp_runtime.py",
+          "kind": "source_read",
+          "line": 12
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "tests_v9/test_offline_dispatch_field_update.py",

@@ -1114,7 +1114,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 238,
+    "line": 272,
     "method": "POST",
     "path": "/internal/field-tasks/scouting",
     "function": "create_scouting_task"
@@ -1122,7 +1122,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 281,
+    "line": 315,
     "method": "GET",
     "path": "/internal/field-tasks/scouting",
     "function": "list_scouting_tasks"
@@ -1962,7 +1962,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 112,
+    "line": 122,
     "method": "POST",
     "path": "/v1/sync",
     "function": "trigger_sync"

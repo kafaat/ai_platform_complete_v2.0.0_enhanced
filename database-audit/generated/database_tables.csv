@@ -123,7 +123,7 @@ field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_tasks,v9_new_tables.sql,3,True,False,False,2,True,True,15,5
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,0
-fields,v9_foundation.sql,1,True,False,False,2,True,True,75,10
+fields,v9_foundation.sql,1,True,False,False,2,True,True,76,10
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 geometry_locks,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 gis_collaboration_events,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
@@ -138,7 +138,7 @@ hourly_energy_envelopes,v174_energy_agricultural_microgrid_capability.sql,179,Tr
 hourly_irrigation_mpc_actions,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,0,1
 hourly_irrigation_mpc_schedules,v179_hourly_energy_aware_irrigation_mpc.sql,184,True,True,True,1,True,False,1,2
 hydraulic_capacity_evaluations,v195_irrigation_capacity_reservation_core.sql,200,True,False,False,0,False,True,0,1
-imagery_automation_fields,v9_automation_persistence.sql,7,True,False,False,0,False,True,5,1
+imagery_automation_fields,v9_automation_persistence.sql,7,True,False,False,0,False,True,6,1
 inspection_evidence_versions,v274_inspection_evidence_versions.sql,260,True,True,True,2,True,False,1,1
 inspection_handoffs,v275_inspection_handoffs.sql,261,True,True,True,2,True,False,2,1
 inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,3,2
@@ -312,7 +312,7 @@ soil_lab_tests,v50_soil_lab_tests.sql,54,True,True,True,1,False,False,2,0
 soil_learning_attributions,v164_soil_p4_closed_loop.sql,169,True,False,False,0,False,True,0,0
 soil_learning_datasets,v165_soil_p5_validation_calibration_certification.sql,170,True,False,False,0,False,True,0,0
 soil_observation_supersessions,v159_soil_observation_supersession_current_pointer.sql,164,True,True,True,0,False,False,1,1
-soil_observations,v155_soil_observations_profiles.sql,160,True,True,True,0,False,False,2,1
+soil_observations,v155_soil_observations_profiles.sql,160,True,True,True,0,False,False,3,1
 soil_outcome_records,v164_soil_p4_closed_loop.sql,169,True,False,False,0,False,True,0,0
 soil_production_certifications,v165_soil_p5_validation_calibration_certification.sql,170,True,False,False,0,False,True,0,0
 soil_profile_current,v159_soil_observation_supersession_current_pointer.sql,164,True,True,True,0,False,False,3,1

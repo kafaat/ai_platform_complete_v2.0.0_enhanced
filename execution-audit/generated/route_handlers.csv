@@ -230,7 +230,7 @@ odoo-bridge,GET,/v1/suppliers,list_erp_suppliers,services/odoo-bridge/routers/ca
 odoo-bridge,GET,/healthz,healthz,services/odoo-bridge/routers/health.py,77
 odoo-bridge,GET,/readyz,readyz,services/odoo-bridge/routers/health.py,87
 odoo-bridge,GET,/v1/readyz/capabilities,readyz_capabilities,services/odoo-bridge/routers/health.py,130
-odoo-bridge,POST,/v1/sync,trigger_sync,services/odoo-bridge/routers/sync.py,112
+odoo-bridge,POST,/v1/sync,trigger_sync,services/odoo-bridge/routers/sync.py,122
 odoo-bridge,POST,/v1/webhook/odoo,odoo_webhook,services/odoo-bridge/routers/webhooks.py,23
 rag-retrieval,GET,/healthz,healthz,services/rag-retrieval/main.py,219
 rag-retrieval,GET,/metrics,metrics,services/rag-retrieval/main.py,224

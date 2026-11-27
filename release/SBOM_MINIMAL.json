@@ -3285,7 +3285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f29b249e75c492a6b216a51f2e322ca0777906994b07ef22bb554c95967278fc"
+          "content": "476d361c489a4d85a61e592549cca5cc01faf93513e9dc7e0e52426c0a0184c8"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -3305,7 +3305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25e06b43eacd7bfcb515ddca39428f0e15b9a442af6361ea1670181ac5730595"
+          "content": "764798cd52af3a1fdbc8c9432d6daf02d59053234b583f9ef1601cf1781ba382"
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
@@ -3425,7 +3425,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c4997ae35f92f738fc70495441b386749dc2e9539d34cad77bf018eda911366"
+          "content": "75c87cabed98d38afb88f40d6b442db1a59b08d71ae9501c1ff272698ef427fe"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldIntelligenceCard.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1fa670d92030b2f172f8a5abc54c9af0ab3a763ca376bf4be3b27fd5cd731d87"
         }
       ],
       "name": "frontend/src/hooks/useFieldIntelligenceCard.ts",
@@ -5315,7 +5325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a3208535a2711e827716f53b8fb7212a2d0af905a790e70cff50e34c72e1894f"
+          "content": "6b119d6463639f50eed5bec8d442e58417fb3b00eb32b11f12619f6ae01a7567"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6405,7 +6415,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b7740094f0224642bf5adc67232abad6c08525f4864901f04b4d51cb57c20b4"
+          "content": "14730536ab716f3f2754c3f37103c72f255c4456f5d51f9de5de2131e2479aaf"
+        }
+      ],
+      "name": "frontend/src/sections/FieldIntelligencePage.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "28901108b4ae047eabd3112c9c94153c761931eca2ac584354eb0acee9166a22"
         }
       ],
       "name": "frontend/src/sections/FieldIntelligencePage.tsx",
@@ -8375,7 +8395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d41f1184d22cbdbcfe9a32ac3379de4550f36ad91a8014f3840c4582e8837cd1"
+          "content": "ccb7cd127f8d1d0af1e66e84d30d7c4d0cecae3c04774bb83864009ab5d1e3c5"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -8409,6 +8429,16 @@
         }
       ],
       "name": "frontend/src/services/duckdb.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9cae9452cbed96e11c07ffa50c078c5d873094165c582dae9e68c03cb8bcc69b"
+        }
+      ],
+      "name": "frontend/src/services/fieldIntelligencePolling.test.ts",
       "type": "file"
     },
     {
@@ -8585,7 +8615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "147ddfec277e3378ac00267c41d0268d18fd37ea9930d423a86ed36417bc3a84"
+          "content": "4d6ed3a4d1e0ba2c81189255a1bd5e1409a3ef0a00aa469dfb5ca326ae26516c"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8655,7 +8685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6407db847ad916d8356a55b382951fbd85ce52e0430c989d4d3996b2bc1d8e9"
+          "content": "d14e137dea6478b79812639bdbcb7b9cb0ff226f01e6a17ed70968b5ddd61757"
         }
       ],
       "name": "migrations/schema_probe_contract.env",
@@ -10769,6 +10799,26 @@
         }
       ],
       "name": "migrations/v290_scouting_verification_initial_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d5ac9935e4cbc2194a7e42dc4a159aedbe8e4f385a0531f1b10736fcb7f4f6e2"
+        }
+      ],
+      "name": "migrations/v291_scouting_task_page_index.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "50db11685e05009af0ba701e0dd5204288a3436b6110ad358037262b1f075db6"
+        }
+      ],
+      "name": "migrations/v291_scouting_task_page_index.sql",
       "type": "file"
     },
     {
@@ -19115,7 +19165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0e7beb5cc79ce0a8cbb9515133ba6f305a6b9d4a5834021bdf295d34bb7f301"
+          "content": "b068e1e5594217650f52c7c7853bcaf02889ea63bc023cb013a008fac2170995"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
@@ -21305,7 +21355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "980697d5d0844c997e524af358679c2802c63089ed8f9b5b1658afeb74a5da50"
+          "content": "141fd482a37391ea367ce13ee4093185f631ef7e71663f0e4d9e38fc900aa9ac"
         }
       ],
       "name": "services/field-management-service/fm_scouting_tasks.py",
@@ -21425,7 +21475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "62114cf5ffbb4bb946bed78ef7d6b9c978d2f29fcac458e7a2dc12a1a0f4e6b2"
+          "content": "cd850105254ac46cf2ee1f3dc7707f939ec06fa24282779bcab5fb2d27d071a9"
         }
       ],
       "name": "services/field-management-service/tests/test_scouting_tasks_unit.py",
@@ -22445,7 +22495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "564aeb4cb84ab555c95fdd1ad33d88b1564a4c8d93e3d67c66608fd6eda43cc3"
+          "content": "3b95c96499198ff5231ec198ded717087aaa77d7d5c4370ecbc3c63c751bdd55"
         }
       ],
       "name": "services/odoo-bridge/erp_runtime.py",
@@ -22515,7 +22565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d56ec0d34f5cc443b4ad3261443b122a0415f2d28c1a9507b97e29a3f9d2fd3a"
+          "content": "9f40176349985d1b831f04a1ed63ed792b7b372139a96e40dd9e1a71029033e4"
         }
       ],
       "name": "services/odoo-bridge/routers/sync.py",
@@ -25695,7 +25745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e6fe6900f64854b8ac1a36220b4c5f16ea18fd677a9992047a28de4713f44140"
+          "content": "f089469c6881787182ad9f57a7326cd6c59817516d47289d4a917c838a497675"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/main.py",
@@ -25715,7 +25765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "371bdfeeea4776de150b3b669d2524323fe7564b05f28ec901dde5bf2eb06b12"
+          "content": "7239148c1503a420ea6c5b17b49747138300d6e286cd46d16e4a82f8d0278203"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
@@ -26985,6 +27035,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c14404c529f38c72302f34cac3fb0012a2414ab0d2243f93dd68c55eecc1a748"
+        }
+      ],
+      "name": "services/sahool-platform/api/freshness_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b05186d7bbbfcfd74499178ea72cfcc97b96bd5c0bef350486a60ad930650beb"
         }
       ],
@@ -27455,7 +27515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97bbe5547d629a147ecc7430e9184bc9d2f51576f3031cdb09b3eac2bee40895"
+          "content": "307a6c7972d74c4c29dfafffa91f351878d286454a4fade81abf1d45ec71db44"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_source_binding.py",
@@ -27535,7 +27595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40a5b05767cb74bb1caa447d782cf906ce836bc428c7182d06a238e06b9b3e54"
+          "content": "0b1582b673c7abcae91d2c688afd1aa13a25ee39fbcbfe4d42bbbf91d6f991d3"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -30365,7 +30425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cebc355ae404e38cd0442486be25cf1dbea9bd7fee9fe1ae5ed805cd96514438"
+          "content": "ccc2030991e1a5b45c43bccd71ce3d3852c5d9c9805f9eb0652a35d64a31d576"
         }
       ],
       "name": "services/sahool-platform/core/automation_ledger.py",
@@ -36255,7 +36315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "addb12643dcd207999fdb13f2b2be569b8c234c92a3c594e507e1163d2c062bf"
+          "content": "6d17902ae8fd18cbce40b35c249442a68b4f3a01d22deeaf0d9bb110695f7718"
         }
       ],
       "name": "services/sahool-platform/tests/test_freshness_sweep.py",

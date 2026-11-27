@@ -874,6 +874,7 @@
         "tests_v9/test_inventory_edge_classification.py",
         "tests_v9/test_inventory_equipment.py",
         "tests_v9/test_main_inventory_generator.py",
+        "tests_v9/test_odoo_procurement_pool_live_pg.py",
         "tests_v9/test_resolve_inventory_edges.py",
         "tests_v9/test_unit_skip_inventory_guard.py",
         "tests_v9/test_v9_internal_tls_inventory.py"
@@ -906,7 +907,7 @@
           "path": "services/sahool-platform/core/data_inventory.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=17, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=18, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -945,7 +946,7 @@
         "GET /v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:130",
         "GET /v1/suppliers @ services/odoo-bridge/routers/catalog.py:78",
         "POST /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:222",
-        "POST /v1/sync @ services/odoo-bridge/routers/sync.py:112",
+        "POST /v1/sync @ services/odoo-bridge/routers/sync.py:122",
         "POST /v1/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:23"
       ],
       "ui_consumers": [],
@@ -963,6 +964,7 @@
         "tests_v9/test_erp_sync_recovery.py",
         "tests_v9/test_erp_sync_schema_honesty.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
+        "tests_v9/test_odoo_procurement_pool_live_pg.py",
         "tests_v9/test_v9_odoo_rls_hardening_static.py"
       ],
       "runtime": {
@@ -993,7 +995,7 @@
           "path": "services/odoo-bridge/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=13, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4073,7 +4075,7 @@
         "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:83",
         "GET /internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:215",
         "GET /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:193",
-        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:281",
+        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:315",
         "GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147",
         "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:106",
         "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2769",
@@ -4085,7 +4087,7 @@
         "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:128",
         "POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:525",
         "POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:156",
-        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238"
+        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:272"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -4260,7 +4262,7 @@
         "GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:119",
         "GET /healthz @ services/scout-ingest-service/main.py:227",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
-        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:281",
+        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:315",
         "GET /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:517",
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:300",
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context @ services/scout-ingest-service/media_api.py:674",
@@ -4283,7 +4285,7 @@
         "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466",
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
         "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328",
-        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238",
+        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:272",
         "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:403",
         "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:394",
         "POST /internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:586",
