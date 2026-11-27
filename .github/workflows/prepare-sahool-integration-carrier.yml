@@ -6,6 +6,7 @@ permissions:
   contents: read
 env:
   BASE: db79cf6d33fb8adb900f049d742de229f8616d4b
+  SEED: 98a0157b94c1eaacbad9178f0bc1c0cc5f5a8b14
   SOURCES: '6fb83dcf7c7b5f23e11f545bb650ab72250964a0 2d4ddb45506443495f1b4587fe73bdcb737a5a68 9222e256591e9f8e707640eefd91832c264ddad6 9c26ed06da244b48c1618e00972b98c619a570bc'
   TARGET: refs/heads/integration/sahool-1647-1649-1650-1652
 jobs:
@@ -15,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: db79cf6d33fb8adb900f049d742de229f8616d4b
+          ref: 98a0157b94c1eaacbad9178f0bc1c0cc5f5a8b14
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
@@ -24,7 +25,7 @@ jobs:
       - name: Combine the four reviewed source heads
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$BASE"
+          test "$(git rev-parse HEAD)" = "$SEED"
           git switch -c measured
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -106,13 +107,14 @@ jobs:
           python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
           ruff check .
           ruff format --check .
+          python scripts/ci/guard_mutation_guard.py
           bash scripts/ci/regenerate_all_generated.sh
           test -z "$(git ls-files --others --exclude-standard)"
           git add -u
           git -c core.whitespace=cr-at-eol diff --cached --check
           if ! git diff --cached --quiet; then git commit -m "Regenerate and verify artifacts for the combined source"; fi
           mkdir "$RUNNER_TEMP/verified"
-          git bundle create "$RUNNER_TEMP/verified/carrier.bundle" refs/heads/measured "^$BASE" "^6fb83dcf7c7b5f23e11f545bb650ab72250964a0" "^2d4ddb45506443495f1b4587fe73bdcb737a5a68" "^9222e256591e9f8e707640eefd91832c264ddad6" "^9c26ed06da244b48c1618e00972b98c619a570bc"
+          git bundle create "$RUNNER_TEMP/verified/carrier.bundle" refs/heads/measured "^$SEED" "^6fb83dcf7c7b5f23e11f545bb650ab72250964a0" "^2d4ddb45506443495f1b4587fe73bdcb737a5a68" "^9222e256591e9f8e707640eefd91832c264ddad6" "^9c26ed06da244b48c1618e00972b98c619a570bc"
           git rev-parse HEAD 'HEAD^{tree}' > "$RUNNER_TEMP/verified/identity"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
@@ -138,12 +140,12 @@ jobs:
       - name: Verify identities and advance the reserved carrier branch
         run: |
           set -euo pipefail
-          test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$BASE"
+          test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$SEED"
           git bundle verify "$RUNNER_TEMP/verified/carrier.bundle"
           git fetch "$RUNNER_TEMP/verified/carrier.bundle" refs/heads/measured
           candidate=$(git rev-parse FETCH_HEAD)
           git rev-parse "$candidate" "$candidate^{tree}" | diff - "$RUNNER_TEMP/verified/identity"
-          for source in "$BASE" $SOURCES; do git merge-base --is-ancestor "$source" "$candidate"; done
+          for source in "$BASE" "$SEED" $SOURCES; do git merge-base --is-ancestor "$source" "$candidate"; done
           git diff --exit-code "$BASE" "$candidate" -- .github/workflows
           git push origin "$candidate:$TARGET"
           test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$candidate"
