@@ -4177,6 +4177,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/raster-service/test_levelling_design.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/raster-service/test_poly_clip.py",
           "signal": "filename:test_"
         },
@@ -4353,6 +4358,7 @@
         "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
         "services/raster-service/test_field_terrain.py",
         "services/raster-service/test_field_terrain_multipolygon_extent.py",
+        "services/raster-service/test_levelling_design.py",
         "services/raster-service/test_poly_clip.py",
         "services/raster-service/test_raster_crs_window.py",
         "services/raster-service/test_raster_honest_envelopes_20260705.py",

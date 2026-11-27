@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **33**
-- Python LOC discovered: **375,181**
+- Python LOC discovered: **375,725**
 - Routes discovered: **1179**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -33,7 +33,7 @@
 | `odoo-bridge` | ERP Integration | 11 | 1963 | 2 | 11 | `services/odoo-bridge/main.py` | `services/odoo-bridge/Dockerfile` | `services/odoo-bridge/requirements.txt` | `normal` |
 | `qdrant-seed` | Unclassified / Support | 7 | 1396 | 2 | 0 | `-` | `services/qdrant-seed/Dockerfile` | `services/qdrant-seed/requirements.txt` | `medium-runtime-contract-gap` |
 | `rag-retrieval` | Knowledge Retrieval | 5 | 882 | 1 | 5 | `services/rag-retrieval/main.py` | `services/rag-retrieval/Dockerfile` | `services/rag-retrieval/requirements.txt` | `normal` |
-| `raster-service` | Imagery & Raster | 247 | 44093 | 137 | 89 | `services/raster-service/main.py` | `services/raster-service/Dockerfile` | `services/raster-service/requirements.txt` | `normal` |
+| `raster-service` | Imagery & Raster | 249 | 44637 | 138 | 89 | `services/raster-service/main.py` | `services/raster-service/Dockerfile` | `services/raster-service/requirements.txt` | `normal` |
 | `raster-tiler-service` | Imagery & Raster | 2 | 233 | 1 | 2 | `services/raster-tiler-service/main.py` | `services/raster-tiler-service/Dockerfile` | `services/raster-tiler-service/requirements.txt` | `normal` |
 | `realtime-agent` | Unclassified / Support | 20 | 2522 | 10 | 0 | `services/realtime-agent/main.py` | `services/realtime-agent/Dockerfile` | `services/realtime-agent/requirements.txt` | `medium-runtime-contract-gap` |
 | `realtime-session` | Unclassified / Support | 15 | 1895 | 1 | 12 | `services/realtime-session/main.py` | `services/realtime-session/Dockerfile` | `services/realtime-session/requirements.txt` | `normal` |

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 838,
+      "evidence_count": 840,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -264,6 +264,7 @@
         "services/raster-service/follow_up_store.py",
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/layer_lookup.py",
+        "services/raster-service/levelling_design.py",
         "services/raster-service/main.py",
         "services/raster-service/observation_outbox.py",
         "services/raster-service/observation_sweep.py",
@@ -289,6 +290,7 @@
         "services/raster-service/test_field_change_alignment.py",
         "services/raster-service/test_imagery_source_gate.py",
         "services/raster-service/test_indicator_observation_bundle.py",
+        "services/raster-service/test_levelling_design.py",
         "services/raster-service/test_observation_feed.py",
         "services/raster-service/test_observation_outbox.py",
         "services/raster-service/test_observation_sweep.py",
@@ -3330,7 +3332,7 @@
         "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/api/learning_feedback.py"
       ],
-      "source_evidence_count": 838,
+      "source_evidence_count": 840,
       "target_evidence_count": 602,
       "static_supported": true,
       "runtime_verified": false
@@ -3804,5 +3806,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "05f6ae01fe146d5e4dccf230a6830c3e8b61bfac92c7a7a5741c60da5b7f9442"
+  "content_sha256": "c32dca09f0b32d1821f86b0b938db07e28d7dc0c952e059ac25850354050e3c1"
 }

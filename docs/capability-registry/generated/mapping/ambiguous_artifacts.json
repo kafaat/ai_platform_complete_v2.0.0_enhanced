@@ -1383,6 +1383,29 @@
     ]
   },
   {
+    "path": "docs/farmland/P2_GIS_LEVELLING.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-002",
+        "score": 11,
+        "signals": [
+          "path:farm",
+          "content:farm"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 9,
+        "signals": [
+          "content:dem",
+          "content:slope",
+          "content:terrain"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/history/COMPETITIVE_ANALYSIS.md",
     "kind": "other",
     "candidates": [

@@ -22995,6 +22995,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c77ef4f375319c53038efb985164025de1f8ad07085c1beb31974b45e274a13c"
+        }
+      ],
+      "name": "services/raster-service/levelling_design.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "622527e9b22c0e9501ab0baa228e2dcd7697f2bb817f4a338d64f451e378c505"
         }
       ],
@@ -24399,6 +24409,16 @@
         }
       ],
       "name": "services/raster-service/test_layer_lookup_chronology.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09ac7bfa0811f4e9eafb4ac4d9bab62778f53ef2ea6c1fbf1ab892336ee698ad"
+        }
+      ],
+      "name": "services/raster-service/test_levelling_design.py",
       "type": "file"
     },
     {

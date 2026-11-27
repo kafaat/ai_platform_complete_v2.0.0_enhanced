@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7773,
     "files_by_kind": {
-      "backend": 1321,
+      "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
-      "other": 2259,
-      "tests": 2722,
+      "other": 2260,
+      "tests": 2723,
       "web": 587
     },
     "unmapped_artifacts": 3703,
-    "ambiguous_artifacts": 266,
+    "ambiguous_artifacts": 267,
     "files_by_reading": {
-      "python_functional": 4224,
-      "raw": 3546
+      "python_functional": 4226,
+      "raw": 3547
     },
-    "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
-    "test_dependency_bounded_files": 1193,
+    "test_dependency_files": 2076,
+    "test_dependency_edges": 5618,
+    "test_dependency_bounded_files": 1194,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -5320,6 +5320,14 @@
           ]
         },
         {
+          "path": "docs/farmland/P2_GIS_LEVELLING.md",
+          "score": 11,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "docs/farmland/README.md",
           "score": 11,
           "signals": [
@@ -5399,7 +5407,7 @@
         "mobile": 35,
         "tests": 67,
         "governance": 0,
-        "other_evidence": 28
+        "other_evidence": 29
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -10110,6 +10118,15 @@
           ]
         },
         {
+          "path": "services/raster-service/levelling_design.py",
+          "score": 15,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "services/raster-service/raw_data_processing.py",
           "score": 15,
           "signals": [
@@ -11540,6 +11557,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_levelling_design.py",
+          "score": 8,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "tests_v9/test_chatgpt_gap_batch_20261015.py",
           "score": 8,
           "signals": [
@@ -11866,6 +11891,15 @@
           ]
         },
         {
+          "path": "docs/farmland/P2_GIS_LEVELLING.md",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "docs/openapi/API_MAP.md",
           "score": 9,
           "signals": [
@@ -11932,15 +11966,15 @@
         "routes": 16
       },
       "evidence_counts": {
-        "backend": 33,
+        "backend": 34,
         "routes": 100,
         "database": 11,
         "events": 69,
         "web": 13,
         "mobile": 4,
-        "tests": 43,
+        "tests": 44,
         "governance": 0,
-        "other_evidence": 39
+        "other_evidence": 40
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -49717,6 +49751,29 @@
       ]
     },
     {
+      "path": "docs/farmland/P2_GIS_LEVELLING.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-002",
+          "score": 11,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        }
+      ]
+    },
+    {
       "path": "docs/history/COMPETITIVE_ANALYSIS.md",
       "kind": "other",
       "candidates": [
@@ -59457,6 +59514,19 @@
           "source": "services/raster-service/layer_lookup.py",
           "kind": "import",
           "line": 6
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/raster-service/test_levelling_design.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/raster-service/levelling_design.py",
+          "kind": "import",
+          "line": 10
         }
       ],
       "unresolved": []
