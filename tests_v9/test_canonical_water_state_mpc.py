@@ -387,6 +387,14 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
     from api.canonical_water_state import resolve_canonical_water_state
 
     class FieldConnection(FakeConn):
+        async def fetchval(self, sql, *args):
+            if "FROM field_irrigation_source_assignments" in sql:
+                field_id, start, end, tenant_id = args
+                assert (field_id, tenant_id) == ("fld-1", "tenant-1")
+                assert end - start == timedelta(days=1)
+                return False  # This field has no overlapping well binding.
+            return await super().fetchval(sql, *args)
+
         async def fetchrow(self, sql, *args):
             if "SELECT 1 FROM fields" in sql:
                 assert args == ("fld-1",)
