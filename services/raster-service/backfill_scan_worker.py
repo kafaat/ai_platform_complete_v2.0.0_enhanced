@@ -28,6 +28,7 @@ from datetime import UTC, datetime
 from typing import Any, NamedTuple
 
 import asyncpg
+import landsat_st
 import radiometry_containment
 import raster_api_models as api_models
 import raster_backfill_scene_processing
@@ -79,6 +80,21 @@ def _process_backfill_scene_cdse(
     )
 
 
+def _thermal_key(scene, index, run, clip):
+    if index != "lst" or not scene or not scene.get("thermal_contract"):
+        return None
+    return landsat_st.product_identity(
+        run["tenant_id"],
+        run["field_id"],
+        clip,
+        run["geometry_revision"],
+        scene["provider"],
+        scene["item_id"],
+        scene["thermal_contract"],
+        run.get("apply_cloud_mask", True),
+    ).key()
+
+
 def _native_request(scene, index, clip, is_landsat_thermal=False):
     if (
         scene
@@ -97,10 +113,31 @@ def _native_request(scene, index, clip, is_landsat_thermal=False):
 
 
 async def _ready_asset(
-    conn, *, tenant, field, index, scene, scene_id, acq, geom_rev, proc_ver, native
+    conn,
+    *,
+    tenant,
+    field,
+    index,
+    scene,
+    scene_id,
+    acq,
+    geom_rev,
+    proc_ver,
+    native,
+    thermal_key=None,
 ):
     if scene is None:
         return None
+    if index == "lst":
+        if not thermal_key:
+            return None
+        return await conn.fetchval(
+            "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
+            "AND product_identity_key=$3 AND asset_status='ready' AND cog_uri IS NOT NULL LIMIT 1",
+            tenant,
+            field,
+            thermal_key,
+        )
     if native:
         request_sha, algorithm, mask = native
         # A catalogue candidate is not a Process API contributor. Reuse only a
@@ -356,13 +393,20 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
         if not scene_id:
             continue
         for index in indices:
-            provider_key = (
-                "landsat-element84" if is_landsat_thermal else (scene.get("provider") or "cdse")
+            provider_key = scene.get("provider") or (
+                "landsat-element84" if is_landsat_thermal else "cdse"
             )
             native = _native_request(scene, index, clip, is_landsat_thermal)
             identity_version = "|".join((*native, proc_ver)) if native else proc_ver
+            thermal_key = _thermal_key(scene, index, run, clip)
             identity = _identity(
-                tenant, field, geom_rev, provider_key, scene_id, index, identity_version
+                tenant,
+                field,
+                geom_rev,
+                provider_key,
+                scene_id,
+                index,
+                thermal_key or identity_version,
             )
             key = identity.to_canonical_key()
             # v10-F6: set_config(...,true) عابرٌ للمعاملة؛ لذا نُغلّف الضبط + الاستعلامات
@@ -400,6 +444,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         geom_rev=geom_rev,
                         proc_ver=proc_ver,
                         native=native,
+                        thermal_key=thermal_key,
                     )
                     item_id = await conn.fetchval(
                         """
@@ -603,6 +648,7 @@ async def _process_single_scene_run(
                     geom_rev=geom_rev,
                     proc_ver=proc_ver,
                     native=native,
+                    thermal_key=_thermal_key(scene, index, run, clip),
                 )
         if exists:
             async with pool.acquire() as conn:
@@ -769,18 +815,19 @@ def _process_scene_index(
             preq = api_models.ProcessRequest(
                 tenant_id=tenant,
                 field_id=field,
-                raster_url=_safe_raster_source(thermal_url),
+                raster_url=thermal_url,
                 indicator=api_models.IndicatorKind.lst,
                 source_format=api_models.SourceFormat.landsat8,
                 bands=api_models.BandMapping(),
                 precomputed_index=True,
                 clip_polygon_geojson=clip,
-                apply_cloud_mask=False,
+                apply_cloud_mask=apply_cloud_mask,
                 scene_id=scene.get("item_id"),
                 capture_datetime=scene.get("datetime"),
-                provider="landsat-element84",
+                provider=scene.get("provider") or "landsat-element84",
                 geometry_revision=geom_rev,
             )
+            preq._landsat_st = scene.get("thermal_contract")
             raster_processing_runtime.run_processing(jid, preq)
             return _outcome_from_job(jid)
 

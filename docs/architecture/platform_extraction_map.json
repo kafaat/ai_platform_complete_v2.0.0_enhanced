@@ -4033,7 +4033,7 @@
       "function": "irrigation_mpc_capabilities",
       "method": "GET",
       "path": "/api/v1/irrigation/mpc/capabilities",
-      "line": 164,
+      "line": 168,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::GET /api/v1/irrigation/mpc/capabilities::irrigation_mpc_capabilities"
@@ -4043,7 +4043,7 @@
       "function": "irrigation_mpc_hourly_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "line": 552,
+      "line": 566,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation::irrigation_mpc_hourly_recommendation"
@@ -4053,7 +4053,7 @@
       "function": "irrigation_mpc_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
-      "line": 328,
+      "line": 342,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation::irrigation_mpc_recommendation"
@@ -4063,7 +4063,7 @@
       "function": "reconcile_irrigation_execution",
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
-      "line": 593,
+      "line": 607,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/executions/reconcile::reconcile_irrigation_execution"
@@ -4073,7 +4073,7 @@
       "function": "irrigation_mpc_plan",
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/plan",
-      "line": 97,
+      "line": 101,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/mpc/plan::irrigation_mpc_plan"
@@ -4083,7 +4083,7 @@
       "function": "irrigation_mpc_simulate",
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/simulate",
-      "line": 295,
+      "line": 309,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/mpc/simulate::irrigation_mpc_simulate"

@@ -121,16 +121,30 @@ def persist_raster_asset(
         _provider = getattr(req, "provider", None) or _source_provider_map.get(
             getattr(getattr(req, "source_format", None), "value", ""), "cdse"
         )
-        _product_identity = ProductIdentity(
-            str(req.tenant_id or ""),
-            _field_geometry_hash,
-            str(req.scene_id or ""),
-            req.indicator.value,
-            (_validated.get("provenance") or {}).get("algorithm_version")
-            or raster_quality.ALGORITHM_VERSION,
-            _qa_mask_version,
-            provider=_provider,
-        )
+        if "thermal" in stats:
+            from landsat_st import product_identity
+
+            _product_identity = product_identity(
+                req.tenant_id,
+                req.field_id,
+                req.clip_polygon_geojson,
+                req.geometry_revision,
+                _provider,
+                req.scene_id,
+                req._landsat_st,
+                req.apply_cloud_mask,
+            )
+        else:
+            _product_identity = ProductIdentity(
+                str(req.tenant_id or ""),
+                _field_geometry_hash,
+                str(req.scene_id or ""),
+                req.indicator.value,
+                (_validated.get("provenance") or {}).get("algorithm_version")
+                or raster_quality.ALGORITHM_VERSION,
+                _qa_mask_version,
+                provider=_provider,
+            )
 
         # P2-PUB-3 (بوّابة النشر): asset → كتالوج → ready. COG بعيد (غير file://) يُدرَج أصله
         # ``pending`` — غير مرئيّ لكلّ قارئ ``asset_status='ready'`` — ولا يُرقّى إلّا بعد نجاح
@@ -212,11 +226,13 @@ def persist_raster_asset(
                             "confidence",
                         )
                     }
+                    | ({"median": stats["median"]} if "thermal" in stats else {})
                     | {
                         "cloud_mask_applied": _mask_applied,
                         "quality_score_semantics": stats.get("quality_score_semantics"),
                         "cdse_native_qa": stats.get("cdse_native_qa"),
                     },
+                    **({"thermal": stats["thermal"]} if "thermal" in stats else {}),
                     # v143: النَّسَب — مراجعة الهندسة في الأصل نفسه (فوق العمود المخصّص).
                     "geometry_revision": getattr(req, "geometry_revision", None),
                 }

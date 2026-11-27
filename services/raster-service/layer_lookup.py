@@ -147,6 +147,13 @@ def grid_from_cog(
     path = object_store_module.to_gdal_path(cog_url)
     try:
         with rasterio.open(path) as src:
+            thermal_unit = None
+            if index == "lst":
+                from shared.contracts.remote_sensing.thermal import observation_unit
+
+                thermal_unit = observation_unit(index, layer.get("algorithm_version"))
+                if thermal_unit and src.units[0] != thermal_unit:
+                    return None
             rows, cols = min(grid, src.height), min(grid, src.width)
             # Average onto a regular output grid. Rounded block boundaries are
             # not an affine grid when source dimensions are not divisible.
@@ -197,6 +204,7 @@ def grid_from_cog(
         "spatial_sampling": layer.get("spatial_sampling"),
         "stats": part["stats"],
         "stats_basis": part["stats_basis"],
+        **({"unit": thermal_unit} if index == "lst" else {}),
         "grid_stats": part["grid_stats"],
         "zones": part["zones"],
         "severity_supported": part["severity_supported"],

@@ -8836,6 +8836,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_crop_inference.py",
     "kind": "tests"
   },

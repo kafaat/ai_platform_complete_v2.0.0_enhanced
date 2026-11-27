@@ -41,15 +41,7 @@ LANDSAT_DUPLICATE_SENTINEL_INDICES = {
     "truecolor",
     "falsecolor",
 }
-LANDSAT_THERMAL_ASSET_CANDIDATES = (
-    "lwir11",
-    "surface_temperature",
-    "st",
-    "st_b10",
-    "tir",
-    "thermal",
-    "thermal_ir",
-)
+LANDSAT_THERMAL_ASSET_CANDIDATES = ("lwir", "lwir11", "st_b10", "st_b6", "surface_temperature")
 DEM_COLLECTION = "cop-dem-glo-30"
 CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True)
 HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))

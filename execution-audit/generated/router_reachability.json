@@ -1414,7 +1414,7 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.irrigation_mpc",
       "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
       "route_count": 6,
@@ -2776,7 +2776,7 @@
     },
     {
       "expression": "route.router",
-      "line": 173,
+      "line": 176,
       "module": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
       "prefix": null,
       "resolved": false,
@@ -3090,7 +3090,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f2812e33558ac9510f9049dbc1c356dc9f372b036009a92fcc120c2d3cfed2da",
+  "inventory_sha256": "1ceb36147dbd57f6577c1249c46b22a6ac0cce4807483d34b12853c6ca185f8a",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -4386,7 +4386,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 50,
       "module": "services.sahool-platform.api.routers.irrigation_mpc",
       "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
       "route_count": 6,
@@ -5704,7 +5704,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-      "line": 173,
+      "line": 176,
       "module": "services.sahool-platform.tests.test_irrigation_runtime_orchestrator",
       "source": null,
       "target_expression": "route.router"
