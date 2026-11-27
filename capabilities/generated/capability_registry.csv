@@ -34,7 +34,7 @@ IRR-006,Irrigation scheduling,irrigation,sahool-platform,active,3,3,behavioral_t
 IRR-007,Pump and valve control,irrigation,actuator-service+sahool-platform,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,"IRR-006,DEC-005"
 IRR-008,Execution verification,irrigation,decision-service+sahool-platform,active,3,3,runtime_or_workflow_unverified,low,False,"IRR-007,DEC-006"
 IRR-009,Water suitability multi-hazard,irrigation,sahool-platform,active,2,2,analytical_partial,high,False,"IRR-002,SOIL-004"
-IRR-010,Leaching and drainage safety,irrigation,sahool-platform,active,2,2,analytical_partial,medium,False,"IRR-009,SOIL-005"
+IRR-010,Leaching and drainage safety,irrigation,sahool-platform,active,2,2,analytical_partial,high,False,"IRR-009,SOIL-005"
 OPS-001,Task management,operations,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
 OPS-002,Work orders,operations,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,OPS-001
 OPS-003,Scouting,operations,field-management-service,active,2,2,behavioral_test_linked_runtime_unverified,high,False,FM-003

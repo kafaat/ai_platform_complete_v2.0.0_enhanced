@@ -57,6 +57,7 @@ def _run(tmp_path: Path, **env_extra: str) -> tuple[subprocess.CompletedProcess,
     env["PATH"] = f"{tmp_path}:{env['PATH']}"
     env.setdefault("PW_BACKOFF", "0")
     env.setdefault("APT_SOURCE_FILES", _apt_sources(tmp_path))
+    env["RUNNER_ENVIRONMENT"] = "self-hosted"
     env.update(env_extra)
     proc = subprocess.run(
         ["bash", str(SCRIPT), "chromium"],
@@ -384,3 +385,44 @@ def test_the_final_error_says_which_attempts_timed_out_and_which_failed(tmp_path
     assert proc.returncode != 0
     assert "1:مهلة" in proc.stderr and "2:فشل(100)" in proc.stderr, proc.stderr
     assert "تجاوز مهلته" not in proc.stderr
+
+
+@pytest.mark.parametrize("install_rc", [0, 7])
+def test_hosted_browser_install_uses_ubuntu_sources_and_restores_apt(tmp_path, install_rc):
+    root = tmp_path / "apt"
+    sources = root / "sources.list.d"
+    sources.mkdir(parents=True)
+    (root / "apt.conf.d").mkdir()
+    (root / "lists/partial").mkdir(parents=True)
+    (sources / "ubuntu.sources").write_text(
+        "Types: deb\nURIs: https://archive.ubuntu.com/ubuntu\nSuites: noble\n"
+        "Components: main\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n",
+        encoding="utf-8",
+    )
+    (sources / "microsoft.list").write_text(
+        "deb https://packages.microsoft.com/ubuntu/24.04/prod noble main\n", encoding="utf-8"
+    )
+    config = tmp_path / "apt.conf"
+    config.write_text(f'Dir::Etc "{root}";\nDir::State::lists "{root}/lists";\n', encoding="utf-8")
+    env = {
+        "APT_CONFIG": str(config),
+        "RUNNER_ENVIRONMENT": "github-hosted",
+        "PW_APT_ROOT": str(root),
+    }
+    probe = ["apt-get", "--print-uris", "update"]
+    before = subprocess.check_output(probe, env={**os.environ, **env}, encoding="utf-8")
+    assert "packages.microsoft.com" in before and "archive.ubuntu.com" in before
+    _fake_bin(tmp_path, succeed_on=1)
+    _script_with(
+        tmp_path,
+        "npx",
+        '[[ "$*" == "playwright install --with-deps chromium" ]] || exit 2\n'
+        "apt-get --print-uris update || exit 3\n"
+        f"exit {install_rc}\n",
+    )
+    proc, _ = _run(tmp_path, **env, PW_ATTEMPTS="1")
+    assert "archive.ubuntu.com" in proc.stdout
+    assert "packages.microsoft.com" not in proc.stdout
+    assert (proc.returncode == 0) == (install_rc == 0)
+    assert subprocess.check_output(probe, env={**os.environ, **env}, encoding="utf-8") == before
+    assert list((root / "apt.conf.d").iterdir()) == []

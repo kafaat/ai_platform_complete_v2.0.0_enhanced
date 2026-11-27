@@ -365,10 +365,7 @@ async def test_a_v1_or_wrongly_keyed_ack_moves_nothing(runtime, tenants):
 
 async def test_an_unacked_published_command_expires(runtime, tenants):
     a, _b = tenants
-    cid = runtime.cd.new_command_id()
-    await runtime.log_command(
-        None, "valve-a", "open", {}, "sent", a, command_id=cid, delivery_state="published"
-    )
+    cid = await _published(runtime, a)
     conn = await _app(a)
     try:
         await conn.execute(
@@ -484,7 +481,7 @@ async def test_a_decision_dispatched_command_reaches_device_acked_on_a_signed_ac
         f"device_acked was not persisted: {dict(row)}"
     )
 
-    # A recovery republish keeps the id: no duplicate row, and the trigger keeps device_acked.
+    # Recovery acknowledges the existing outcome and never calls the publisher again.
     await runtime.run_dispatch_consumer_once(None, a, allowlist={"low"})
     conn = await _app(a)
     try:
@@ -493,5 +490,294 @@ async def test_a_decision_dispatched_command_reaches_device_acked_on_a_signed_ac
         )
     finally:
         await conn.close()
-    assert n == 1, f"a republish duplicated the command row ({n})"
+    assert seen_at_publish == ["queued"]
+    assert n == 1, f"recovery duplicated the command row ({n})"
     assert (await _row(a, idem))["delivery_state"] == "device_acked", "acked state regressed"
+
+
+@pytest.fixture
+def dispatch_case(runtime, monkeypatch):
+    """Real queue/outcome transactions and signed wire messages. Only the broker and
+    upstream decision/device inputs are synthetic."""
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    receipts, messages, queued_at_publish = [], [], []
+    field = "field-9"
+    item = {
+        "execution_request_id": "req-1636",
+        "target_id": DEVICE,
+        "requested_at": "2026-11-26T12:00:00+00:00",
+        "command_payload": {
+            "device_id": DEVICE,
+            "command": "start",
+            "payload": {"duration_sec": 60},
+        },
+    }
+
+    async def decision(_client, method, path, _tenant, json_body=None):
+        if method == "GET":
+            return SimpleNamespace(
+                status_code=200, json=lambda: {"items": [item] if "recovery" in path else []}
+            )
+        if path.endswith("/receipt"):
+            receipts.append(json_body)
+        return SimpleNamespace(status_code=200)
+
+    class Broker:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def publish(self, topic, message, qos):
+            wire = json.loads(message)
+            messages.append(wire)
+            row = await _row(wire["tenant"], wire["id"])
+            queued_at_publish.append(row["delivery_state"] if row else None)
+
+    async def run(tenant):
+        return await runtime.run_dispatch_consumer_once(None, tenant, allowlist={"low"})
+
+    monkeypatch.setattr(runtime, "_decision_request", decision)
+    monkeypatch.setattr(
+        runtime, "_validate_dispatch_device", AsyncMock(return_value=(True, "ok", field))
+    )
+    monkeypatch.setattr(runtime, "_device_field", AsyncMock(return_value=field))
+    monkeypatch.setattr(runtime, "is_actuation_halted", AsyncMock(return_value=(False, None)))
+    monkeypatch.setattr(runtime, "ACTUATOR_DELIVERY_TOKEN_KEY", "test-fixture-key")
+    monkeypatch.setattr(runtime, "MQTTClient", Broker)
+    return SimpleNamespace(
+        run=run,
+        item=item,
+        messages=messages,
+        receipts=receipts,
+        states=queued_at_publish,
+        cid=item["execution_request_id"],
+    )
+
+
+async def test_queue_gate_concurrent_recovery_and_tenant_isolation(dispatch_case, tenants):
+    import asyncio
+
+    c = dispatch_case
+    a, b = tenants
+    await asyncio.gather(c.run(a), c.run(a))
+    await c.run(a)
+    await c.run(b)
+    assert [(m["tenant"], m["id"]) for m in c.messages] == [(a, c.cid), (b, c.cid)]
+    assert c.states == ["queued", "queued"]
+    assert c.receipts[-2]["receipt_status"] == "accepted"
+
+
+@pytest.mark.parametrize("changed", ["payload", "device", "command", "field", "origin"])
+async def test_queue_gate_id_conflict_preserves_row(dispatch_case, tenants, changed):
+    c = dispatch_case
+    a, _ = tenants
+    await c.run(a)
+    if changed == "origin":
+        conn = await _app(a)
+        try:
+            await conn.execute(
+                "UPDATE device_commands_log SET triggered_by='manual' WHERE command_id=$1", c.cid
+            )
+        finally:
+            await conn.close()
+    before = dict(await _row(a, c.cid))
+    command = c.item["command_payload"]
+    if changed == "payload":
+        command["payload"]["duration_sec"] = 61
+    elif changed == "device":
+        c.item["target_id"] = command["device_id"] = "valve-b"
+    elif changed == "command":
+        command["command"] = "off"
+    elif changed == "field":
+        command["field_id"] = "field-b"
+    await c.run(a)
+    assert len(c.messages) == 1
+    assert c.receipts[-1]["receipt_status"] == "failed"
+    assert c.receipts[-1]["receipt_payload"]["reason"] == "command_id_conflict"
+    assert dict(await _row(a, c.cid)) == before
+
+
+async def test_queue_gate_recovery_after_unknown_publish_and_expiry(
+    dispatch_case, runtime, tenants, monkeypatch
+):
+    from unittest.mock import AsyncMock
+
+    c = dispatch_case
+    a, _ = tenants
+    # Simulate a crash after the broker accepted, before writing the outcome.
+    with monkeypatch.context() as mp:
+        mp.setattr(runtime, "log_command", AsyncMock())
+        await c.run(a)
+    assert (await _row(a, c.cid))["delivery_state"] == "queued"
+    await c.run(a)
+    assert len(c.messages) == 1
+    conn = await _app(a)
+    try:
+        await conn.execute(
+            "UPDATE device_commands_log SET ack_deadline=now()-interval '1 second' WHERE command_id=$1",
+            c.cid,
+        )
+    finally:
+        await conn.close()
+    await c.run(a)
+    assert len(c.messages) == 1
+    assert c.receipts[-1]["receipt_status"] == "failed"
+    assert c.receipts[-1]["receipt_payload"]["reason"] == "existing_expired"
+
+
+async def test_queue_gate_lock_timeout(dispatch_case, runtime, tenants, monkeypatch):
+    c = dispatch_case
+    a, _ = tenants
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    try:
+        async with asyncpg.create_pool(
+            _APP_DSN, min_size=1, max_size=2, server_settings={"lock_timeout": "100ms"}
+        ) as pool:
+            monkeypatch.setattr(runtime, "_pool", pool)
+            async with admin.transaction():
+                await admin.execute("LOCK TABLE device_commands_log IN SHARE MODE")
+                await c.run(a)
+    finally:
+        await admin.close()
+    assert c.messages == []
+    assert c.receipts[-1]["receipt_status"] == "failed"
+    assert await _row(a, c.cid) is None
+
+
+async def test_queue_gate_compensating_start_fk_failure(runtime, tenants, monkeypatch):
+    from unittest.mock import AsyncMock
+
+    a, _ = tenants
+    send = AsyncMock(return_value=True)
+    monkeypatch.setattr(runtime, "_consult_killswitch", AsyncMock(return_value=(False, None)))
+    monkeypatch.setattr(runtime, "send_mqtt_command", send)
+    prior = [
+        {
+            "device": DEVICE,
+            "command": "stop",
+            "payload": {"duration_sec": 10},
+            "rule_id": str(uuid.uuid4()),
+        }
+    ]
+    await runtime._compensate(prior, a, "other-valve", "start", field_id="field-9")
+    send.assert_not_awaited()
+
+
+async def test_queue_gate_ack_during_publish(dispatch_case, runtime, tenants, monkeypatch):
+    import asyncio
+
+    case = dispatch_case
+    a, _ = tenants
+    early_ack = asyncio.Event()
+    evaluate = runtime.cd.evaluate_ack
+    original_publish = runtime.MQTTClient.publish
+    tasks = []
+
+    def observe(*args, **kwargs):
+        decision = evaluate(*args, **kwargs)
+        if decision.reason == "not_yet_published":
+            early_ack.set()
+        return decision
+
+    async def publish(broker, topic, message, qos):
+        await original_publish(broker, topic, message, qos)
+        tasks.append(
+            asyncio.create_task(
+                runtime.handle_device_ack(
+                    f"sahool/{a}/actuator/{DEVICE}/ack", _ack(runtime, a, case.cid)
+                )
+            )
+        )
+        await asyncio.wait_for(early_ack.wait(), 2)
+
+    monkeypatch.setattr(runtime.cd, "evaluate_ack", observe)
+    monkeypatch.setattr(runtime.MQTTClient, "publish", publish)
+    monkeypatch.setattr(runtime, "_ACK_NOT_YET_PUBLISHED_DELAY_SECONDS", 0.05)
+    await case.run(a)
+    assert early_ack.is_set()
+    assert (await tasks[0]).accepted
+    assert (await _row(a, case.cid))["delivery_state"] == "device_acked"
+    await case.run(a)
+    assert len(case.messages) == 1
+
+
+async def test_queue_gate_stop_during_write_outage(dispatch_case, runtime, tenants, monkeypatch):
+    from unittest.mock import AsyncMock
+
+    case = dispatch_case
+    a, _ = tenants
+    await case.run(a)
+    case.item["command_payload"]["command"] = "off"
+    monkeypatch.setattr(runtime, "record_command_queued", AsyncMock(side_effect=TimeoutError))
+    await case.run(a)
+    await case.run(a)
+    opened, first, retry = case.messages
+    assert first["cmd"] == retry["cmd"] == "CLOSE"
+    assert opened["id"] != first["id"] == retry["id"]
+    assert first["v"] == 2 and retry["ctr"] > first["ctr"]
+    assert case.states == ["queued", None, None]
+    ack = await runtime.handle_device_ack(
+        f"sahool/{a}/actuator/{DEVICE}/ack", _ack(runtime, a, first["id"])
+    )
+    assert ack.reason == "unknown_command"
+    assert (await _row(a, opened["id"]))["delivery_state"] == "published"
+
+
+@pytest.mark.parametrize("identifier", [" req-1636 ", "safestop_v1_reserved"])
+async def test_queue_gate_noncanonical_id(dispatch_case, tenants, identifier):
+    case = dispatch_case
+    a, _ = tenants
+    case.item["command_payload"]["idempotency_key"] = identifier
+    await case.run(a)
+    assert case.messages == []
+    assert case.receipts[-1]["receipt_payload"]["reason"] == "invalid_command_id"
+
+
+async def test_queue_gate_missing_pool(runtime, tenants, monkeypatch):
+    from unittest.mock import AsyncMock
+
+    a, _ = tenants
+    send = AsyncMock(return_value=True)
+    monkeypatch.setattr(runtime, "_pool", None)
+    monkeypatch.setattr(runtime, "send_mqtt_command", send)
+    assert not await runtime.record_command_queued(
+        tenant_id=a,
+        device_id=DEVICE,
+        command="open",
+        payload={"duration_sec": 10},
+        command_id="test",
+    )
+    prior = [
+        {"device": DEVICE, "command": cmd, "payload": {"duration_sec": 10}, "field_id": "field-9"}
+        for cmd in ("open", "close")
+    ]
+    await runtime._compensate(prior, a, "another-device", "start", field_id="field-9")
+    assert [call.args[1] for call in send.await_args_list] == ["close"]
+    assert send.await_args.kwargs["field_id"] == "field-9"
+
+
+async def test_queue_gate_recovers_pending_close(dispatch_case, runtime, tenants):
+    case = dispatch_case
+    a, _ = tenants
+    command = case.item["command_payload"]
+    command["command"] = "off"
+    assert await runtime.record_command_queued(
+        tenant_id=a,
+        device_id=DEVICE,
+        command="off",
+        payload={**command["payload"], "field_id": "field-9"},
+        command_id=case.cid,
+        triggered_by="decision_dispatch",
+    )
+    await case.run(a)
+    await case.run(a)
+    assert [(m["id"], m["cmd"]) for m in case.messages] == [(case.cid, "CLOSE")]
+    assert case.receipts[0]["receipt_payload"]["reason"] == "retry_queued_close"
+    assert (await _row(a, case.cid))["delivery_state"] == "published"

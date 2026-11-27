@@ -1,3 +1,4 @@
+import type { FertilizerScenarioInput, FertilizerScenarioResponse } from './fertilizerScenario';
 // Water Field Ops — يعكس نقاط backend اليتيمة (P1) التي كانت بلا قارئ واجهة:
 //   /api/v1/water-sensitivity/stress-risk + /integrated-advice + /wheat-calendar
 //                                               (crop_water_sensitivity.py — حساسيّة المراحل)
@@ -224,6 +225,7 @@ export interface WeatherLayersResponse {
 
 /** api_models.py — Soil4RRequest (POST /api/v1/nutrients/4r-plan) — قيم من تحليل مخبريّ. */
 export interface Soil4RInput {
+  fertilizer_scenario?: FertilizerScenarioInput;
   caco3_pct?: number | null;
   ph?: number | null;
   p_ppm?: number | null;
@@ -244,6 +246,7 @@ export interface FourRPlanItem {
   warnings_ar?: string[];
 }
 export interface FourRPlanResponse {
+  fertilizer_scenario?: FertilizerScenarioResponse;
   field_id?: string;
   status?: 'available' | 'unavailable';
   source?: 'approved_soil_lab';

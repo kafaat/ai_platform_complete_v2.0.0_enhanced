@@ -44,6 +44,7 @@ PW_BACKOFF="${PW_BACKOFF:-10}"
 
 # shellcheck source=scripts/ci/apt_mirror_fallback.sh
 . "$(dirname "$0")/apt_mirror_fallback.sh"
+use_playwright_ubuntu_sources "${PW_APT_ROOT:-/etc/apt}" || exit 1
 
 outcomes=""
 i=1

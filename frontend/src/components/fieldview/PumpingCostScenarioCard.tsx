@@ -1,3 +1,4 @@
+import EnergyLifecycleComparison from './EnergyLifecycleComparison';
 import { useRef, useState } from 'react';
 import { kongApi } from '../../services/api/client';
 import { useCostCategories } from '../../hooks/useManagerConsole';
@@ -105,6 +106,7 @@ export default function PumpingCostScenarioCard({ areaHa, authScope }: { areaHa:
         <p>التقدير الأوسط (USD): {result.estimate.cost_mid_usd}</p>
         <p>حجم الضخ (م³): {result.estimate.total_m3}</p>
       </div>}
+      {capabilities.data?.supports_energy_lifecycle && areaHa != null && areaHa > 0 && <EnergyLifecycleComparison key={authScope} authScope={authScope} areaHa={areaHa}/>}
     </section>
   );
 }

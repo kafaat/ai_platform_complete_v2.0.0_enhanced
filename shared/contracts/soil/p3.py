@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from .drainage_design import CompactionSurvey, DrainSpacingScenario, LandQualityScenario
 
 
 class MobileImageQuality(BaseModel):
@@ -124,6 +126,12 @@ class DrainageAssessmentRequest(BaseModel):
     wadi_risk: float = Field(ge=0, le=1)
     salinity_persistence: float = Field(ge=0, le=1)
     surveyed_elevations: bool = False
+    spacing_scenario: DrainSpacingScenario | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    compaction_survey: CompactionSurvey | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class DrainageAssessmentProduct(BaseModel):
@@ -146,11 +154,63 @@ class DrainageAssessmentProduct(BaseModel):
     limitations: list[str] = Field(default_factory=list)
 
 
+class GypsumScenarioInput(BaseModel):
+    """Explicit, unapproved planning inputs for a theoretical gypsum estimate."""
+
+    input_basis: Literal["synthetic", "operator_supplied"]
+    source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
+    cec_cmolc_kg: float = Field(gt=0, allow_inf_nan=False, strict=True)
+    esp_target_pct: float = Field(ge=0, le=100, strict=True)
+    depth_m: float = Field(gt=0, le=3, strict=True)
+    bulk_density_t_m3: float = Field(ge=0.5, le=2.65, strict=True)
+    purity: float = Field(gt=0, le=1, strict=True)
+    exchange_efficiency_factor: float = Field(ge=1, le=2, strict=True)
+
+
+class LandCapabilityScenarioInput(BaseModel):
+    """Explicit indicative screening inputs; never a local adoption record."""
+
+    input_basis: Literal["synthetic", "operator_supplied"]
+    source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
+    slope_pct: float | None = Field(default=None, ge=0, allow_inf_nan=False, strict=True)
+    effective_depth_cm: float | None = Field(default=None, ge=0, allow_inf_nan=False, strict=True)
+    ece_ds_m: float | None = Field(default=None, ge=0, allow_inf_nan=False, strict=True)
+    ec_method: Literal["saturation_extract_25c"] | None = None
+    esp_pct: float | None = Field(default=None, ge=0, le=100, strict=True)
+    drainage_class: str | None = Field(default=None, max_length=80)
+
+
+class ExchangeableSodiumInput(BaseModel):
+    """Paired measurements from the same caller-declared laboratory sample."""
+
+    na_cmolc_kg: float = Field(ge=0, allow_inf_nan=False, strict=True)
+    cec_cmolc_kg: float = Field(gt=0, allow_inf_nan=False, strict=True)
+    method: str = Field(min_length=1, max_length=120, pattern=r"\S")
+
+    @model_validator(mode="after")
+    def validate_pair(self) -> ExchangeableSodiumInput:
+        if self.na_cmolc_kg > self.cec_cmolc_kg:
+            raise ValueError("exchangeable sodium cannot exceed CEC")
+        return self
+
+
+class ReclamationLabSample(BaseModel):
+    """Caller-declared evidence for indicative HB60 evaluation, not local approval."""
+
+    source_ref: str = Field(min_length=1, max_length=500, pattern=r"\S")
+    observed_on: date
+    ec_method: str = Field(min_length=1, max_length=80, pattern=r"\S")
+    exchangeable_sodium: ExchangeableSodiumInput | None = None
+
+
 class ReclamationAssessmentRequest(BaseModel):
     tenant_id: str
     field_id: str
     geometry_hash: str
     assessment_version: str = "reclamation-v1"
+    land_quality_scenario: LandQualityScenario | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     salinity_probability: float = Field(ge=0, le=1)
     sodicity_probability: float = Field(ge=0, le=1)
     gypsum_probability: float = Field(ge=0, le=1)
@@ -164,6 +224,15 @@ class ReclamationAssessmentRequest(BaseModel):
     irrigation_water_profile_approved: bool = False
     drainage_engineering_verified: bool = False
     lab_verified: bool = False
+    lab_sample: ReclamationLabSample | None = None
+    gypsum_scenario: GypsumScenarioInput | None = None
+    land_capability_scenario: LandCapabilityScenarioInput | None = None
+
+    @model_validator(mode="after")
+    def validate_esp_source(self) -> ReclamationAssessmentRequest:
+        if self.lab_sample and self.lab_sample.exchangeable_sodium and self.esp_pct is not None:
+            raise ValueError("provide either direct ESP or exchangeable sodium and CEC, not both")
+        return self
 
 
 class ReclamationAssessmentProduct(BaseModel):

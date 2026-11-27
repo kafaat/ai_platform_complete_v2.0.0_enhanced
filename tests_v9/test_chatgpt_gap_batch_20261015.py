@@ -160,5 +160,6 @@ async def test_fields_terrain_decodes_json_without_reimporting_per_request(monke
     )
     assert result == {"computed": True, "source": "dem"}
     guard.assert_called_once_with(geometry)
-    raster.assert_awaited_once_with("field-1", tenant_id="tenant-1", bbox=bbox, timeout_s=20.0)
+    # Supplying bbox skips the raster-service polygon mask (including holes).
+    raster.assert_awaited_once_with("field-1", tenant_id="tenant-1", timeout_s=20.0)
     assert local_json_imports == [], "JSON is already loaded at module scope"

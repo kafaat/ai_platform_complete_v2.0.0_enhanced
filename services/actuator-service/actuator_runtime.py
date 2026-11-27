@@ -19,6 +19,7 @@ import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import NamedTuple
 
 import asyncpg
 from aiomqtt import Client as MQTTClient
@@ -404,9 +405,7 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
         return 0
     recovery_items = (recovery.json() or {}).get("items") or []
     queued_items = (feed.json() or {}).get("items") or []
-    # Recovery first: deterministic token + receipt id make replay safe. The downstream
-    # command must also carry its stable idempotency_key, so republish is at-least-once
-    # without becoming duplicate physical work on a conforming adapter/device.
+    # Recover receipts first; an existing queue row never authorizes a second opening.
     items = recovery_items + queued_items
     processed = 0
     for item in items:
@@ -455,6 +454,8 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
         plan = _plan_dispatch_execution(item, allowlist=allowlist)
         if plan[0] == "send":
             _, device_id, cmd, payload = plan
+            queue = None
+            previously_published = False
             field_id = str(payload.get("field_id") or "").strip() or None
             device_ok, device_reason, device_field = await _validate_dispatch_device(
                 tenant_id, device_id, field_id
@@ -481,40 +482,52 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                     device_reason = f"killswitch:{scoped_reason}"
                 else:
                     command_id, issued_at = _dispatch_wire_identity(item, payload, req_id)
-                    # water-1 (W2-07): record the command as queued under the same command_id
-                    # the wire carries, before publishing. handle_device_ack only moves a row
-                    # this tenant published to this device, so without the row a signed device
-                    # ack of a decision-dispatched command was dropped as unknown_command.
-                    # A recovery republish keeps its command_id: the insert is a no-op, and
-                    # the v238 trigger refuses moving an acked row back to published.
-                    await record_command_queued(
+                    # Bind recovery to the field checked by the registry and scoped switch.
+                    bound_field = field_id or device_field
+                    recorded_payload = (
+                        {**payload, "field_id": bound_field} if bound_field else payload
+                    )
+                    queue = await _prepare_publication(
                         tenant_id=tenant_id,
                         device_id=device_id,
                         command=cmd,
-                        payload=payload,
+                        payload=recorded_payload,
                         command_id=command_id,
                         triggered_by=_DISPATCH_TRIGGERED_BY,
                     )
-                    sent = await send_mqtt_command(
-                        device_id,
-                        cmd,
-                        payload,
-                        command_id=command_id,
-                        issued_at=issued_at,
-                        tenant_id=tenant_id,
-                        field_id=field_id,
+                    if queue.reason == "existing_queued":
+                        # Another publisher may still be completing this claim. Leave the
+                        # decision receipt pending until there is an outcome or expiry.
+                        continue
+                    previously_published = queue.reason in (
+                        "existing_published",
+                        "existing_device_acked",
                     )
-                    await log_command(
-                        rule_id=None,
-                        device_id=device_id,
-                        command=cmd,
-                        payload=payload,
-                        status="sent" if sent else "failed",
-                        tenant_id=tenant_id,
-                        command_id=command_id,
-                        delivery_state=cd.state_after_publish(sent, ACTUATOR_MODE),
-                        triggered_by=_DISPATCH_TRIGGERED_BY,
+                    sent = previously_published or (
+                        ACTUATOR_MODE == "simulation" and queue.reason == "existing_simulated"
                     )
+                    if queue.may_publish:
+                        sent = await send_mqtt_command(
+                            device_id,
+                            cmd,
+                            payload,
+                            command_id=queue.command_id,
+                            issued_at=issued_at,
+                            tenant_id=tenant_id,
+                            field_id=bound_field,
+                        )
+                        if queue.recorded:
+                            await log_command(
+                                rule_id=None,
+                                device_id=device_id,
+                                command=cmd,
+                                payload=recorded_payload,
+                                status="sent" if sent else "failed",
+                                tenant_id=tenant_id,
+                                command_id=command_id,
+                                delivery_state=cd.state_after_publish(sent, ACTUATOR_MODE),
+                                triggered_by=_DISPATCH_TRIGGERED_BY,
+                            )
                     receipt_status = "accepted" if sent else "failed"
             else:
                 sent = False
@@ -525,9 +538,11 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                 "actuator_mode": ACTUATOR_MODE,
                 "device_id": device_id,
                 "command": cmd,
-                "published": bool(sent),
+                "published": previously_published or (bool(sent) and ACTUATOR_MODE == "real"),
                 "note": "published != physically executed — outcome verification is a separate step",
             }
+            if queue is not None and queue.reason:
+                receipt_payload.update(reason=queue.reason, command_id=queue.command_id)
         else:
             receipt_status = "failed"
             receipt_payload = {
@@ -1178,9 +1193,19 @@ async def _consult_killswitch(
     يجعلها قابلة للقياس مستقلّةً عن حلقة التعويض. و``is_actuation_halted`` نفسها
     fail-closed، فتعذّر القاعدة يُعيد «مُوقَف» ولا يمرّ أثرٌ فيزيائيّ.
     """
-    async with _pool.acquire() as ks_conn:
+    if _pool is None or is_safe_direction(command):
         return await is_actuation_halted(
-            ks_conn, tenant_id, field_id=field_id, valve_id=valve_id, command=command
+            None, tenant_id, field_id=field_id, valve_id=valve_id, command=command
+        )
+    try:
+        async with _pool.acquire() as ks_conn:
+            return await is_actuation_halted(
+                ks_conn, tenant_id, field_id=field_id, valve_id=valve_id, command=command
+            )
+    except Exception:
+        # An acquisition error is subject to the same fail-closed policy as a read error.
+        return await is_actuation_halted(
+            None, tenant_id, field_id=field_id, valve_id=valve_id, command=command
         )
 
 
@@ -1255,7 +1280,7 @@ async def _compensate(
             f"COMPENSATION: إرسال العكس '{inv}' إلى {done['device']} (لإلغاء '{done['command']}')"
         )
         comp_id = cd.new_command_id()
-        await record_command_queued(
+        queue = await _prepare_publication(
             tenant_id=tenant_id,
             device_id=done["device"],
             command=inv,
@@ -1264,26 +1289,33 @@ async def _compensate(
             rule_id=done.get("rule_id"),
             triggered_by="compensation",
         )
+        if not queue.may_publish:
+            logger.error(
+                "COMPENSATION blocked for %s: %s; manual intervention required",
+                done["device"],
+                queue.reason,
+            )
+            continue
         comp_ok = await send_mqtt_command(
             done["device"],
             inv,
             done.get("payload") or {},
-            command_id=comp_id,
+            command_id=queue.command_id,
             tenant_id=tenant_id,
-            # v2 binds the device's own field: let the publisher read it from the registry.
-            field_id=None,
+            field_id=done.get("field_id") if is_safe_direction(inv) else None,
         )
-        await log_command(
-            rule_id=done.get("rule_id"),
-            device_id=done["device"],
-            command=inv,
-            payload=done.get("payload") or {},
-            status="sent" if comp_ok else "failed",
-            tenant_id=tenant_id,
-            command_id=comp_id,
-            delivery_state=cd.state_after_publish(comp_ok, ACTUATOR_MODE),
-            triggered_by="compensation",
-        )
+        if queue.recorded:
+            await log_command(
+                rule_id=done.get("rule_id"),
+                device_id=done["device"],
+                command=inv,
+                payload=done.get("payload") or {},
+                status="sent" if comp_ok else "failed",
+                tenant_id=tenant_id,
+                command_id=comp_id,
+                delivery_state=cd.state_after_publish(comp_ok, ACTUATOR_MODE),
+                triggered_by="compensation",
+            )
         if not comp_ok:
             logger.error(
                 f"COMPENSATION: فشل أمر التعويض '{inv}' على {done['device']} ⇒ مطلوب تدخّل يدويّ"
@@ -1628,7 +1660,7 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
 
                 # v238: الأمر يُسجَّل queued قبل النشر ويحمل معرّفاً يُعيده إقرار الجهاز.
                 command_id = cd.new_command_id()
-                await record_command_queued(
+                queue = await _prepare_publication(
                     tenant_id=tenant_id,
                     device_id=device,
                     command=cmd,
@@ -1636,31 +1668,30 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     command_id=command_id,
                     rule_id=str(row["rule_id"]),
                 )
-                # إرسال الأمر مع التقاط الفشل/الاستثناء لتشغيل خطّاف التعويض.
-                try:
-                    success = await send_mqtt_command(
-                        device,
-                        cmd,
-                        payload,
-                        command_id=command_id,
-                        tenant_id=tenant_id,
-                        field_id=valve_field,
-                    )
-                except Exception as send_err:
-                    logger.error(f"send_mqtt_command raised for {device}: {send_err}")
-                    success = False
-
-                # Log command
-                await log_command(
-                    rule_id=str(row["rule_id"]),
-                    device_id=device,
-                    command=cmd,
-                    payload=payload,
-                    status="sent" if success else "failed",
-                    tenant_id=tenant_id,
-                    command_id=command_id,
-                    delivery_state=cd.state_after_publish(success, ACTUATOR_MODE),
-                )
+                success = False
+                if queue.may_publish:
+                    try:
+                        success = await send_mqtt_command(
+                            device,
+                            cmd,
+                            payload,
+                            command_id=queue.command_id,
+                            tenant_id=tenant_id,
+                            field_id=valve_field,
+                        )
+                    except Exception as send_err:
+                        logger.error(f"send_mqtt_command raised for {device}: {send_err}")
+                    if queue.recorded:
+                        await log_command(
+                            rule_id=str(row["rule_id"]),
+                            device_id=device,
+                            command=cmd,
+                            payload=payload,
+                            status="sent" if success else "failed",
+                            tenant_id=tenant_id,
+                            command_id=command_id,
+                            delivery_state=cd.state_after_publish(success, ACTUATOR_MODE),
+                        )
 
                 if not success:
                     # فشل أمر ضمن التسلسل ⇒ شغّل تعويض الأوامر السابقة الناجحة.
@@ -1678,6 +1709,7 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                             "device": device,
                             "command": cmd,
                             "sent": False,
+                            "reason": queue.reason or "publish_failed",
                         }
                     )
                     # أوقف التسلسل بعد الفشل والتعويض (لا نُكمل أوامر تالية).
@@ -1704,6 +1736,7 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     "device": device,
                     "command": cmd,
                     "sent": success,
+                    "queue_recorded": queue.recorded,
                 }
                 triggered.append(entry)
                 # سجّل النجاح (مع payload) كمرشّح للتعويض إن فشل أمر لاحق.
@@ -1713,6 +1746,7 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                         "device": device,
                         "command": cmd,
                         "payload": payload,
+                        "field_id": valve_field,
                     }
                 )
 
@@ -1738,6 +1772,87 @@ async def _set_tenant(conn, tenant_id: str) -> None:
     await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
 
 
+class _ExistingCommand(Exception):
+    """An occupied ID and the outcome of comparing its durable identity."""
+
+
+class _Publication(NamedTuple):
+    command_id: str
+    may_publish: bool
+    recorded: bool
+    reason: str | None
+
+
+async def _prepare_publication(
+    *,
+    tenant_id: str,
+    device_id: str,
+    command: str,
+    payload: dict,
+    command_id: str,
+    rule_id: str | None = None,
+    triggered_by: str = "rule",
+) -> _Publication:
+    # The signer strips the wire ID. Two SQL keys must never identify one wire
+    # command. Reserve the separate emergency correlation namespace for stops.
+    if not command_id or command_id != command_id.strip() or command_id.startswith("safestop_v1_"):
+        return _Publication(command_id, False, False, "invalid_command_id")
+    try:
+        # Bound the wait for pool acquisition, statement execution and commit, including
+        # on a shutdown command. Cancellation of the caller must still stop publication.
+        async with asyncio.timeout(5):
+            recorded = await record_command_queued(
+                tenant_id=tenant_id,
+                device_id=device_id,
+                command=command,
+                payload=payload,
+                command_id=command_id,
+                rule_id=rule_id,
+                triggered_by=triggered_by,
+            )
+    except _ExistingCommand as existing:
+        if (
+            str(existing) == "existing_queued"
+            and is_safe_direction(command)
+            and _to_firmware_wire(command, payload)[0] == "CLOSE"
+        ):
+            # A crash may have left this verified stop queued before it reached the wire.
+            return _Publication(command_id, True, True, "retry_queued_close")
+        return _Publication(command_id, False, False, str(existing))
+    except Exception as exc:
+        logger.warning("Queue confirmation unavailable for %s (%s)", command_id, type(exc).__name__)
+        recorded = False
+    if recorded is True:
+        return _Publication(command_id, True, True, None)
+    if is_safe_direction(command) and _to_firmware_wire(command, payload)[0] == "CLOSE":
+        # An uncertain write might hide a different command under the supplied ID.
+        # A separate wire ID keeps this stop's ACK away from that row.
+        # A governed retry uses the same separate, secret-bound wire ID. Other paths
+        # already allocate a new random command ID for each request.
+        wire_id = "safestop_v1_" + cd.new_command_id().removeprefix("cmd_")
+        if triggered_by == _DISPATCH_TRIGGERED_BY:
+            token = _delivery_token(
+                tenant_id, json.dumps(["emergency_close", device_id, command_id])
+            )
+            if token:
+                wire_id = "safestop_v1_" + token[:32]
+        logger.warning(
+            "Emergency CLOSE without queue confirmation: tenant=%s device=%s requested_id=%s wire_id=%s",
+            tenant_id,
+            device_id,
+            command_id,
+            wire_id,
+        )
+        return _Publication(wire_id, True, False, "emergency_close_without_queue")
+    logger.error(
+        "Physical command blocked: queue unavailable tenant=%s device=%s id=%s",
+        tenant_id,
+        device_id,
+        command_id,
+    )
+    return _Publication(command_id, False, False, "command_queue_unavailable")
+
+
 async def record_command_queued(
     *,
     tenant_id: str,
@@ -1748,11 +1863,7 @@ async def record_command_queued(
     rule_id: str | None = None,
     triggered_by: str = "rule",
 ) -> bool:
-    """Persist the command as ``queued`` **before** it is published (audit even on a crash).
-
-    Observability, not a safety gate: a failed write is logged and the caller still decides on
-    publishing; the post-publish ``log_command`` upsert then creates the row directly.
-    """
+    """Only a newly committed insert grants publication. Classify occupied IDs under RLS."""
     if not _pool:
         return False
     now = datetime.now(UTC)
@@ -1760,7 +1871,8 @@ async def record_command_queued(
         async with _pool.acquire() as conn:
             async with conn.transaction():
                 await _set_tenant(conn, tenant_id)
-                await conn.execute(
+                await conn.execute("SET LOCAL synchronous_commit = on")
+                inserted = await conn.execute(
                     """INSERT INTO device_commands_log
                         (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic,
                          triggered_by, command_id, delivery_state, queued_at, ack_deadline)
@@ -1779,7 +1891,36 @@ async def record_command_queued(
                     now,
                     cd.ack_deadline(now, ACTUATOR_ACK_TIMEOUT_SECONDS),
                 )
+                if inserted == "INSERT 0 0":
+                    # A second statement sees the winner of a concurrent unique-index
+                    # conflict under READ COMMITTED. Compare JSONB structurally in SQL.
+                    row = await conn.fetchrow(
+                        """SELECT delivery_state, ack_deadline,
+                                  (device_id = $3 AND command = $4 AND payload = $5::jsonb
+                                   AND rule_id IS NOT DISTINCT FROM $6::uuid
+                                   AND triggered_by IS NOT DISTINCT FROM $7::text
+                                   AND mqtt_topic = $8) AS matches
+                             FROM device_commands_log
+                            WHERE tenant_id = $1::uuid AND command_id = $2""",
+                        tenant_id,
+                        command_id,
+                        device_id,
+                        command,
+                        json.dumps(payload),
+                        rule_id,
+                        triggered_by,
+                        f"sahool/actuator/{device_id}/command",
+                    )
+                    if row is None or not row["matches"]:
+                        raise _ExistingCommand("command_id_conflict")
+                    raise _ExistingCommand(
+                        f"existing_{cd.effective_state(dict(row), datetime.now(UTC))}"
+                    )
+                if inserted != "INSERT 0 1":
+                    return False
         return True
+    except _ExistingCommand:
+        raise
     except Exception as e:
         logger.warning(f"record_command_queued failed for {command_id}: {e}")
         return False
@@ -1797,8 +1938,8 @@ async def log_command(
     delivery_state: str | None = None,
     triggered_by: str = "rule",
 ):
-    """Write the command outcome. With ``command_id`` it is an upsert onto the queued row that
-    moves it to its publish outcome (``published`` | ``simulated`` | ``publish_failed``) and
+    """Write the command outcome. A tracked write advances only its matching queued row
+    to its publish outcome (``published`` | ``simulated`` | ``publish_failed``) and
     starts the ack deadline at publish time. Runs under the tenant's RLS context."""
     if not _pool:
         return
@@ -1824,32 +1965,32 @@ async def log_command(
                         triggered_by,
                     )
                     return
-                await conn.execute(
-                    """INSERT INTO device_commands_log
-                        (tenant_id, rule_id, device_id, command, payload, status, mqtt_topic,
-                         triggered_by, command_id, delivery_state, queued_at, published_at,
-                         ack_deadline)
-                        VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-                                $13)
-                        ON CONFLICT (tenant_id, command_id) WHERE command_id IS NOT NULL
-                        DO UPDATE SET status = EXCLUDED.status,
-                                      delivery_state = EXCLUDED.delivery_state,
-                                      published_at = EXCLUDED.published_at,
-                                      ack_deadline = EXCLUDED.ack_deadline""",
+                updated = await conn.execute(
+                    """UPDATE device_commands_log
+                          SET status=$6, delivery_state=$7, published_at=$8, ack_deadline=$9
+                        WHERE tenant_id=$1::uuid AND command_id=$2 AND device_id=$3
+                          AND command=$4 AND payload=$5::jsonb AND delivery_state='queued'
+                          AND rule_id IS NOT DISTINCT FROM $10::uuid AND triggered_by=$11
+                          AND mqtt_topic=$12""",
                     tenant_id,
-                    rule_id if rule_id else None,
+                    command_id,
                     device_id,
                     command,
                     json.dumps(payload),
                     status,
-                    f"sahool/actuator/{device_id}/command",
-                    triggered_by,
-                    command_id,
                     delivery_state,
-                    now,
                     now if delivery_state == cd.PUBLISHED else None,
                     cd.ack_deadline(now, ACTUATOR_ACK_TIMEOUT_SECONDS),
+                    rule_id,
+                    triggered_by,
+                    f"sahool/actuator/{device_id}/command",
                 )
+                if updated != "UPDATE 1":
+                    logger.warning(
+                        "No matching queued row to advance for tenant=%s id=%s",
+                        tenant_id,
+                        command_id,
+                    )
     except Exception as e:
         logger.warning(f"log_command failed: {e}")
 
@@ -1867,7 +2008,7 @@ async def expire_overdue_commands(conn, tenant_id: str) -> int:
         """UPDATE device_commands_log
               SET delivery_state = 'expired', expired_at = now(),
                   delivery_reason = CASE WHEN delivery_state = 'queued'
-                                         THEN 'never_published'
+                                         THEN 'publication_unconfirmed'
                                          ELSE 'no_device_ack_before_deadline' END
             WHERE tenant_id = $1::uuid
               AND delivery_state IN ('queued', 'published')

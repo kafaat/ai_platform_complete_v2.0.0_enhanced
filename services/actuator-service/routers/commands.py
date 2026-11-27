@@ -68,7 +68,7 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
     # v238: حالة تسليم صريحة. الأمر يُسجَّل queued ويحمل command_id على السلك؛ النشر الناجح
     # (real) يجعله published فقط — device_acked لا يأتي إلّا من إقرار الجهاز الموقَّع.
     command_id = cd.new_command_id()
-    await main.record_command_queued(
+    queue = await main._prepare_publication(
         tenant_id=tenant_id,
         device_id=req.device_id,
         command=req.command,
@@ -76,31 +76,40 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
         command_id=command_id,
         triggered_by="manual",
     )
+    if not queue.may_publish:
+        raise HTTPException(
+            503 if queue.reason == "command_queue_unavailable" else 409,
+            detail={"error": queue.reason, "sent": False, "command_id": command_id},
+        )
     success = await main.send_mqtt_command(
         req.device_id,
         req.command,
         req.payload,
-        command_id=command_id,
+        command_id=queue.command_id,
         tenant_id=tenant_id,
         field_id=device_field_id,
     )
     delivery_state = cd.state_after_publish(success, main.ACTUATOR_MODE)
-    await main.log_command(
-        rule_id=None,
-        device_id=req.device_id,
-        command=req.command,
-        payload=req.payload,
-        status="sent" if success else "failed",
-        tenant_id=tenant_id,
-        command_id=command_id,
-        delivery_state=delivery_state,
-        triggered_by="manual",
-    )
+    if queue.recorded:
+        await main.log_command(
+            rule_id=None,
+            device_id=req.device_id,
+            command=req.command,
+            payload=req.payload,
+            status="sent" if success else "failed",
+            tenant_id=tenant_id,
+            command_id=command_id,
+            delivery_state=delivery_state,
+            triggered_by="manual",
+        )
+    elif main.ACTUATOR_MODE == "real" and success:
+        delivery_state = cd.UNTRACKED
     return {
         "device_id": req.device_id,
         "command": req.command,
         "sent": success,
-        "command_id": command_id,
+        "command_id": queue.command_id,
+        "queue_recorded": queue.recorded,
         "delivery_state": delivery_state,
         "tenant_id": tenant_id,
         "issued_by": user_id,

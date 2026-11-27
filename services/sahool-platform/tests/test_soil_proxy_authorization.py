@@ -142,3 +142,34 @@ def test_platform_admin_can_check_health_without_accessing_soil_data(monkeypatch
     response, forwarded = request_as(monkeypatch, UserRole.PLATFORM_ADMIN, "GET", "healthz")
     assert response.status_code == 200
     assert len(forwarded) == 1
+
+
+@pytest.mark.parametrize("product", ["drainage-assessment", "reclamation-assessment"])
+def test_p3_reads_forward_only_authenticated_scope(monkeypatch, product):
+    response, forwarded = request_as(
+        monkeypatch, UserRole.VIEWER, "GET", f"v1/fields/f1/soil/{product}"
+    )
+    assert response.status_code == 200
+    assert len(forwarded) == 1
+    assert forwarded[0].headers["X-Tenant-Id"] == TENANT
+    assert forwarded[0].headers["X-Actor-Id"] == "trusted-actor"
+    assert forwarded[0].headers["X-Agent-Token"] != "spoofed"
+
+
+@pytest.mark.parametrize("product", ["drainage-assessment", "reclamation-assessment"])
+@pytest.mark.parametrize("method", ["POST", "PUT", "PATCH", "DELETE"])
+def test_p3_reads_do_not_expose_service_token_for_writes(monkeypatch, product, method):
+    response, forwarded = request_as(
+        monkeypatch, UserRole.OWNER, method, f"v1/fields/f1/soil/{product}"
+    )
+    assert response.status_code == 405
+    assert forwarded == []
+
+
+@pytest.mark.parametrize("product", ["drainage-assessment", "reclamation-assessment"])
+def test_p3_reads_deny_non_tenant_role(monkeypatch, product):
+    response, forwarded = request_as(
+        monkeypatch, UserRole.PLATFORM_ADMIN, "GET", f"v1/fields/f1/soil/{product}"
+    )
+    assert response.status_code == 403
+    assert forwarded == []
