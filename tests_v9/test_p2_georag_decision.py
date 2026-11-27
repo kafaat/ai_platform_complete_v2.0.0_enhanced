@@ -308,3 +308,27 @@ def test_touching_field_boundary_does_not_ground_the_neighbor():
         "coordinates": [[[44.01, 15], [44.02, 15], [44.02, 15.01], [44.01, 15.01], [44.01, 15]]],
     }
     assert _scope([_ann(scope={"geometry": adjacent})])["status"] == "evidence_required"
+
+
+@pytest.mark.parametrize(
+    "scope_zone,decision_zone,admitted",
+    [
+        ("z1", "z2", False),
+        ("z1", None, False),
+        ("z1", "z1", True),
+        ("", "z1", False),
+        ([], "z1", False),
+        (None, "z1", True),
+    ],
+)
+@pytest.mark.parametrize("scope_key", ["field_id", "geometry"])
+def test_zone_scope(scope_zone, decision_zone, admitted, scope_key):
+    scope = {scope_key: "f1" if scope_key == "field_id" else INSIDE, "zone_id": scope_zone}
+    result = scope_annotations(
+        [_ann(scope=scope)], tenant_id=T, field_id="f1", field_geometry=FIELD, zone_id=decision_zone
+    )
+    assert bool(result["annotations"]) is admitted
+    assert result["status"] == ("evidence_available" if admitted else "evidence_required")
+    if not admitted:
+        assert result["rejected"][0]["reason"] == "zone_scope_mismatch"
+    assert result["direct_execution_permitted"] is False
