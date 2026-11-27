@@ -12,7 +12,7 @@ import hashlib
 import json
 import math
 from dataclasses import asdict, dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import ROUND_CEILING, ROUND_DOWN, Decimal
 from typing import Any
 
@@ -168,7 +168,7 @@ def solve_hourly_energy_aware_mpc(
     area_ha: float,
     maximum_horizon_hours: int = 72,
     minimum_runtime_minutes: float = 30.0,
-    minimum_off_hours: int = 1,
+    minimum_off_hours: float = 1,
     target_depletion_fraction_of_raw: float = 0.5,
     yield_floor_preserved: bool | None = None,
 ) -> HourlyEnergyAwareMPCSchedule:
@@ -220,6 +220,11 @@ def solve_hourly_energy_aware_mpc(
     if area is None or area <= 0:
         reasons.append("VALID_IRRIGATED_AREA_REQUIRED")
 
+    # Integers are finite even when their magnitude exceeds float precision.
+    off_hours = minimum_off_hours if type(minimum_off_hours) is int else _num(minimum_off_hours)
+    if off_hours is None or off_hours < 0:
+        reasons.append("INVALID_MINIMUM_OFF_HOURS")
+
     max_flow_lps = _num(irrigation_capability.get("maximum_flow_lps"))
     max_daily_depth = _num(irrigation_capability.get("maximum_daily_depth_mm"))
     max_event_depth = _num(irrigation_capability.get("maximum_safe_depth_mm_event"))
@@ -253,6 +258,7 @@ def solve_hourly_energy_aware_mpc(
         )
 
     assert taw is not None and raw is not None and dr is not None and area is not None
+    assert off_hours is not None
     assert max_flow_lps is not None and max_daily_depth is not None
     assert max_event_depth is not None and specific_energy is not None
 
@@ -346,6 +352,9 @@ def solve_hourly_energy_aware_mpc(
         )
         remaining = required_refill
         actions = []
+        # Dates resolve to microseconds. Preserve decimal hours at exact restart boundaries.
+        rest_hours = off_hours if type(off_hours) is int else Decimal(str(off_hours))
+        minimum_off_microseconds = rest_hours * 3_600_000_000
         last_action_time: datetime | None = None
         state_dr = dr
         daily_limit = Decimal(str(max_daily_depth))
@@ -362,11 +371,11 @@ def solve_hourly_energy_aware_mpc(
                 continue
             if not h["feasible"]:
                 continue
-            if (
-                last_action_time is not None
-                and (h["hour"] - last_action_time).total_seconds() < minimum_off_hours * 3600
-            ):
-                continue
+            if last_action_time is not None:
+                elapsed = h["hour"] - last_action_time
+                off_time = elapsed - timedelta(minutes=actions[-1].runtime_minutes)
+                if off_time // timedelta(microseconds=1) < minimum_off_microseconds:
+                    continue
             depth_from_full_hour = max_flow_lps * 3.6 / (area * 10.0)
             min_depth = max_flow_lps * minimum_runtime_minutes * 0.06 / (area * 10.0)
             day = h["hour"].date()  # Forecast windows are normalized to UTC above.
