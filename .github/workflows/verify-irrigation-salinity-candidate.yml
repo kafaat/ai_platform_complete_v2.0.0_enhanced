@@ -1,0 +1,28 @@
+name: Verify irrigation salinity candidate
+on:
+  push:
+    branches: [ci/transfer-salinity-61e6a0dbd]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify candidate parent and tree, retain objects on the transport branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '98bbd6811ab730f1b5e6bf9158553b622ff6bc9798b4cc7f9107a6b42d636f18  candidate.pack' | sha256sum --check --strict
+          git fetch --no-tags --depth=1 origin 5037c4f9279673c1ebe997cee58c40325f7bee40
+          git index-pack --stdin --fix-thin < candidate.pack
+          test "$(git show -s --format=%P 61e6a0dbd8574f06bedee12bdf22e796b7241d26)" = "5037c4f9279673c1ebe997cee58c40325f7bee40"
+          test "$(git rev-parse 61e6a0dbd8574f06bedee12bdf22e796b7241d26^{tree})" = "f4e5296782e89c52a3a0f494d527fb53c0434320"
+          git ls-tree -r 61e6a0dbd8574f06bedee12bdf22e796b7241d26 >/dev/null
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          retained=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p 61e6a0dbd8574f06bedee12bdf22e796b7241d26 -m 'Retain verified irrigation salinity candidate [skip ci]')
+          git push origin "$retained:refs/heads/ci/transfer-salinity-61e6a0dbd"
