@@ -9,9 +9,16 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 
 import pytest
-from api.routers import irrigation_mpc as mod
+
+
+@pytest.fixture
+def mod():
+    # Bootstrap through the ASGI entry point before importing its registered router.
+    importlib.import_module("api.main")
+    return importlib.import_module("api.routers.irrigation_mpc")
 
 
 class _FakeUser:
@@ -35,7 +42,7 @@ async def _fake_tenant_conn(user):
 
 
 @pytest.mark.asyncio
-async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch):
+async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch, mod):
     seen = {}
 
     async def fake_owns(user, field_id):
@@ -85,7 +92,7 @@ async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_hourly_recommendation_blocks_unowned_field_without_orchestrating(monkeypatch):
+async def test_hourly_recommendation_blocks_unowned_field_without_orchestrating(monkeypatch, mod):
     async def fake_owns(user, field_id):
         return False
 
@@ -103,7 +110,7 @@ async def test_hourly_recommendation_blocks_unowned_field_without_orchestrating(
 
 
 @pytest.mark.asyncio
-async def test_hourly_recommendation_pins_recommendation_only_on_blocked(monkeypatch):
+async def test_hourly_recommendation_pins_recommendation_only_on_blocked(monkeypatch, mod):
     async def fake_owns(user, field_id):
         return True
 
