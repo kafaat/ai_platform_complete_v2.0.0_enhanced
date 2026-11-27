@@ -27965,7 +27965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "210691d8a23ba662244c71b89d9766856d663192c2bb13033ac35b9387a6fbbf"
+          "content": "f0c2b80ca823ff92485aca5acf78d22caacb760c1d0995c7bfcb9bbb90d928de"
         }
       ],
       "name": "services/sahool-platform/api/routers/alerts.py",
@@ -28625,7 +28625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b2c5a93951e6d21467bace9b5b0306ec7d40f71b28a7e21ba5c5851949d9b3d"
+          "content": "7e32942c279d632a7c6cb70c4314f334f0e27f7ed7b4438ff43146cd73ef178e"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -29415,7 +29415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "49cc645f7a9da0eb5652ef6a660b8d5a5a39c2d8641c4653dc01193746093ffb"
+          "content": "0787f68cef46eed367fabc76657077719cb0b9848de41386817b8aeeb6dc807e"
         }
       ],
       "name": "services/sahool-platform/api/routers/tasks.py",
