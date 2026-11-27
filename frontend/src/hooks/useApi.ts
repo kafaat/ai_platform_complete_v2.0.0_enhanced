@@ -9,7 +9,7 @@ import {
   fetchSoilProfileSnapshot, fetchSoilClosedLoop, fetchSoilProfileHistory,
   fetchMpcCapabilities, type MpcCapabilities,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
-  startAnalyzeFieldIntelligence, getFieldIntelligenceJob, cancelFieldIntelligenceJob, getCostAnalytics,
+  startAnalyzeFieldIntelligence, getFieldIntelligenceJob, cancelFieldIntelligenceJob, fieldIntelligencePollDelay, getCostAnalytics,
   getYieldAnalysis, type YieldAnalysisResult,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
@@ -110,7 +110,7 @@ import {
   type ProductivityObservationInput, type ProductivityZoneResult,
   type ZoneSamplingPlanResult, type DailyAiBriefResult,
 } from '../services/api';
-import { useAuthStore, UNAUTH_TENANT_KEY } from './useAuth';
+import { useAuthQueryIdentity, useAuthStore, UNAUTH_TENANT_KEY } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
 import { buildSoilWorkspaceSummary, type SoilWorkspaceSummary } from '../lib/soilWorkspace';
 import { unwrapList } from '../lib/paginated';
@@ -2837,13 +2837,16 @@ export function useStartFieldIntelligenceJob() {
 }
 
 export function useFieldIntelligenceJob(jobId?: string | null) {
+  const identity = useAuthQueryIdentity();
   return useQuery<FieldIntelJobStatus, Error>({
-    queryKey: ['field-intelligence-job', jobId],
-    enabled: !!jobId,
-    queryFn: () => getFieldIntelligenceJob(jobId as string),
+    queryKey: ['field-intelligence-job', ...identity, jobId],
+    enabled: !!identity[0] && !!jobId,
+    queryFn: ({ signal }) => getFieldIntelligenceJob(jobId as string, signal),
     refetchInterval: (q) => {
       const status = q.state.data?.status;
-      return status === 'completed' || status === 'failed' || status === 'cancelled' ? false : 1000;
+      return status === 'completed' || status === 'failed' || status === 'cancelled'
+        ? false
+        : fieldIntelligencePollDelay(q.state.dataUpdateCount);
     },
   });
 }

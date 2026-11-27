@@ -48,7 +48,7 @@ class RunRecord:
     duration_ms: int = 0
     status: Status = "ok"
     note_ar: str | None = None
-    # أخطاء كلّ حقل (field_id → رسالة) — للتشخيص، يبقى مختصراً
+    # تتضمن أخطاء الحقول field_id وأخطاء جلب دفعات المستأجر tenant_id.
     errors: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -78,6 +78,10 @@ class RunRecordBuilder:
         self._finished = False
 
     # ─── مُراكِمات كلّ حقل ──────────────────────────────────────────
+    def add_fields(self, n: int) -> None:
+        """حقول جرى حصرها في الدفعة الحالية."""
+        self._record.fields_total += int(n)
+
     def mark_evaluated(self, n: int = 1) -> None:
         """حقل قُيّم بنجاح."""
         self._record.evaluated += int(n)
@@ -91,6 +95,10 @@ class RunRecordBuilder:
         self._record.errored += 1
         self._record.errors.append({"field_id": str(field_id), "error": str(err)})
 
+    def mark_tenant_errored(self, tenant_id: str, err: object) -> None:
+        """تعذّر جلب دفعة. عدد الحقول المتأثرة غير معلوم."""
+        self._record.errors.append({"tenant_id": str(tenant_id), "error": str(err)})
+
     def add_alerts(self, n: int) -> None:
         """يضيف عدد التنبيهات المُنشأة في هذا الحقل."""
         self._record.alerts_created += int(n)
@@ -100,9 +108,9 @@ class RunRecordBuilder:
         """يحسب المدّة + الحالة من العدّادات الحقيقيّة ويُلحق السجلّ بالحلقة.
 
         الحالة (صدق، من العدّادات لا اختلاق):
-          • errored == 0 ⇒ "ok"
-          • errored > 0 وevaluated > 0 ⇒ "partial"
-          • errored > 0 وevaluated == 0 (الكلّ تعثّر) ⇒ "error"
+          • لا أخطاء ⇒ "ok"
+          • أخطاء مع حقول قُيّمت ⇒ "partial"
+          • أخطاء بلا حقول قُيّمت ⇒ "error"
         دورة بصفر حقول ⇒ "ok" مع ملاحظة (لا عمل لِيُنجَز).
         """
         if self._finished:
@@ -112,7 +120,7 @@ class RunRecordBuilder:
         delta = datetime.now(UTC) - self._start_monotonic
         rec.duration_ms = max(0, int(delta.total_seconds() * 1000))
 
-        if rec.errored == 0:
+        if not rec.errors:
             rec.status = "ok"
         elif rec.evaluated > 0:
             rec.status = "partial"
@@ -121,7 +129,7 @@ class RunRecordBuilder:
 
         if note_ar is not None:
             rec.note_ar = note_ar
-        elif rec.fields_total == 0:
+        elif rec.fields_total == 0 and not rec.errors:
             rec.note_ar = "لا حقول للتقييم في هذه الدورة."
 
         self._ledger._append(rec)

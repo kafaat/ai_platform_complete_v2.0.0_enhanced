@@ -196,6 +196,7 @@ async def workspace(
     include: str = Query(default="overview,timeline,anomalies,ground,decisions,compare,outcomes"),
     authorization: str = Header(..., alias="Authorization"),
     tenant_id: str = Header(..., alias="X-Tenant-Id"),
+    ground_cursor: str | None = Query(None, min_length=1, max_length=128),
 ) -> dict[str, Any]:
     sections = {part.strip() for part in include.split(",") if part.strip()}
     unknown = sorted(sections - _ALLOWED)
@@ -268,7 +269,11 @@ async def workspace(
                     client,
                     f"{TASK_URL}{SCOUTING_TASKS_PATH}",
                     task_headers,
-                    {"field_id": field_id, "season_id": season_id},
+                    {
+                        "field_id": field_id,
+                        "season_id": season_id,
+                        **({"cursor": ground_cursor} if ground_cursor else {}),
+                    },
                 )
 
         names = list(calls)
@@ -278,6 +283,8 @@ async def workspace(
         for name, value in zip(names, values, strict=True):
             if isinstance(value, Exception):
                 message = str(value)
+                if name == "ground" and ground_cursor is not None and message == "upstream_400":
+                    raise HTTPException(400, detail={"code": "invalid_ground_page_request"})
                 errors[name] = (
                     message if message.startswith("upstream_") else "upstream_unavailable"
                 )

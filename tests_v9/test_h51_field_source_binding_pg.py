@@ -115,13 +115,15 @@ async def _seed_source(admin, tenant: str, *, ec_limit: float | None) -> str:
     return source_id
 
 
-async def _add_sample(admin, tenant, source_id, *, ec, quality, days_ago=10) -> None:
+async def _add_sample(
+    admin, tenant, source_id, *, ec, quality, days_ago=10, sampled_at=None
+) -> None:
     await admin.execute(
         "INSERT INTO irrigation_water_quality_samples "
         "(tenant_id, water_source_id, sampled_at, ec_ds_m, quality) VALUES ($1,$2,$3,$4,$5)",
         tenant,
         source_id,
-        datetime.now(UTC) - timedelta(days=days_ago),
+        sampled_at if sampled_at is not None else datetime.now(UTC) - timedelta(days=days_ago),
         ec,
         quality,
     )
@@ -155,6 +157,86 @@ async def _bind(
 async def _resolve_as_tenant(app, tenant, field_id):
     await app.execute("SELECT set_config('app.current_tenant', $1, false)", tenant)
     return await resolve_active_bindings(app, field_id, now=datetime.now(UTC))
+
+
+@pytest.mark.asyncio
+async def test_binding_evidence_for_a_blend_uses_one_statement():
+    app = await _connect(APP_URL)
+    admin = await _connect(ADMIN_URL)
+    try:
+        await _assert_app_role_restricted(app)
+        tenant, other = str(uuid4()), str(uuid4())
+        field = f"h51-{uuid4()}"
+        now = datetime.now(UTC)
+
+        async def read(scope):
+            await app.execute("SELECT set_config('app.current_tenant', $1, false)", scope)
+            commands = []
+            with app.query_logger(commands.append):
+                rows = await resolve_active_bindings(app, field, now=now)
+            await asyncio.sleep(0)  # asyncpg schedules query logger callbacks with call_soon.
+            assert len(commands) == 1, [cmd.query for cmd in commands]
+            return rows
+
+        assert await read(tenant) == []
+        sources = [await _seed_source(admin, tenant, ec_limit=3) for _ in range(6)]
+        priorities = [3, 2, 1, 1, 1, 3]
+        for source, priority in zip(sources, priorities, strict=True):
+            await _bind(admin, tenant, field, source, priority=priority)
+
+        absent = await read(tenant)
+        assert [row["water_source_id"] for row in absent] == [
+            source for _, source in sorted(zip(priorities, sources, strict=True))
+        ]
+        assert all(row["water_quality"] is None for row in absent)
+        assert all(row["non_decision_grade_sample_present"] is False for row in absent)
+
+        # A newer measured sample cannot displace a certified one, but a newer decision-grade
+        # sample with a missing EC (or a future timestamp) must reach the gate as stored.
+        for source in sources[:3]:
+            await _add_sample(admin, tenant, source, ec=1, quality="certified", days_ago=4)
+        await _add_sample(admin, tenant, sources[0], ec=5, quality="measured", days_ago=1)
+        await _add_sample(
+            admin, tenant, sources[1], ec=None, quality="field_validated", sampled_at=now
+        )
+        future = now + timedelta(days=1)
+        await _add_sample(admin, tenant, sources[2], ec=4, quality="certified", sampled_at=future)
+        await _add_sample(admin, tenant, sources[3], ec=1, quality="estimated")
+        for ec in (5, 6):
+            await _add_sample(admin, tenant, sources[4], ec=ec, quality="certified", sampled_at=now)
+
+        # Another tenant uses the same field label and has its own source and evidence.
+        foreign = await _seed_source(admin, other, ec_limit=2)
+        await _bind(admin, other, field, foreign)
+        await _add_sample(admin, other, foreign, ec=7, quality="certified")
+
+        mixed = {row["water_source_id"]: row for row in await read(tenant)}
+        assert set(mixed) == set(sources)
+        qualities = [mixed[source]["water_quality"] for source in sources]
+        assert qualities[0]["quality"] == "certified" and qualities[0]["ec_ds_m"] == 1
+        assert qualities[1] == {
+            "ec_ds_m": None,
+            "sampled_at": now.isoformat(),
+            "quality": "field_validated",
+        }
+        assert qualities[2] == {
+            "ec_ds_m": 4,
+            "sampled_at": future.isoformat(),
+            "quality": "certified",
+        }
+        assert qualities[3] is None
+        # No precedence is specified between equally recent decision-grade samples.
+        assert qualities[4]["sampled_at"] == now.isoformat() and qualities[4]["ec_ds_m"] in (5, 6)
+        assert qualities[5] is None
+        assert [
+            source for source in sources if mixed[source]["non_decision_grade_sample_present"]
+        ] == [sources[3]]
+        foreign_rows = await read(other)
+        assert [row["water_source_id"] for row in foreign_rows] == [foreign]
+        assert foreign_rows[0]["water_quality"]["ec_ds_m"] == 7
+    finally:
+        await app.close()
+        await admin.close()
 
 
 def test_h51_field_source_binding_live_pg() -> None:

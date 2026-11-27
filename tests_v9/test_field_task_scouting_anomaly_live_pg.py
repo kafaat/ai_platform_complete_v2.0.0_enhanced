@@ -28,7 +28,7 @@ import importlib.util
 import os
 import sys
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -382,6 +382,65 @@ def test_tenants_are_isolated_and_the_assertion_is_bound_to_the_route(monkeypatc
                 },
             )
             assert misbound.status_code == 403, misbound.text
+
+    asyncio.run(scenario())
+
+
+def test_scouting_pages_match_the_legacy_order_through_nulls_and_ties(monkeypatch):
+    async def scenario():
+        async with Live(monkeypatch) as live:
+            await live.admin.execute(
+                """INSERT INTO field_tasks
+                       (field_id, tenant_id, task_type, season_id, anomaly_ref,
+                        scouting_idempotency_key, scouting_request_digest, created_at)
+                   SELECT $1, $2::uuid, 'scouting',
+                          CASE WHEN n=408 THEN 'other' ELSE 'sea-2026' END,
+                          'urn:sahool:anomaly:page-' || n, 'page-key-' || n, repeat('a',64),
+                          CASE WHEN n<=202 OR n=408 THEN NULL
+                               WHEN n<=405 THEN '2026-02-01 12:03:04.123456+03'::timestamptz
+                               ELSE '2025-02-01Z'::timestamptz END
+                     FROM generate_series(1, 408) AS n""",
+                live.field,
+                live.tenant,
+            )
+            expected = await live.admin.fetch(
+                """SELECT task_id::text AS id, anomaly_ref FROM field_tasks
+                    WHERE tenant_id=$1::uuid AND field_id=$2 AND season_id='sea-2026'
+                    ORDER BY created_at DESC, task_id""",
+                live.tenant,
+                live.field,
+            )
+
+            async def get_page(tenant=live.tenant, **params):
+                response = await live.fm.get(
+                    PATH,
+                    headers=live.service_headers(tenant),
+                    params={"field_id": live.field, "season_id": "sea-2026", **params},
+                )
+                assert response.status_code == 200, response.text
+                return response.json()
+
+            first = await get_page()
+            assert first["count"] == 200 and first["next_cursor"].startswith("|")
+            second = await get_page(cursor=first["next_cursor"])
+            assert second["count"] == 200
+            assert [i["created_at"] is None for i in second["items"][:3]] == [True, True, False]
+
+            # The same microsecond expressed in another timezone is the same boundary.
+            stamp, task_id = second["next_cursor"].split("|")
+            offset = datetime.fromisoformat(stamp).astimezone(timezone(timedelta(hours=-5)))
+            cursor = f"{offset.isoformat()}|{task_id}"
+            last = await get_page(cursor=cursor, limit=7)
+            assert last["count"] == 7 and last["next_cursor"] is None
+            assert [
+                item["task_id"] for page in (first, second, last) for item in page["items"]
+            ] == [row["id"] for row in expected]
+
+            filtered = await get_page(cursor=cursor, anomaly_ref=expected[-1]["anomaly_ref"])
+            assert [i["task_id"] for i in filtered["items"]] == [expected[-1]["id"]]
+            assert filtered["next_cursor"] is None
+            foreign = await get_page(tenant=live.other_tenant, cursor=first["next_cursor"])
+            assert foreign["items"] == [] and foreign["next_cursor"] is None
 
     asyncio.run(scenario())
 

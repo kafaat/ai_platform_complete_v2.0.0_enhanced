@@ -328,10 +328,7 @@ async def _start_scheduler():
             logging.warning("فشل تحميل حالة الأتمتة من القاعدة: %s", e)
 
     async def _freshness_sweep():
-        # فحص نضارة بيانات القرار لكلّ حقل عبر المستأجِرين دوريّاً. يقرأ آخر طابع
-        # زمنيّ فعليّ لكلّ مصدر من القاعدة (NDVI من imagery_automation_fields،
-        # رطوبة التربة عبر _latest_soil_moisture، الطقس من weather_automation_cache)،
-        # يحسب الأعمار عبر المنطق النقيّ compute_data_ages، ثمّ يمرّرها لفحص النضارة.
+        # تُقرأ إشارات الصور والتربة والطقس لكلّ دفعة ضمن سياق مستأجرها.
         # صدق: النضارة لا تحجب شيئاً — تُسجّل وتُعلِم فقط (طبقة ثقة لا بوّابة).
         # معزول: فشل حقل/مستأجِر لا يُسقط البقيّة. لو لا حقول → لا عمل.
         if _DB_POOL is None:
@@ -348,8 +345,10 @@ async def _start_scheduler():
 
         from core.automation_ledger import LEDGER
 
-        # مرحلة الجمع: اجمع (مستخدم النظام، حقل) عبر المستأجِرين — مع عزل كلّ مستأجِر.
-        pairs: list[tuple[UserSchema, str]] = []
+        from api.freshness_store import PAGE_SIZE, read_freshness_page
+
+        rec = LEDGER.start_run("freshness_check", 0)
+        stale_fields = 0
         for tid in tids:
             sys_user = UserSchema(
                 user_id="system-scheduler",
@@ -357,73 +356,41 @@ async def _start_scheduler():
                 role=UserRole.OWNER,
                 name_ar="نظام الجدولة",
             )
-            try:
-                async with tenant_connection(sys_user) as conn:
-                    frows = await conn.fetch(
-                        "SELECT field_id FROM fields WHERE tenant_id = $1::uuid", tid
-                    )
-                pairs.extend((sys_user, fr["field_id"]) for fr in frows)
-            except Exception as te:  # noqa: BLE001 — عزل لكلّ مستأجِر
-                logging.warning("فحص النضارة: تخطّي مستأجِر %s: %s", tid, type(te).__name__)
-
-        # مرحلة التقييم: سجلّ تشغيل واحد يرصد المُقيَّم/المُخفِق + عدد الحقول القديمة.
-        rec = LEDGER.start_run("freshness_check", len(pairs))
-        stale_fields = 0
-        for sys_user, field_id in pairs:
-            try:
-                async with tenant_connection(sys_user) as conn:
-                    now_epoch = _time.time()
-                    # NDVI: آخر تاريخ صورة محسوبة (DATE) — منتصف اليوم تقريباً.
-                    ndvi_row = await conn.fetchrow(
-                        "SELECT EXTRACT(EPOCH FROM last_ndvi_date::timestamptz) AS e "
-                        "FROM imagery_automation_fields WHERE field_id = $1",
-                        field_id,
-                    )
-                    ndvi_at = (
-                        float(ndvi_row["e"])
-                        if ndvi_row is not None and ndvi_row["e"] is not None
-                        else None
-                    )
-                    # رطوبة التربة: أحدث قراءة صالحة عبر _latest_soil_moisture.
-                    soil_reading = await _latest_soil_moisture(conn, field_id)
-                    soil_at = (
-                        soil_reading.recorded_at.timestamp() if soil_reading is not None else None
-                    )
-                    # الطقس: آخر جلب مُخزَّن للإحداثيّة المرتبطة بالحقل.
-                    wx_row = await conn.fetchrow(
-                        "SELECT EXTRACT(EPOCH FROM c.fetched_at) AS e "
-                        "FROM weather_automation_cache c "
-                        "JOIN weather_automation_locations l "
-                        "  ON l.location_key = c.location_key "
-                        "WHERE l.field_id = $1 "
-                        "ORDER BY c.fetched_at DESC LIMIT 1",
-                        field_id,
-                    )
-                    weather_at = (
-                        float(wx_row["e"])
-                        if wx_row is not None and wx_row["e"] is not None
-                        else None
-                    )
-
-                ages = compute_data_ages(
-                    now_epoch,
-                    ndvi_at_epoch=ndvi_at,
-                    soil_at_epoch=soil_at,
-                    weather_at_epoch=weather_at,
-                )
-                result = check_decision_freshness(
-                    ndvi_age_days=ages["ndvi_age_days"],
-                    soil_age_days=ages["soil_age_days"],
-                    weather_age_hours=ages["weather_age_hours"],
-                )
-                rec.mark_evaluated()
-                if not result.consistent:
-                    stale_fields += 1
-                    reasons = ", ".join(c.rule_id for c in result.conflicts)
-                    logging.warning("فحص النضارة: بيانات قديمة للحقل %s — %s", field_id, reasons)
-            except Exception as fe:  # noqa: BLE001 — عزل لكلّ حقل
-                rec.mark_errored(field_id, fe)
-                logging.debug("فحص النضارة: تخطّي حقل %s: %s", field_id, type(fe).__name__)
+            after = None
+            while True:
+                try:
+                    async with tenant_connection(sys_user) as conn:
+                        page = await read_freshness_page(conn, tid, after)
+                except Exception as exc:
+                    rec.mark_tenant_errored(tid, exc)
+                    logging.warning("فحص النضارة: تخطّي مستأجِر %s: %s", tid, type(exc).__name__)
+                    break
+                rec.add_fields(len(page))
+                for field_id, ndvi_at, soil_at, weather_at in page:
+                    try:
+                        ages = compute_data_ages(
+                            _time.time(),
+                            ndvi_at_epoch=ndvi_at,
+                            soil_at_epoch=soil_at,
+                            weather_at_epoch=weather_at,
+                        )
+                        result = check_decision_freshness(
+                            ndvi_age_days=ages["ndvi_age_days"],
+                            soil_age_days=ages["soil_age_days"],
+                            weather_age_hours=ages["weather_age_hours"],
+                        )
+                        rec.mark_evaluated()
+                        if not result.consistent:
+                            stale_fields += 1
+                            reasons = ", ".join(c.rule_id for c in result.conflicts)
+                            logging.warning(
+                                "فحص النضارة: بيانات قديمة للحقل %s — %s", field_id, reasons
+                            )
+                    except Exception as exc:
+                        rec.mark_errored(field_id, exc)
+                if len(page) < PAGE_SIZE:
+                    break
+                after = page[-1][0]
         rec.finish()
         if stale_fields:
             logging.info("فحص النضارة: %s حقل ببيانات قديمة (تُعلِم لا تحجب)", stale_fields)

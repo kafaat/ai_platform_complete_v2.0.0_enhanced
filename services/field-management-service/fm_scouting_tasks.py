@@ -28,7 +28,7 @@ import hashlib
 import json
 import re
 from collections.abc import Awaitable, Callable
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import Any, Literal
 from uuid import UUID
 
@@ -194,21 +194,55 @@ async def store_create(
     return task_view(row), False
 
 
+def parse_page_cursor(cursor: str | None) -> tuple[datetime | None, UUID | None]:
+    if cursor is None:
+        return None, None
+    try:
+        timestamp, task_id = cursor.split("|")
+        when = datetime.fromisoformat(timestamp) if timestamp else None
+        if when is not None:
+            if when.tzinfo is None:
+                raise ValueError("missing UTC offset")
+            when = when.astimezone(UTC)
+        return when, UUID(task_id)
+    except (ValueError, OverflowError) as exc:
+        raise HTTPException(400, "invalid scouting cursor") from exc
+
+
 async def store_list(
-    conn, tenant: str, field_id: str, season_id: str | None, anomaly_ref: str | None
+    conn,
+    tenant: str,
+    field_id: str,
+    season_id: str | None,
+    anomaly_ref: str | None,
+    limit: int = 200,
+    after: tuple[datetime | None, UUID | None] = (None, None),
 ) -> list[dict[str, Any]]:
-    rows = await conn.fetch(
-        f"""SELECT {_COLUMNS} FROM field_tasks
-             WHERE tenant_id=$1::uuid AND field_id=$2 AND anomaly_ref IS NOT NULL
-               AND ($3::text IS NULL OR season_id=$3)
-               AND ($4::text IS NULL OR anomaly_ref=$4)
-             ORDER BY created_at DESC, task_id
-             LIMIT 200""",
-        tenant,
-        field_id,
-        season_id,
-        anomaly_ref,
-    )
+    select_tasks = f"""SELECT {_COLUMNS} FROM field_tasks
+                        WHERE tenant_id=$1::uuid AND field_id=$2 AND anomaly_ref IS NOT NULL
+                          AND ($3::text IS NULL OR season_id=$3)
+                          AND ($4::text IS NULL OR anomaly_ref=$4)"""
+    page_order = "ORDER BY created_at DESC NULLS FIRST, task_id ASC LIMIT $5"
+    args = [tenant, field_id, season_id, anomaly_ref, limit]
+    created_at, task_id = after
+    if task_id is None:
+        query = f"{select_tasks} {page_order}"
+    else:
+        args.append(task_id)
+        if created_at is None:
+            same_time = "created_at IS NULL"
+            later_in_order = "created_at IS NOT NULL"
+        else:
+            args.append(created_at)
+            same_time = "created_at = $7"
+            later_in_order = "created_at < $7"
+        # These disjoint index ranges seek past the boundary even inside a large tie.
+        # Both reads share one statement snapshot and only contribute a page of rows.
+        query = f"""({select_tasks} AND {same_time} AND task_id > $6 {page_order})
+                    UNION ALL
+                    ({select_tasks} AND {later_in_order} {page_order})
+                    {page_order}"""
+    rows = await conn.fetch(query, *args)
     return [task_view(r) for r in rows]
 
 
@@ -282,6 +316,8 @@ def build_router(require_tenant: Callable[..., str], connect: Connect) -> APIRou
         field_id: str = Query(...),
         season_id: str | None = Query(None),
         anomaly_ref: str | None = Query(None),
+        limit: int = Query(200, ge=1, le=200),
+        cursor: str | None = Query(None, max_length=128),
         tenant: str = Depends(require_tenant),
     ):
         if not _FIELD_ID_RE.fullmatch(field_id):
@@ -290,17 +326,32 @@ def build_router(require_tenant: Callable[..., str], connect: Connect) -> APIRou
             raise HTTPException(400, "invalid season_id")
         if anomaly_ref is not None and not re.fullmatch(rf"{_ID}{{1,220}}", anomaly_ref):
             raise HTTPException(400, "invalid anomaly_ref")
+        after = parse_page_cursor(cursor)
         tid = tenant_uuid(tenant)
         try:
             items = await _in_tenant_tx(
                 connect,
                 tid,
-                lambda conn: store_list(conn, tid, field_id, season_id, anomaly_ref),
+                lambda conn: store_list(
+                    conn, tid, field_id, season_id, anomaly_ref, limit + 1, after
+                ),
             )
         except HTTPException:
             raise
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(503, "field task store unavailable") from exc
-        return {"field_id": field_id, "season_id": season_id, "items": items, "count": len(items)}
+        next_cursor = None
+        if len(items) > limit:
+            items = items[:limit]
+            last = items[-1]
+            when = last["created_at"]
+            next_cursor = f"{when.isoformat() if when else ''}|{last['task_id']}"
+        return {
+            "field_id": field_id,
+            "season_id": season_id,
+            "items": items,
+            "count": len(items),
+            "next_cursor": next_cursor,
+        }
 
     return router

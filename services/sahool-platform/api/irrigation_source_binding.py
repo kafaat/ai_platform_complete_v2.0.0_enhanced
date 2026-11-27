@@ -34,34 +34,37 @@ from api.canonical_well_capability import (
 # Sorted for a deterministic bound parameter (list, not set — asyncpg binds text[]).
 DECISION_GRADE_SAMPLE_QUALITY_LIST = sorted(DECISION_GRADE_SAMPLE_QUALITIES)
 
-# Active bindings for a field at $2 (now), joined to the source for its configured EC limit.
+# Resolve active bindings and their evidence in one tenant-scoped statement. The lateral lookup
+# can use the (tenant_id, water_source_id, sampled_at) index and retains the latest eligible sample
+# even if its EC is missing. Equal sample times have no policy-defined precedence.
 ACTIVE_BINDINGS_SQL = """
 SELECT a.water_source_id,
        a.priority,
        a.mixing_ratio,
-       s.maximum_allowed_ec_ds_m
+       s.maximum_allowed_ec_ds_m,
+       latest.ec_ds_m,
+       latest.sampled_at,
+       latest.quality,
+       CASE WHEN latest.quality IS NULL THEN EXISTS (
+           SELECT 1 FROM irrigation_water_quality_samples any_sample
+           WHERE any_sample.tenant_id = a.tenant_id AND any_sample.water_source_id = a.water_source_id
+       ) ELSE false END AS non_decision_grade_sample_present
 FROM field_irrigation_source_assignments a
 JOIN irrigation_water_sources s
   ON s.id = a.water_source_id AND s.tenant_id = a.tenant_id
+LEFT JOIN LATERAL (
+    SELECT q.ec_ds_m, q.sampled_at, q.quality
+    FROM irrigation_water_quality_samples q
+    WHERE q.tenant_id = a.tenant_id AND q.water_source_id = a.water_source_id
+      AND q.quality = ANY($3::text[])
+    ORDER BY q.sampled_at DESC
+    LIMIT 1
+) latest ON true
 WHERE a.field_id = $1
   AND a.status = 'active'
   AND a.valid_from <= $2
   AND (a.valid_to IS NULL OR a.valid_to > $2)
-ORDER BY a.priority ASC, a.water_source_id ASC
-"""
-
-# Latest DECISION-GRADE sample for a source ($2 = decision-grade tiers). estimated/measured excluded.
-LATEST_DECISION_GRADE_SAMPLE_SQL = """
-SELECT ec_ds_m, sampled_at, quality
-FROM irrigation_water_quality_samples
-WHERE water_source_id = $1 AND quality = ANY($2::text[])
-ORDER BY sampled_at DESC
-LIMIT 1
-"""
-
-# Whether ANY sample exists for a source (to tell "no sample" from "only lower-grade samples").
-ANY_SAMPLE_EXISTS_SQL = """
-SELECT EXISTS(SELECT 1 FROM irrigation_water_quality_samples WHERE water_source_id = $1)
+ORDER BY a.priority, a.water_source_id
 """
 
 
@@ -105,38 +108,31 @@ async def resolve_active_bindings(
 ) -> list[dict[str, Any]]:
     """Resolve the field's active water-source bindings with decision-grade salinity evidence.
 
-    ``conn`` is any object exposing asyncpg's ``fetch``/``fetchrow``/``fetchval`` already scoped
+    ``conn`` is any object exposing asyncpg's ``fetch`` already scoped
     to the caller's tenant (RLS via ``app.current_tenant``). Returns one dict per active source,
     ordered by priority. Never raises for an empty result — an empty list means "no active binding".
     """
-    rows = await conn.fetch(ACTIVE_BINDINGS_SQL, field_id, now)
+    rows = await conn.fetch(ACTIVE_BINDINGS_SQL, field_id, now, DECISION_GRADE_SAMPLE_QUALITY_LIST)
     bindings: list[dict[str, Any]] = []
     for row in rows:
-        source_id = row["water_source_id"]
-        sample = await conn.fetchrow(
-            LATEST_DECISION_GRADE_SAMPLE_SQL, source_id, DECISION_GRADE_SAMPLE_QUALITY_LIST
-        )
-        non_decision_grade_present = False
-        if sample is None:
-            non_decision_grade_present = bool(await conn.fetchval(ANY_SAMPLE_EXISTS_SQL, source_id))
         water_quality: dict[str, Any] | None = None
-        if sample is not None:
-            sampled_at = sample["sampled_at"]
+        if row["quality"] is not None:
+            sampled_at = row["sampled_at"]
             water_quality = {
-                "ec_ds_m": _float(sample["ec_ds_m"]),
+                "ec_ds_m": _float(row["ec_ds_m"]),
                 "sampled_at": sampled_at.isoformat()
                 if hasattr(sampled_at, "isoformat")
                 else str(sampled_at),
-                "quality": sample["quality"],
+                "quality": row["quality"],
             }
         bindings.append(
             {
-                "water_source_id": str(source_id),
+                "water_source_id": str(row["water_source_id"]),
                 "priority": int(row["priority"]),
                 "mixing_ratio": _float(row["mixing_ratio"]),
                 "maximum_allowed_ec_ds_m": _float(row["maximum_allowed_ec_ds_m"]),
                 "water_quality": water_quality,
-                "non_decision_grade_sample_present": non_decision_grade_present,
+                "non_decision_grade_sample_present": row["non_decision_grade_sample_present"],
             }
         )
     return bindings
