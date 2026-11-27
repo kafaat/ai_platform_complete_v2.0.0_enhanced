@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 838,
+      "evidence_count": 839,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -358,6 +358,7 @@
         "services/sahool-platform/api/field_timeline.py",
         "services/sahool-platform/api/field_type_catalog.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
+        "services/sahool-platform/api/georag_evidence.py",
         "services/sahool-platform/api/high_value_crops.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
@@ -886,7 +887,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 602,
+      "evidence_count": 603,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1110,6 +1111,7 @@
         "services/sahool-platform/api/field_workspace_completion_contract.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
         "services/sahool-platform/api/geo_zone_locator.py",
+        "services/sahool-platform/api/georag_evidence.py",
         "services/sahool-platform/api/gis_phase7_enterprise.py",
         "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
         "services/sahool-platform/api/imagery_automation.py",
@@ -3318,6 +3320,7 @@
         "services/sahool-platform/api/field_models.py",
         "services/sahool-platform/api/field_season_projection.py",
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
+        "services/sahool-platform/api/georag_evidence.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_commissioning_runtime.py",
         "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
@@ -3327,11 +3330,10 @@
         "services/sahool-platform/api/irrigation_recommendation_policy.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/api/irrigation_source_binding.py",
-        "services/sahool-platform/api/lab_store.py",
-        "services/sahool-platform/api/learning_feedback.py"
+        "services/sahool-platform/api/lab_store.py"
       ],
-      "source_evidence_count": 838,
-      "target_evidence_count": 602,
+      "source_evidence_count": 839,
+      "target_evidence_count": 603,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3442,7 +3444,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py"
       ],
-      "source_evidence_count": 602,
+      "source_evidence_count": 603,
       "target_evidence_count": 216,
       "static_supported": true,
       "runtime_verified": false
@@ -3804,5 +3806,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "05f6ae01fe146d5e4dccf230a6830c3e8b61bfac92c7a7a5741c60da5b7f9442"
+  "content_sha256": "e71242a747826b74b1c6e1d32f7800818aa909d3b3b669832d117ceb2413cfb8"
 }

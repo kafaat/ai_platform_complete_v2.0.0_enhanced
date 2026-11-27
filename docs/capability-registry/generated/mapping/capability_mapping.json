@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7772,
     "files_by_kind": {
-      "backend": 1321,
+      "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2259,
-      "tests": 2722,
+      "tests": 2723,
       "web": 587
     },
-    "unmapped_artifacts": 3703,
+    "unmapped_artifacts": 3705,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4224,
+      "python_functional": 4226,
       "raw": 3546
     },
-    "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
-    "test_dependency_bounded_files": 1193,
+    "test_dependency_files": 2076,
+    "test_dependency_edges": 5620,
+    "test_dependency_bounded_files": 1194,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -40152,6 +40152,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/api/georag_evidence.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/api/gis_geometry_guard.py",
       "kind": "backend"
     },
@@ -46829,6 +46833,10 @@
     },
     {
       "path": "tests_v9/test_p1_main_decomposition_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_p2_georag_decision.py",
       "kind": "tests"
     },
     {
@@ -92530,6 +92538,29 @@
           "source": "scripts/ci/p1_main_decomposition_guard.py",
           "kind": "source_read",
           "line": 13
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_p2_georag_decision.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/georag_evidence.py",
+          "kind": "import",
+          "line": 25
+        },
+        {
+          "source": "services/sahool-platform/api/unified_decision.py",
+          "kind": "import",
+          "line": 29
+        },
+        {
+          "source": "services/sahool-platform/core/rag/production_qdrant.py",
+          "kind": "import",
+          "line": 30
         }
       ],
       "unresolved": []
