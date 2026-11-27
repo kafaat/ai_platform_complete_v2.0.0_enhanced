@@ -951,3 +951,74 @@ def test_v281_rollback_reports_each_tables_season_orphans_and_refuses_an_rls_mig
             await admin.close()
 
     asyncio.run(body())
+
+
+@pytest.mark.parametrize("endpoint", ["revenues", "budgets"])
+def test_finance_write_validates_amount_before_postgres(monkeypatch, endpoint):
+    import json
+
+    import httpx
+    from fastapi import FastAPI
+
+    async def case(live, router):
+        main, _ = _platform()
+        app = FastAPI()
+        app.include_router(router.router)
+        app.dependency_overrides[main.get_current_user] = lambda: _user(live.tenant)
+        if endpoint == "revenues":
+            quantity, price, amount = "quantity", "unit_price", "amount"
+            table = "farm_revenue_records"
+            base = {"season_id": live.season_id, "revenue_date": date.today().isoformat()}
+        else:
+            quantity, price, amount = "planned_quantity", "planned_unit_cost", "planned_cost"
+            table = "farm_season_budget_lines"
+            base = {"season_id": live.season_id, "category": "seed"}
+
+        transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+
+            async def post(values):
+                row = {**base, **values}
+                payload = {"lines": [row]} if endpoint == "budgets" else row
+                return await client.post(
+                    "/api/v1/farm-ledger/" + endpoint,
+                    content=json.dumps(payload),
+                    headers={"content-type": "application/json"},
+                )
+
+            for invalid in (
+                {quantity: 1e308, price: 10},
+                {amount: "Infinity"},
+                {price: float("nan")},
+                {quantity: {"unexpected": float("inf")}},
+            ):
+                response = await post(invalid)
+                persisted = await live.as_tenant(
+                    live.tenant,
+                    f"SELECT {amount}::text FROM {table} WHERE season_id = $1",
+                    live.season_id,
+                )
+                assert (response.status_code, persisted) == (422, None)
+                assert response.json()["detail"]
+
+            for values, expected in (
+                ({quantity: "2.5", price: "4", amount: 0}, 10.0),
+                ({quantity: 1e308, price: 10, amount: 7}, 7.0),
+                ({price: 5}, 0.0),
+            ):
+                response = await post(values)
+                assert response.status_code == 201, response.text
+                result = response.json()
+                total = result[amount] if endpoint == "revenues" else result["saved"][0][amount]
+                assert total == expected
+                assert (
+                    await live.as_tenant(
+                        live.tenant,
+                        f"SELECT count(*) FROM {table} WHERE season_id = $1 AND {amount} = $2",
+                        live.season_id,
+                        expected,
+                    )
+                    == 1
+                )
+
+    _run(monkeypatch, case)

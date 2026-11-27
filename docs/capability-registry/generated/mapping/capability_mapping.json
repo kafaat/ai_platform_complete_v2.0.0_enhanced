@@ -15,9 +15,9 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7771,
     "files_by_kind": {
-      "backend": 1321,
+      "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
@@ -28,7 +28,7 @@
     "unmapped_artifacts": 3703,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4224,
+      "python_functional": 4225,
       "raw": 3546
     },
     "test_dependency_files": 2075,
@@ -3295,6 +3295,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/farm_ledger_amounts.py",
+          "score": 11,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/routers/field_priority_queue.py",
           "score": 11,
           "signals": [
@@ -3409,27 +3417,27 @@
           "score": 19
         },
         {
-          "value": "/api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:794",
+          "value": "/api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:778",
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:470",
+          "value": "/api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:472",
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:553",
+          "value": "/api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:538",
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:911",
+          "value": "/api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:895",
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:703",
+          "value": "/api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:687",
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:860",
+          "value": "/api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:844",
           "score": 14
         },
         {
@@ -3441,11 +3449,11 @@
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:667",
+          "value": "/api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:651",
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:584",
+          "value": "/api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:569",
           "score": 14
         },
         {
@@ -3453,7 +3461,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:629",
+          "value": "/api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:613",
           "score": 14
         },
         {
@@ -5391,7 +5399,7 @@
         "database": 5
       },
       "evidence_counts": {
-        "backend": 39,
+        "backend": 40,
         "routes": 44,
         "database": 100,
         "events": 30,
