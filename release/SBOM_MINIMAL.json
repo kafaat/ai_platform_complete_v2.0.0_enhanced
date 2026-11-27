@@ -20925,7 +20925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a6d94636c5890e6a63bfd39b221f409339598f3279c025f1449be7482d3f2e1"
+          "content": "3b155ff71167785028a5a4bff52699fffe7062848216629bb458709100483afa"
         }
       ],
       "name": "services/edge-inference/Dockerfile.arm64",
@@ -39785,7 +39785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f8382cf337c30ca0333b0814b3064c5c8cc7e374f7c66c69154e011c54c4d9a"
+          "content": "06726377daeb1e2e5e58e381089723b4dcf2a31fd5260a96f1fd119c65ebc391"
         }
       ],
       "name": "services/soil-service/compliance_engine.py",
@@ -40205,7 +40205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7930b9a3878b7b13c1c3fcd50a39d0b692c8a72c523626ba6255c7fd9dc8322"
+          "content": "8360562df384574db737ff710a1fa1fc99c0b05182f472fae23331f519450a11"
         }
       ],
       "name": "services/soil-service/standards_registry.py",
@@ -40445,7 +40445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af8a7c4fbfdf99a2ffc8933372f6a8b30877dac3a302e617a891b67ba3aaafb7"
+          "content": "2e0668db4fabbd4c64ae7d0010f209d2fce1d3761c6f03a52bb5a111e1b2c11e"
         }
       ],
       "name": "services/soil-service/test_soil_standards_compliance.py",

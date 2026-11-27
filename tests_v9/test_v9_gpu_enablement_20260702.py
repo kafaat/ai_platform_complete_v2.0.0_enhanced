@@ -240,3 +240,74 @@ def test_ci_gpu_reservation_step_matches_the_compose_files():
     assert '.["sahool-video-processor"]' in run and "length == 0" in run, (
         "CI must assert that video-processor carries no NVIDIA reservation"
     )
+
+
+@pytest.mark.parametrize(
+    ("requirements", "index", "failure", "expected_indexes", "succeeds"),
+    [
+        ("requirements-gpu.txt", "official", "", ["official"], True),
+        ("./requirements-gpu.txt", "aliyun", "install", ["aliyun", "official"], True),
+        ("requirements-gpu.txt", "aliyun", "bootstrap", ["official"], True),
+        ("requirements-gpu.txt", "private", "install", ["private"], False),
+        ("requirements-gpu.txt", "aliyun", "both_indexes", ["aliyun", "official"], False),
+        ("requirements.txt", "private", "", ["private"], True),
+    ],
+)
+def test_edge_dependency_install_resumes_gpu_downloads_and_respects_private_indexes(
+    tmp_path, requirements, index, failure, expected_indexes, succeeds
+):
+    urls = {
+        "official": "https://pypi.org/simple",
+        "aliyun": "https://mirrors.aliyun.com/pypi/simple/",
+        "private": "https://packages.example.test/simple",
+    }
+    dockerfile = (ROOT / "services/edge-inference/Dockerfile.arm64").read_text(encoding="utf-8")
+    builder = dockerfile.split("ENV PYTHONUSERBASE=/opt/pylocal", 1)[1].replace("\\\n", "")
+    install = next(
+        line.removeprefix("RUN ") for line in builder.splitlines() if line.startswith("RUN ")
+    )
+    recorder = tmp_path / "python"
+    recorder.write_text(
+        "#!/bin/sh\n"
+        'printf "%s|%s|%s|%s\\n" "$PIP_INDEX_URL" "$PIP_TRUSTED_HOST" '
+        '"${PIP_RESUME_RETRIES:-}" "$*" >> calls\n'
+        'case "$FAILURE:$*:$PIP_INDEX_URL" in\n'
+        "  bootstrap:*pip==*:*/pypi/simple/) exit 1 ;;\n"
+        '  install:*"--user "*|both_indexes:*"--user "*)\n'
+        '    [ "$FAILURE" != both_indexes ] && [ "$PIP_INDEX_URL" = "$OFFICIAL" ] ;;\n'
+        "esac\n",
+        encoding="utf-8",
+    )
+    recorder.chmod(0o755)
+    # The pre-fix instruction calls the pip executable directly.
+    (tmp_path / "pip").symlink_to(recorder)
+    result = subprocess.run(
+        ["/bin/sh", "-ec", install],
+        cwd=tmp_path,
+        env={
+            "PATH": str(tmp_path),
+            "EDGE_REQUIREMENTS": requirements,
+            "PIP_INDEX_URL": urls[index],
+            "PIP_TRUSTED_HOST": "mirror.example.test",
+            "OFFICIAL": urls["official"],
+            "FAILURE": failure,
+        },
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=5,
+    )
+    assert (result.returncode == 0) is succeeds, result.stderr
+    lines = (tmp_path / "calls").read_text(encoding="utf-8").splitlines()
+    calls = [line.split("|", 3) for line in lines]
+    installs = [call for call in calls if "--user " in call[3]]
+    assert [call[0] for call in installs] == [urls[name] for name in expected_indexes]
+    gpu = requirements.endswith("requirements-gpu.txt")
+    if gpu:
+        assert "pip==26.3" in calls[0][3]
+    else:
+        assert len(calls) == 1
+    for url, trusted, resumes, args in installs:
+        assert trusted == ("" if url != urls[index] else "mirror.example.test")
+        assert args.endswith(f"--user -r {requirements}")
+        assert resumes == ("10" if gpu else "")

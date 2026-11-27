@@ -222,7 +222,9 @@ class StandardsRegistry:
                         raise StandardsRegistryError(f"adoption_version_required:{a.standard_id}")
                     version = next(iter(candidates))
                 if not floating and version not in pinned:
-                    raise StandardsRegistryError(f"adoption_version_outside_profile:{a.standard_id}")
+                    raise StandardsRegistryError(
+                        f"adoption_version_outside_profile:{a.standard_id}"
+                    )
                 self.get(a.standard_id, version)
                 a = replace(a, version=version)
             adoptions.append(a)

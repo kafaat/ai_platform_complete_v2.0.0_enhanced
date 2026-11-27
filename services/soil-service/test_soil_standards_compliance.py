@@ -816,6 +816,7 @@ def test_load_catalog_accepts_a_str_path_and_still_checks_the_hash(tmp_path, mon
     with pytest.raises(StandardsRegistryError, match="catalog_hash_mismatch"):
         load_catalog(str(tampered))
 
+
 def test_local_adoption_does_not_transfer_to_a_later_edition():
     reg = StandardsRegistry()
     reg.register(_std("v1", date(2000, 1, 1)))
