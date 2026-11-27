@@ -304,7 +304,13 @@ class _AquiferSnapshotConnection:
     async def fetch(self, sql, *args):
         self.queries.append(sql)
         if "field_irrigation_source_assignments" in sql:
-            field, now = args
+            field, now, decision_grade_qualities = args
+            assert field == _AQUIFER_TEST_FIELD
+            assert decision_grade_qualities == [
+                "certified",
+                "field_validated",
+                "laboratory_verified",
+            ]
             return [
                 row
                 for row in self.bindings
