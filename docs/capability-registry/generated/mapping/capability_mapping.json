@@ -32,7 +32,7 @@
       "raw": 3546
     },
     "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
+    "test_dependency_edges": 5622,
     "test_dependency_bounded_files": 1193,
     "test_dependency_unresolved_relations": 539
   },
@@ -13706,27 +13706,27 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:552",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:566",
           "score": 9
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:328",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:342",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:593",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:607",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:164",
+          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:168",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:97",
+          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:101",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:295",
+          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:309",
           "score": 9
         }
       ],
@@ -13778,7 +13778,7 @@
           "score": 12
         },
         {
-          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:47",
+          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:51",
           "score": 9
         }
       ],
@@ -13855,7 +13855,7 @@
       "backend": [
         {
           "path": "services/sahool-platform/api/irrigation_source_binding.py",
-          "score": 18,
+          "score": 20,
           "signals": [
             "content:field water source",
             "content:Field water-source binding",
@@ -66866,12 +66866,12 @@
         {
           "source": "services/sahool-platform/api/routers/__init__.py",
           "kind": "import",
-          "line": 148
+          "line": 151
         },
         {
           "source": "services/sahool-platform/api/routers/irrigation_mpc.py",
           "kind": "import",
-          "line": 148
+          "line": 151
         }
       ],
       "unresolved": []
@@ -87735,14 +87735,39 @@
       "unbounded_reasons": [],
       "edges": [
         {
+          "source": "services/sahool-platform/api/__init__.py",
+          "kind": "import",
+          "line": 303
+        },
+        {
           "source": "services/sahool-platform/api/canonical_well_capability.py",
           "kind": "import",
           "line": 49
         },
         {
+          "source": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+          "kind": "import",
+          "line": 303
+        },
+        {
           "source": "services/sahool-platform/api/irrigation_source_binding.py",
           "kind": "import",
           "line": 53
+        },
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 304
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 305
+        },
+        {
+          "source": "services/sahool-platform/api/routers/irrigation_mpc.py",
+          "kind": "import",
+          "line": 305
         }
       ],
       "unresolved": []
