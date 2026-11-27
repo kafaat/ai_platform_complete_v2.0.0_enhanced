@@ -219,6 +219,10 @@ _GENERATE_FLAG.update({"capability_management_engine.py": "--generate"})
 # مُستعاد بايتاً بايت (`cmp`)، والحذف يُسمّى «مفقود».
 _GENERATE_FLAG.update({"capability_registry_guard.py": "--generate"})
 
+# Traceability reports consume the authoritative registry and mutable linkage.
+# The default writer is deterministic; --check compares all three output bytes.
+_GENERATE_FLAG.update({"capability_traceability_report.py": ""})
+
 # `FAKE-CONNECTION-ENFORCES-NOTHING-01`: أساسٌ **مشتقّ من شجرة الاختبارات** لا مصون
 # بيد، فيلزمه أن يُعاد توليده كلّما تحرّكت الشجرة تحته — وإلّا صار الراتشِت يقيس
 # ماضياً. المكنسة نفسها أمسكت غيابه عند أوّل تشغيل («يملك علم كتابة ولا يذكره
@@ -371,6 +375,7 @@ _ORDER_TIER = {
     # (`g` < `v`) ⇒ في الطبقة صفر كان سيقرأ مدخلاً بائتاً. و`static_governance_closure`
     # يبصم مخرجاته، وهو في `_LATE` فيأتي بعده دائماً.
     "capability_registry_guard.py": 1,
+    "capability_traceability_report.py": 1,
     "platform_route_governance_attestation.py": 1,
     "platform_route_release_binding.py": 2,
 }

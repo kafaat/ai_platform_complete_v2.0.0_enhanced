@@ -8,10 +8,10 @@ Generated from the field-authority-resolved capability view. Canonical definitio
 - Service linked: **73**
 - API linked: **63**
 - Test linked: **71**
-- UI linked: **14**
+- UI linked: **16**
 - Mobile linked: **23**
 - Owner assigned: **74**
-- Fully traceable across all six surfaces: **8**
+- Fully traceable across all six surfaces: **9**
 
 ## Lowest traceability capabilities
 
@@ -26,7 +26,6 @@ Generated from the field-authority-resolved capability view. Canonical definitio
 | WX-007 | Frost and heat risk | 33 | api,test,ui,mobile |
 | FM-005 | Crop and cultivar catalog | 50 | service,ui,owner |
 | FM-006 | Farm economics | 50 | service,mobile,owner |
-| FM-007 | Inventory and procurement | 50 | service,ui,owner |
 | INT-002 | Event bus integration | 50 | api,ui,mobile |
 | IRR-001 | Water source registry | 50 | api,ui,mobile |
 | IRR-003 | Field water-source binding | 50 | api,ui,mobile |
@@ -37,6 +36,7 @@ Generated from the field-authority-resolved capability view. Canonical definitio
 | SEC-001 | Tenant RLS | 50 | api,ui,mobile |
 | SEC-002 | Signed tenant assertion | 50 | api,ui,mobile |
 | SEC-003 | Worker identity binding | 50 | api,ui,mobile |
+| SEC-006 | Service token guard | 50 | api,ui,mobile |
 
 ## Interpretation
 

@@ -155,6 +155,8 @@ jobs:
         run: python scripts/ci/capability_roadmap_linker.py --check
       - name: Validate conservative capability linker drift
         run: python scripts/ci/capability_linker.py --check
+      - name: Validate authoritative capability traceability reports
+        run: python scripts/ci/capability_traceability_report.py --check
       - name: Canonical-owned fields are projected, never hand-written (A'-4b)
         run: python scripts/ci/capability_projection_sync.py --check
       - name: Every compatibility field has an explicit authority (A'-4c)

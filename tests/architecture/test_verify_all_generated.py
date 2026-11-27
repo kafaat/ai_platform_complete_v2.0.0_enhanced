@@ -582,6 +582,17 @@ def test_the_registry_guard_is_wired_and_ordered_after_its_input() -> None:
     assert producer < guard < fingerprint
 
 
+def test_traceability_report_is_checked_and_regenerated_after_its_inputs() -> None:
+    """A report may drift after linkage changes even when the sweep was green."""
+    script = "scripts/ci/capability_traceability_report.py"
+    assert (script, ["--check"]) in MOD.discover()
+    assert MOD._GENERATE_FLAG["capability_traceability_report.py"] == ""
+    report = MOD._sort_key((script, []))
+    for producer in ("capability_linker.py", "capability_registry_v1.py"):
+        assert MOD._sort_key((f"scripts/ci/{producer}", [])) < report
+    assert report < MOD._sort_key(("scripts/ci/static_governance_closure.py", []))
+
+
 def test_regenerate_orchestrator_delegates_to_the_fixed_point_engine() -> None:
     """عقد fixed-point (قِيس 2026-08-16، ثلاث جولات CI ضائعة): السكربت الصدفيّ
     كان ثلاث خطوات واسمُه يعِد بالكلّ — فمن استعمله حصل على خضرةٍ عن سؤالٍ

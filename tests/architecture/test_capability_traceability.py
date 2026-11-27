@@ -6,6 +6,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "capabilities/registry/capabilities.json"
 MOBILE_LIB = ROOT / "mobile/sahool_app/lib"
@@ -121,3 +123,38 @@ def test_committed_traceability_reports_match_authoritative_view():
             or (committed / name).read_bytes() != (generated / name).read_bytes()
         ]
     assert not drift, f"Run python scripts/ci/capability_traceability_report.py to refresh {drift}"
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "CAPABILITY_TRACEABILITY_REPORT.md",
+        "capability_traceability.csv",
+        "capability_traceability_summary.json",
+    ],
+)
+@pytest.mark.parametrize("damage", ["corrupt", "remove"])
+def test_traceability_check_detects_each_artifact_without_repair(
+    name, damage, tmp_path, monkeypatch, capsys
+):
+    from scripts.ci import capability_traceability_report as report
+
+    monkeypatch.setattr(report, "OUT", tmp_path)
+    assert report.main() == 0
+    original = {p.name: p.read_bytes() for p in tmp_path.iterdir()}
+    target = tmp_path / name
+    if damage == "remove":
+        target.unlink()
+    else:
+        target.write_bytes(b"damaged report\n")
+    before = {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in tmp_path.iterdir()}
+
+    assert report.main(check=True) == 1
+    assert name in capsys.readouterr().err
+    assert before == {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in tmp_path.iterdir()}, (
+        "Checking drift must not repair or touch artifacts"
+    )
+
+    assert report.main() == 0
+    assert original == {p.name: p.read_bytes() for p in tmp_path.iterdir()}
+    assert report.main(check=True) == 0
