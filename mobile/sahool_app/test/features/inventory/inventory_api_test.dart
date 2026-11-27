@@ -7,6 +7,29 @@ import 'package:sahool_app/features/inventory/data/inventory_models.dart';
 import '../operations_hub/ops_test_host.dart';
 
 void main() {
+  test('requests per-unit quantities and preserves an unknown threshold', () async {
+    final adapter = routeAdapter({
+      'GET /api/v1/inventory/items': (request) {
+        expect(request.queryParameters['unit_breakdown'], isTrue);
+        return const FakeReply(200, [
+          {
+            'item_id': 'mixed',
+            'total_quantity': null,
+            'low_stock': null,
+            'quantities_by_unit': [
+              {'unit': 'kg', 'quantity': 2},
+              {'unit': null, 'quantity': 0.0001},
+            ],
+          },
+        ]);
+      },
+    });
+    final item = (await InventoryApi(fakeClient(adapter)).listItems()).single;
+    expect(item.lowStock, isNull);
+    expect(item.totalQuantity, isNull);
+    expect(item.quantityBreakdown, '2 kg · 0.0001 وحدة غير محددة');
+  });
+
   test(
     'listItems parses the server shape (total, low_stock, null reorder)',
     () async {
