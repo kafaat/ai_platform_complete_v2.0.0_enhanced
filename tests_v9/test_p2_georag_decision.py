@@ -332,3 +332,52 @@ def test_zone_scope(scope_zone, decision_zone, admitted, scope_key):
     if not admitted:
         assert result["rejected"][0]["reason"] == "zone_scope_mismatch"
     assert result["direct_execution_permitted"] is False
+
+
+@pytest.mark.parametrize(
+    "metadata,decision_zone,reason",
+    [
+        ({"field_id": "f1", "zone_id": "z1"}, None, "zone_scope_mismatch"),
+        ({"field_id": "f1", "zone_id": "z1"}, "z2", "zone_scope_mismatch"),
+        ({"field_id": "f1", "zone_id": "z1"}, "z1", None),
+        ({"field_id": "f1"}, None, None),
+        ({"field_id": "f1", "zone_id": ""}, "z1", "zone_scope_mismatch"),
+        ({"zone_id": "z1"}, "z1", "spatial_scope_missing"),
+        ({"spatial_scope": {"geometry": INSIDE}, "zone_id": "z1"}, None, "zone_scope_mismatch"),
+        ({"spatial_scope": {"geometry": INSIDE}, "field_id": "f2"}, None, "field_scope_mismatch"),
+        (
+            {"spatial_scope": {"field_id": "f2"}, "field_id": "f1"},
+            None,
+            "spatial_scope_conflict",
+        ),
+        (
+            {"spatial_scope": {"field_id": "f1", "zone_id": "z1"}, "zone_id": "z2"},
+            "z1",
+            "spatial_scope_conflict",
+        ),
+        ({"spatial_scope": "malformed", "field_id": "f1"}, None, "spatial_scope_conflict"),
+    ],
+)
+def test_stored_chunk_preserves_all_declared_scope(metadata, decision_zone, reason):
+    chunk = KnowledgeChunk(
+        chunk_id="c1",
+        tenant_id=T,
+        text="salinity observation",
+        source_type="tenant_document",
+        document_id="d1",
+        chunk_index=0,
+        total_chunks=1,
+        metadata={
+            "evidence_level": "document",
+            "source_uri": "urn:fixture:d1",
+            "source_revision": "r1",
+            **metadata,
+        },
+    )
+    restored = KnowledgeChunk.from_payload(chunk.payload())
+    annotation = RetrievedAnnotation(restored, 0.5, 0.5, 0.1).as_annotation()
+    evidence = scope_annotations(
+        [annotation], tenant_id=T, field_id="f1", field_geometry=FIELD, zone_id=decision_zone
+    )
+    assert evidence["status"] == ("evidence_required" if reason else "evidence_available")
+    assert evidence["rejected"] == ([{"chunk_id": "c1", "reason": reason}] if reason else [])

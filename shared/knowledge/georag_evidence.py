@@ -80,6 +80,8 @@ def _classify(
         if is_global:
             return None, "general_reference"
         return "spatial_scope_missing", ""
+    if scope.get("scope_conflict") is True:
+        return "spatial_scope_conflict", ""
     if scope.get("field_id") is not None and scope["field_id"] != field_id:
         return "field_scope_mismatch", ""
     annotation_zone = scope.get("zone_id")

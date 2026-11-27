@@ -604,6 +604,22 @@ class KnowledgeChunk:
         return {"page_content": self.text, "metadata": metadata}
 
 
+def _annotation_spatial_scope(metadata: dict[str, Any]) -> dict[str, Any] | None:
+    """Preserve field and zone restrictions from legacy and structured chunk metadata."""
+    declared = metadata.get("spatial_scope")
+    if declared is not None and not isinstance(declared, dict):
+        return {"scope_conflict": True}
+    scope = dict(declared or {})
+    for key in ("field_id", "zone_id"):
+        value = metadata.get(key)
+        if value is None:
+            continue
+        if scope.get(key) is not None and scope[key] != value:
+            return {"scope_conflict": True}
+        scope[key] = value
+    return scope or None
+
+
 @dataclass(frozen=True)
 class RetrievedAnnotation:
     chunk: KnowledgeChunk
@@ -634,12 +650,7 @@ class RetrievedAnnotation:
             "chunk_id": self.chunk.chunk_id,
             "document_id": self.chunk.document_id,
             "tenant_id": self.chunk.tenant_id,
-            "spatial_scope": self.chunk.metadata.get(
-                "spatial_scope",
-                {"field_id": self.chunk.metadata["field_id"]}
-                if self.chunk.metadata.get("field_id")
-                else None,
-            ),
+            "spatial_scope": _annotation_spatial_scope(self.chunk.metadata),
             "source_type": self.chunk.source_type,
             "source_class": self.chunk.metadata.get("source_class"),
             "publisher": self.chunk.metadata.get("publisher"),
