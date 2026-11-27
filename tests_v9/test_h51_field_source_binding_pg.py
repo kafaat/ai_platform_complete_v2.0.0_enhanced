@@ -353,3 +353,122 @@ async def test_operational_http_well_gate_precedes_daily_submit_and_hourly_persi
     finally:
         await pool.close()
         await admin.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("binding_state", ["missing", "expired"])
+async def test_current_season_well_graph_remains_blocked_without_active_assignment(binding_state):
+    """Exercise the persisted-graph fallback SQL and tenant scope on the real v175 schema."""
+    from api.irrigation_source_binding import aquifer_allocation_blocker
+
+    admin = await _connect(ADMIN_URL)
+    app = await _connect(APP_URL)
+    try:
+        await _assert_app_role_restricted(app)
+        schema = await app.fetchrow(
+            "SELECT c.relrowsecurity, c.relforcerowsecurity, a.attnotnull "
+            "FROM pg_class c JOIN pg_attribute a ON a.attrelid=c.oid "
+            "WHERE c.oid='canonical_irrigation_capability_graphs'::regclass "
+            "AND a.attname='well_id'"
+        )
+        assert schema is not None and all(schema.values()), (
+            "the real graph must retain FORCE RLS and its non-null well column"
+        )
+        tenant, other = str(uuid4()), str(uuid4())
+        field, season = f"persisted-{uuid4()}", f"season-{uuid4()}"
+        source = await _seed_source(admin, tenant, ec_limit=None)
+        project = await admin.fetchval(
+            "SELECT project_id FROM irrigation_water_sources WHERE id=$1", source
+        )
+        well, pump, machine, controller, energy = (uuid4() for _ in range(5))
+        await admin.execute(
+            "INSERT INTO irrigation_wells(id,tenant_id,water_source_id,name) "
+            "VALUES($1,$2,$3,'h51-persisted')",
+            well,
+            tenant,
+            source,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_pumps(id,tenant_id,project_id,name,pump_type) "
+            "VALUES($1,$2,$3,'h51-persisted','submersible')",
+            pump,
+            tenant,
+            project,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_machines(id,tenant_id,project_id,name,machine_type) "
+            "VALUES($1,$2,$3,'h51-persisted','center_pivot')",
+            machine,
+            tenant,
+            project,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_controllers(id,tenant_id,project_id,name,provider) "
+            "VALUES($1,$2,$3,'h51-persisted','synthetic')",
+            controller,
+            tenant,
+            project,
+        )
+        await admin.execute(
+            "INSERT INTO irrigation_energy_systems(id,tenant_id,project_id,name,system_type) "
+            "VALUES($1,$2,$3,'h51-persisted','grid')",
+            energy,
+            tenant,
+            project,
+        )
+        # The well exists only in the relational column, not in the historic JSON payload.
+        await admin.execute(
+            """INSERT INTO canonical_irrigation_capability_graphs
+               (tenant_id,project_id,field_id,season_id,well_id,pump_id,machine_id,
+                controller_id,energy_system_id,capability_id,status,operational_eligible,
+                maximum_flow_lps,maximum_daily_depth_mm,maximum_safe_depth_mm_event,
+                terminal_pressure_bar,capability_digest,payload)
+               VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'verified',true,
+                      30,20,10,2,$11,'{}'::jsonb)""",
+            tenant,
+            project,
+            field,
+            season,
+            well,
+            pump,
+            machine,
+            controller,
+            energy,
+            str(uuid4()),
+            "a" * 64,
+        )
+        if binding_state == "expired":
+            await _bind(admin, tenant, field, source, valid_from_days=2, valid_to_days=-1)
+        now = datetime.now(UTC)
+        await app.execute("SELECT set_config('app.current_tenant',$1,false)", tenant)
+        assert await resolve_active_bindings(app, field, now=now) == []
+
+        async def reason(*, scope=tenant, requested_season=season):
+            return await aquifer_allocation_blocker(
+                app,
+                field,
+                tenant_id=scope,
+                start=now,
+                end=now + timedelta(days=3),
+                season_id=requested_season,
+            )
+
+        assert await reason() == "AQUIFER_ALLOCATION_UNVERIFIED"
+        assert await reason(requested_season=f"other-{season}") is None
+        assert await reason(scope=other) == "water_source_binding_unresolved"
+        await app.execute("SELECT set_config('app.current_tenant',$1,false)", other)
+        # This separate read contains no tenant predicate, so the assertion exercises RLS.
+        assert (
+            await app.fetchval(
+                "SELECT count(*) FROM canonical_irrigation_capability_graphs "
+                "WHERE field_id=$1 AND season_id=$2",
+                field,
+                season,
+            )
+            == 0
+        )
+        assert await reason(scope=other) is None
+        assert await reason() == "water_source_binding_unresolved"
+    finally:
+        await app.close()
+        await admin.close()

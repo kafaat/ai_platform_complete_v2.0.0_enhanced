@@ -387,6 +387,17 @@ def test_operational_route_carries_source_digests(monkeypatch, canonical_patches
     from api.canonical_water_state import resolve_canonical_water_state
 
     class FieldConnection(FakeConn):
+        async def fetchval(self, sql, *args):
+            # This field has no well assignment or persisted capability graph.
+            if "FROM field_irrigation_source_assignments" in sql:
+                assert args[0] == "fld-1"
+                assert args[3] == "tenant-1"
+                return False
+            if "FROM canonical_irrigation_capability_graphs" in sql:
+                assert args == ("tenant-1", "fld-1", "sea-1")
+                return False
+            return await super().fetchval(sql, *args)
+
         async def fetchrow(self, sql, *args):
             if "SELECT 1 FROM fields" in sql:
                 assert args == ("fld-1",)

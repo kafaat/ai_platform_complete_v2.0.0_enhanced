@@ -9424,3 +9424,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الشاهد المقيس على الأساس:** 1000 م³ حاليًا و500 م³ احتياطيًا، طلب 11500 م³، بوستر 230 م³/ساعة، بئر 220.2 وتبخر 0.2؛ النهاية العشرية 500، لكن النسخة المدموجة أعادت None وحاجب نقص الماء. حالة المختبر المستقلة FAILED بتأكيد واحد، دون أخطاء أو تخطٍ وبمصدر ثابت.
 - **العلاج وحدّه:** جمع كل معدل أصلي كنسبة دقيقة من تمثيله العشري، ومقارنة الميزان المضروب في التدفق الموجب قبل القسمة أو التقريب. هذا يلغي سماحية تُخفي عجزًا حقيقيًا؛ تبقى الحسابات الهيدروليكية والطاقة كما هي، ويُحفظ رفض تجاوز مجال الأعداد في المجاميع المعروضة.
 - **اختبارات المتابعة:** `tests_v9/test_irrx1_8_reservoir_booster_optional_pivot.py`، حالات `test_reservoir_decimal_rates_preserve_exact_reserve_boundary` و`test_reservoir_boundary_uses_original_selected_machine_rates` و`test_reservoir_rejects_overflow_in_displayed_inflow_even_for_a_short_run`. قياس التطوير: 24 نجاحًا دون تخطٍ؛ لا يُستبدل به إيصال الرأس النهائي.
+
+
+## IRRIGATION-AQUIFER-ALLOCATION-UNVERIFIED-01 — أداء البئر لا يثبت تخصيص المورد الجوفي
+
+- **الحالة:** open — يحجب مرشح #1649 التشغيل دون تخصيص مستقل؛ سلطة التحقق من الدليل وتوزيع المورد المشترك غير منفذين، فلا يُغلق #1648 بالحجب وحده.
+- **المصدر:** #1648 على main@`5037c4f9279673c1ebe997cee58c40325f7bee40` واحتواء #1649 عند `2d4ddb45506443495f1b4587fe73bdcb737a5a68`؛ `services/sahool-platform/api/canonical_well_capability.py`. شهادة الضخ وبيانات JSONB الذاتية لا تثبتان سلطة الكاتب أو حصة مستقلة لكل بئر.
+- **الاحتواء:** حفظ القياسات والهيدروليك مع حد تشغيلي صفري، ورفض اللقطات القديمة في المحول. يقرأ `api/irrigation_source_binding.py::aquifer_allocation_blocker` الربط الفعال والرسم المحفوظ للمستأجر والحقل والموسم الحالي؛ بذلك لا يعيد غياب الربط أو انتهاءه المسار اليومي إلى تشغيل بئر غير مخصص.
+- **الشواهد:** `services/sahool-platform/tests/test_canonical_well_capability.py` و`services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py` و`tests_v9/test_h51_field_source_binding_pg.py`. شاهد ASGI يستخدم بدائل نقل معلنة؛ PG يقيس المخطط وعزل الدور المقيد بإيصال مستقل.
+- **شرط الإغلاق:** جهة دليل قابلة للتحقق وصلاحيات كتابة مفروضة، نطاق مستأجر/مورد/بئر وصلاحية زمنية، وحصص تمنع منح حد المورد نفسه لكل بئر، ثم اختبار المصدر والتخزين والمسارين اليومي والساعي والجسر على الرأس المنشور وبواباته.

@@ -2510,8 +2510,8 @@
         },
         {
           "expect": "test_the_hardened_route_has_no_unconditionally_disabled_fact_source",
-          "find": "    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
-          "replace": "    return None  # mutated: المصدرُ يعود مُعطَّلاً بنيويّاً\n    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "find": "    async with tenant_connection(user) as conn:\n        now = datetime.now(UTC)",
+          "replace": "    return None  # mutated: المصدرُ يعود مُعطَّلاً بنيويّاً\n    async with tenant_connection(user) as conn:\n        now = datetime.now(UTC)",
           "test": "tests_v9/test_lexicographic_mpc_bridge.py",
           "why": "يُعيد العطلَ الأصليّ: مصدرُ حقائقَ يُرجِع `None` بلا شرط، فتُرجِع النقطةُ المُحكَمة blocked دائماً ويبقى المسارُ الوحيدُ المُصدِر هو الذي لا يفحص شيئاً. والحارسُ مُشتقٌّ من `ast` فلا يُخدَع بتعليقٍ ولا يبيت باسمٍ جديد."
         },
