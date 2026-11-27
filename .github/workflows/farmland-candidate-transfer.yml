@@ -1,27 +1,80 @@
-name: Verify Farmland candidate objects
+name: Regenerate the measured GeoRAG preview
 on:
   push:
     branches: [ci/farmland-verified-objects-e6c583]
 permissions:
-  contents: write
+  contents: read
+env:
+  SOURCE: 951667d2efc625d98f3656c21e5aeac14aca3f8d
 jobs:
-  retain-verified-objects:
+  regenerate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - name: Check immutable source identities and retain them on this transport branch
-        shell: bash
+        with:
+          ref: 951667d2efc625d98f3656c21e5aeac14aca3f8d
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install generator dependencies
+        run: |
+          python -m pip install -c constraints-ci-tools.txt ruff
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Run the repository generator and verify release checksums
+        env:
+          PYTHONUNBUFFERED: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
         run: |
           set -euo pipefail
-          cd "$GITHUB_WORKSPACE"
-          echo 'ebcca7e3f1541ef4474c9be96117ba49468d5f0ad8e926eaaf4041f48b06a55e  candidates.pack' | sha256sum --check --strict
-          git fetch --no-tags --depth=1 origin edde616977d74e67d05838e2d8182e0a23758a12
-          git index-pack --stdin --fix-thin < candidates.pack
-          test "$(git show -s --format=%P cabd6dd12089491a391998ef52526a99d54e9a6f)" = "edde616977d74e67d05838e2d8182e0a23758a12"
-          test "$(git rev-parse cabd6dd12089491a391998ef52526a99d54e9a6f^{tree})" = "d20a50a623e8ec228614aff52a384de05a466aa9"
-          git ls-tree -r cabd6dd12089491a391998ef52526a99d54e9a6f >/dev/null
+          test "$(git rev-parse HEAD)" = "$SOURCE"
+          bash scripts/ci/regenerate_all_generated.sh
+      - name: Capture the verified source tree
+        run: |
+          set -euo pipefail
+          test -z "$(git ls-files --others --exclude-standard)"
+          git add -u
+          git -c core.whitespace=cr-at-eol diff --cached --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          tip=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p cabd6dd12089491a391998ef52526a99d54e9a6f -m "Retain the source verified by this run [skip ci]")
-          git push origin "$tip:refs/heads/ci/farmland-verified-objects-e6c583"
+          git switch -c measured
+          git commit --allow-empty -m "Regenerate verified GeoRAG preview artifacts"
+          mkdir "$RUNNER_TEMP/verified"
+          git bundle create "$RUNNER_TEMP/verified/source.bundle" refs/heads/measured "^$SOURCE"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/verified/source.txt"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: verified-georag-source
+          path: ${{ runner.temp }}/verified/
+          if-no-files-found: error
+          retention-days: 7
+  publish-generated:
+    needs: regenerate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: verified-georag-source
+          path: ${{ runner.temp }}/verified
+      - name: Verify scope and advance the feature branch
+        run: |
+          set -euo pipefail
+          dest=refs/heads/codex/farmland-spatial-decision-20261127
+          git fetch --no-tags --depth=1 origin "$dest"
+          test "$(git rev-parse FETCH_HEAD)" = "$SOURCE"
+          git bundle verify "$RUNNER_TEMP/verified/source.bundle"
+          git fetch --no-tags "$RUNNER_TEMP/verified/source.bundle" refs/heads/measured
+          candidate=$(git rev-parse FETCH_HEAD)
+          test "$(git show -s --format=%P "$candidate")" = "$SOURCE"
+          git rev-parse "$candidate" "$candidate^{tree}" | diff - "$RUNNER_TEMP/verified/source.txt"
+          git diff --name-only "$SOURCE" "$candidate" | LC_ALL=C sort > "$RUNNER_TEMP/changed"
+          LC_ALL=C sort allowed-generated.txt > "$RUNNER_TEMP/allowed"
+          test -z "$(LC_ALL=C comm -23 "$RUNNER_TEMP/changed" "$RUNNER_TEMP/allowed")"
+          git push origin "$candidate:$dest"
+          test "$(git ls-remote origin "$dest" | cut -f1)" = "$candidate"
+          cat "$RUNNER_TEMP/verified/source.txt"
