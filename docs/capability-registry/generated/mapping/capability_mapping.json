@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7790,
+    "files_scanned": 7791,
     "files_by_kind": {
       "backend": 1325,
       "database": 362,
       "governance": 92,
       "mobile": 429,
       "other": 2261,
-      "tests": 2731,
+      "tests": 2732,
       "web": 590
     },
-    "unmapped_artifacts": 3711,
+    "unmapped_artifacts": 3712,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4235,
+      "python_functional": 4236,
       "raw": 3555
     },
-    "test_dependency_files": 2080,
-    "test_dependency_edges": 5650,
+    "test_dependency_files": 2081,
+    "test_dependency_edges": 5655,
     "test_dependency_bounded_files": 1197,
     "test_dependency_unresolved_relations": 539
   },
@@ -46519,6 +46519,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_irrigation_runtime_orchestrator_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_irrx1_2_manual_execution_lifecycle.py",
       "kind": "tests"
     },
@@ -89552,6 +89556,42 @@
           "source": "services/sahool-platform/api/irrigation_logic.py",
           "kind": "import",
           "line": 33
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests_v9/test_irrigation_runtime_orchestrator_guard.py",
+      "bounded": false,
+      "unbounded_reasons": [
+        "subprocess",
+        "tree_wide_scan"
+      ],
+      "edges": [
+        {
+          "source": "scripts/ci/irrigation_runtime_orchestrator_guard.py",
+          "kind": "source_read",
+          "line": 15
+        },
+        {
+          "source": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+          "kind": "source_read",
+          "line": 16
+        },
+        {
+          "source": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+          "kind": "source_read",
+          "line": 17
+        },
+        {
+          "source": "services/sahool-platform/api/routers/irrigation_mpc.py",
+          "kind": "source_read",
+          "line": 22
+        },
+        {
+          "source": "tests_v9/test_canonical_knowledge_to_hourly_mpc_runtime.py",
+          "kind": "source_read",
+          "line": 23
         }
       ],
       "unresolved": []

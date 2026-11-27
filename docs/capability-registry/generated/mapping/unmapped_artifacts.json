@@ -12900,6 +12900,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_irrigation_runtime_orchestrator_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_irrx1_2_manual_execution_lifecycle.py",
     "kind": "tests"
   },
