@@ -1,9 +1,0 @@
-{
-  "previous_head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
-  "actual_head": "a00ff740b09c0a20976b231920ecf72d74b3a8a7",
-  "expected_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
-  "actual_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
-  "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
-  "working_tree_clean": true,
-  "operation": "verified identical tree and working content then reset --mixed"
-}
