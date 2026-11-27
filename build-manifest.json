@@ -269,7 +269,8 @@
   "extra_generated_paths": {
     "governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_CLOSURE.json": "scripts/ci/integration_runtime_governance_closure.py",
     "governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_CLOSURE.md": "scripts/ci/integration_runtime_governance_closure.py",
-    "release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json": "scripts/release/platform_route_release_binding.py"
+    "release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json": "scripts/release/platform_route_release_binding.py",
+    "route_mount_inventory.csv": "scripts/ci/route_mount_contract_guard.py"
   },
   "protected_control_paths": [
     "scripts/ci/resolve_merge_conflicts.py",
@@ -281,7 +282,8 @@
     "scripts/ci/pr_capability_impact_gate.py",
     "scripts/ci/pr_finding_gap_id_guard.py",
     "scripts/ci/integration_runtime_governance_closure.py",
-    "scripts/release/platform_route_release_binding.py"
+    "scripts/release/platform_route_release_binding.py",
+    "scripts/ci/route_mount_contract_guard.py"
   ],
   "commit_subject": "Recover field inspection delivery and verify class-bound service paths",
   "production_accepted": false,
@@ -352,7 +354,8 @@
     "scripts/ci/pr_capability_impact_gate.py": "a0314a835b0a5d50ac6ecab6618b431caed10c3284d4fbad7a1a5388ed685c53",
     "scripts/ci/pr_finding_gap_id_guard.py": "72fb0cfaf2506e882a71e79d0bd6984c8c39c540b59ca84d0419d7bf44e5f0d8",
     "scripts/ci/integration_runtime_governance_closure.py": "24660a350650c57eaf52ea7391e31f21cc326c958b7d6f78fc448542151b4497",
-    "scripts/release/platform_route_release_binding.py": "5482afa7de18188eecab0a9eca9fbdb2f1e4221d3fc4aa426293561e71443e1d"
+    "scripts/release/platform_route_release_binding.py": "5482afa7de18188eecab0a9eca9fbdb2f1e4221d3fc4aa426293561e71443e1d",
+    "scripts/ci/route_mount_contract_guard.py": "b0012760b987735fb6d6f9b0fc68e4dac8acaf6acc7c6b0d9b03e7071165be32"
   },
   "brain_updates_sha256": "098903e42d220dc11a9685471398d238bb1d503984e93c5e8d1c305bc82b2b4c"
 }
