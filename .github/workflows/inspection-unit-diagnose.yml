@@ -1,0 +1,68 @@
+name: Diagnose frozen inspection unit failures
+on:
+  push:
+    branches: [ci/field-inspection-diagnose-0d601b-cda58496]
+permissions:
+  contents: read
+concurrency:
+  group: inspection-unit-diagnose-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      BASE: db79cf6d33fb8adb900f049d742de229f8616d4b
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      REDIS_ACL_LIVE_REQUIRED: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: "3.12.14"
+      - name: Import and verify the exact frozen source with complete history
+        shell: bash
+        run: python diagnose_unit.py prepare
+      - name: Install the same project requirements constrained to the failed run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/inspection-diagnose-venv"
+          "$RUNNER_TEMP/inspection-diagnose-venv/bin/python" -m pip install \
+            -c environment-constraints.txt \
+            -r "$RUNNER_TEMP/inspection-diagnose-source/tests_v9/requirements-test.txt" \
+            -r "$RUNNER_TEMP/inspection-diagnose-source/services/sahool-platform/api/requirements.txt"
+          "$RUNNER_TEMP/inspection-diagnose-venv/bin/python" -m pip check
+          "$RUNNER_TEMP/inspection-diagnose-venv/bin/python" -m pip freeze > "$RUNNER_TEMP/inspection-unit-diagnose-evidence/environment-current.txt"
+          echo "$RUNNER_TEMP/inspection-diagnose-venv/bin" >> "$GITHUB_PATH"
+          echo "VIRTUAL_ENV=$RUNNER_TEMP/inspection-diagnose-venv" >> "$GITHUB_ENV"
+          echo "TMPDIR=$RUNNER_TEMP/inspection-diagnose-tmp" >> "$GITHUB_ENV"
+          echo "PYTEST_DEBUG_TEMPROOT=$RUNNER_TEMP/inspection-diagnose-pytest-tmp" >> "$GITHUB_ENV"
+          echo "XDG_CACHE_HOME=$RUNNER_TEMP/inspection-diagnose-cache" >> "$GITHUB_ENV"
+          echo "RUFF_CACHE_DIR=$RUNNER_TEMP/inspection-diagnose-cache/ruff" >> "$GITHUB_ENV"
+          echo "COVERAGE_FILE=$RUNNER_TEMP/inspection-diagnose-coverage" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/inspection-diagnose-tmp" "$RUNNER_TEMP/inspection-diagnose-pytest-tmp" "$RUNNER_TEMP/inspection-diagnose-cache"
+      - name: Use the original Redis service isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/inspection-diagnose-source"
+          bash scripts/ci/resilient_apt_install.sh redis-server
+          sudo systemctl stop redis-server
+          sudo systemctl disable redis-server
+          redis-server --version > "$RUNNER_TEMP/inspection-unit-diagnose-evidence/redis-version.txt"
+      - name: Run the complete unchanged unit selection and retain full native output
+        shell: bash
+        run: python diagnose_unit.py run
+      - name: Preserve diagnosis even when pytest fails
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: inspection-unit-diagnose-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/inspection-unit-diagnose-evidence/
+          if-no-files-found: error
+          retention-days: 14

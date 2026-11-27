@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/usr/bin/time",
+    "-v",
+    "-o",
+    "/home/runner/work/_temp/inspection-build-evidence/resource-usage.txt",
+    "bash",
+    "scripts/ci/preflight.sh",
+    "--no-fetch",
+    "--pr-body-file",
+    "/home/runner/work/_temp/inspection-build-evidence/source-pr-body.md"
+  ],
+  "cwd": "/home/runner/work/_temp/inspection-source",
+  "started_at_utc": "2026-11-27T22:03:01.068032+00:00",
+  "status": "FAIL",
+  "returncode": 1,
+  "finished_at_utc": "2026-11-27T22:35:09.510075+00:00",
+  "log_sha256": "e4bc6621612b64b4ed3670b6b7471348e159c75cbca7beb076e7e677187013fb",
+  "head": "cda58496022ee599a4752c1b80f023a343c2ad3e",
+  "tree": "5391d2eb6b3cfb8a6149c1fb4a80dee97143b12b",
+  "parent": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+  "base": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+  "worktree_status": "",
+  "source_unchanged": true,
+  "functional_inputs_unchanged": true,
+  "gate_failures": 3,
+  "gate_skips": 0,
+  "execution_scope": "Unchanged contiguous default complete preflight plus PR-body gates; not --full and not final-head source CI.",
+  "skip_scope": "Zero skipped gates does not assert zero individual pytest skips.",
+  "historical_browser_tree": "a94d33e84005ade34c2616396bd877c9786fb269",
+  "final_browser_measured": false,
+  "production_accepted": false
+}
