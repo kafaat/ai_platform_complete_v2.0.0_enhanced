@@ -5295,7 +5295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5ae69d255e78474a7e539f1f7a7823e4a1322f2d8a0213a3a6af18adaf7dd0ed"
+          "content": "68a35836de0b81572a712a0e1081618d56c9099ee8cb9f415a84151cce922fe8"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -7805,7 +7805,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66febdd3090c333e018d662054421ab89673b26cbca066088ec08804769f2b27"
+          "content": "08eb34ca65df21384a41de55ef471848be1a1b3aac168dd6b6354844720ff0a7"
+        }
+      ],
+      "name": "frontend/src/sections/TasksPage.execution.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d391afc7c4f0b66938dd9903298c4ceda6b13d1a8503735d8c992fe734538332"
         }
       ],
       "name": "frontend/src/sections/TasksPage.tsx",

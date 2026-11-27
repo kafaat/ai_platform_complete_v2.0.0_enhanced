@@ -15,7 +15,7 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7788,
+    "files_scanned": 7789,
     "files_by_kind": {
       "backend": 1325,
       "database": 362,
@@ -23,13 +23,13 @@
       "mobile": 429,
       "other": 2261,
       "tests": 2730,
-      "web": 589
+      "web": 590
     },
-    "unmapped_artifacts": 3710,
+    "unmapped_artifacts": 3711,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4234,
-      "raw": 3554
+      "raw": 3555
     },
     "test_dependency_files": 2079,
     "test_dependency_edges": 5647,
@@ -36031,6 +36031,10 @@
     },
     {
       "path": "frontend/src/sections/TasksPage.cost.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/TasksPage.execution.test.tsx",
       "kind": "web"
     },
     {
