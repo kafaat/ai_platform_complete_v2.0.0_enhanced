@@ -12,6 +12,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
 from api.canonical_well_capability import (
     WATER_QUALITY_NOT_DECISION_GRADE,
     WATER_QUALITY_REQUIRED,
@@ -40,6 +41,39 @@ def test_gate_clear_when_ec_below_limit():
     assert v["blocking_reasons"] == []
     assert v["water_ec_ds_m"] == 2.4
     assert v["maximum_allowed_ec_ds_m"] == 3.0
+
+
+@pytest.mark.parametrize("ec", [None, -1.0, float("nan"), float("inf")])
+def test_configured_limit_requires_a_usable_ec_measurement(ec):
+    result = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality={"ec_ds_m": ec, "ph": 7.0, "sampled_at": NOW, "quality": "certified"},
+        now=NOW,
+    )
+    assert result["status"] == "blocked"
+    assert result["blocking_reasons"] == ["WATER_QUALITY_EC_REQUIRED"]
+
+
+@pytest.mark.parametrize("sampled_at", [None, "invalid", NOW + timedelta(microseconds=1)])
+def test_configured_limit_requires_a_valid_sample_time(sampled_at):
+    result = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality={"ec_ds_m": 2.0, "sampled_at": sampled_at, "quality": "certified"},
+        now=NOW,
+    )
+    assert result["status"] == "blocked"
+    assert result["blocking_reasons"] == ["WATER_QUALITY_TIMESTAMP_INVALID"]
+    assert result["water_quality_age_days"] is None
+
+
+def test_zero_ec_sample_at_assessment_time_is_valid():
+    result = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=0.0,
+        water_quality={"ec_ds_m": 0.0, "sampled_at": NOW},
+        now=NOW,
+    )
+    assert result["status"] == "clear"
+    assert result["water_quality_age_days"] == 0.0
 
 
 def test_gate_blocks_when_ec_exceeds_limit():

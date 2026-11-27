@@ -11,7 +11,7 @@ import hashlib
 import json
 import math
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 SCHEMA_VERSION = "canonical_well_capability.v1"
@@ -25,6 +25,8 @@ MAX_WATER_QUALITY_AGE_DAYS = 365.0
 WATER_SALINITY_LIMIT_EXCEEDED = "WATER_SALINITY_LIMIT_EXCEEDED"
 WATER_QUALITY_REQUIRED = "WATER_QUALITY_REQUIRED"
 WATER_QUALITY_STALE = "WATER_QUALITY_STALE"
+WATER_QUALITY_EC_REQUIRED = "WATER_QUALITY_EC_REQUIRED"
+WATER_QUALITY_TIMESTAMP_INVALID = "WATER_QUALITY_TIMESTAMP_INVALID"
 WATER_QUALITY_NOT_DECISION_GRADE = "WATER_QUALITY_NOT_DECISION_GRADE"
 
 # H5.1 decision-grade sample-quality tiers for SENSITIVE gates. The canonical trust model has
@@ -126,10 +128,9 @@ def evaluate_water_salinity_gate(
     The single source of the H5 EC rule: reused by build_canonical_well_capability
     and by the served MPC recommendation path once ECw is bound to a
     water_source_id. Returns ``status`` clear|blocked with the canonical
-    blocking-reason vocabulary. A configured ``maximum_allowed_ec_ds_m`` with no
-    sample fails closed (WATER_QUALITY_REQUIRED); a measured ECw above the limit
-    fails closed (WATER_SALINITY_LIMIT_EXCEEDED); a stale sample warns
-    (WATER_QUALITY_STALE). No configured maximum ⇒ no limit to enforce ⇒ clear.
+    blocking-reason vocabulary. A configured limit requires a finite, nonnegative
+    EC measurement and a valid sample time at or before the assessment. A stale
+    sample or a measurement above the limit blocks the decision.
 
     H5.1 — sensitive gates set ``require_decision_grade=True``: only a
     decision-grade sample (field_validated / laboratory_verified — see
@@ -153,18 +154,24 @@ def evaluate_water_salinity_gate(
     if water_quality:
         water_ec = _number(water_quality.get("ec_ds_m"))
         quality_tier = water_quality.get("quality")
-        quality_age_h = _age_hours(water_quality.get("sampled_at"), now)
-        quality_age_days = None if quality_age_h is None else quality_age_h / 24.0
-        if quality_age_days is None:
+        sampled_at = _timestamp(water_quality.get("sampled_at"))
+        if sampled_at is None or sampled_at > now:
             limitations.append("water quality timestamp invalid")
-        elif quality_age_days > max_sample_age_days:
-            blockers.append(WATER_QUALITY_STALE)
+            if maximum_ec is not None:
+                blockers.append(WATER_QUALITY_TIMESTAMP_INVALID)
+        else:
+            quality_age_days = (now - sampled_at) / timedelta(days=1)
+            if quality_age_days > max_sample_age_days:
+                blockers.append(WATER_QUALITY_STALE)
         # H5.1 defense-in-depth: a sample presented to a sensitive gate must be
         # decision-grade (the resolver already filters, but the rule lives here).
         if require_decision_grade and not is_decision_grade_sample_quality(quality_tier):
             blockers.append(WATER_QUALITY_NOT_DECISION_GRADE)
-        if maximum_ec is not None and water_ec is not None and water_ec > maximum_ec:
-            blockers.append(WATER_SALINITY_LIMIT_EXCEEDED)
+        if maximum_ec is not None:
+            if water_ec is None or water_ec < 0:
+                blockers.append(WATER_QUALITY_EC_REQUIRED)
+            elif water_ec > maximum_ec:
+                blockers.append(WATER_SALINITY_LIMIT_EXCEEDED)
     else:
         limitations.append("water quality sample missing")
         if maximum_ec is not None:

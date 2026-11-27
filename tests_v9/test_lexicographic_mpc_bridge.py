@@ -473,30 +473,46 @@ def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
 
 
 @_requires_fastapi
-def test_route_recommendation_blocks_on_server_bound_salinity(monkeypatch):
+@pytest.mark.parametrize(
+    ("quality", "ec", "days_from_now", "expected_reason"),
+    [
+        (None, None, 0, "WATER_QUALITY_NOT_DECISION_GRADE"),
+        ("field_validated", None, -1, "WATER_QUALITY_EC_REQUIRED"),
+        ("certified", 2.0, 1, "WATER_QUALITY_TIMESTAMP_INVALID"),
+    ],
+)
+def test_route_recommendation_blocks_on_server_bound_salinity(
+    monkeypatch, quality, ec, days_from_now, expected_reason
+):
     """H5.1: a server-bound source whose gate blocks (e.g. only estimated sample) ⇒ blocked
     BEFORE any ground-truth read, with per-source verdicts and expert review — the source is
     derived from the binding, never from the client."""
+    from datetime import UTC, datetime, timedelta
+
     import api.routers.irrigation_mpc as route
 
     async def _owned(t, f):
         return True
 
-    async def _bound_estimated(t, f):
-        # One active bound source with a configured limit but no decision-grade sample.
+    async def _bound_source(t, f):
+        sample = {
+            "quality": quality,
+            "ec_ds_m": ec,
+            "sampled_at": datetime.now(UTC) + timedelta(days=days_from_now),
+        }
         return [
             {
                 "water_source_id": "src-1",
                 "priority": 1,
                 "mixing_ratio": None,
                 "maximum_allowed_ec_ds_m": 3.0,
-                "water_quality": None,
-                "non_decision_grade_sample_present": True,
+                "water_quality": sample if quality else None,
+                "non_decision_grade_sample_present": quality is None,
             }
         ]
 
     monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
-    monkeypatch.setattr(route, "_active_field_source_bindings", _bound_estimated)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _bound_source)
 
     req = route.RecommendationRequest(horizon_days=7)
     out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
@@ -505,7 +521,7 @@ def test_route_recommendation_blocks_on_server_bound_salinity(monkeypatch):
     assert out["requires_expert_review"] is True
     verdict = out["source_verdicts"][0]
     assert verdict["water_source_id"] == "src-1"
-    assert "WATER_QUALITY_NOT_DECISION_GRADE" in verdict["blocking_reasons"]
+    assert verdict["blocking_reasons"] == [expected_reason]
 
 
 def _blend_bindings(limit_ec_ds_m: float):
