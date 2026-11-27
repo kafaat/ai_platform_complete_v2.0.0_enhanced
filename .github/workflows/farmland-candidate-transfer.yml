@@ -1,32 +1,27 @@
-name: Verify and transfer Farmland integration candidate
+name: Verify Farmland candidate objects
 on:
   push:
-    branches: [ci/farmland-1639-1641-candidate-transfer]
+    branches: [ci/farmland-verified-objects-e6c583]
 permissions:
   contents: write
 jobs:
-  publish-candidate:
+  retain-verified-objects:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          fetch-depth: 1
-      - name: Verify pack, exact parents and tree before creating the candidate ref
+      - name: Check immutable source identities and retain them on this transport branch
         shell: bash
         run: |
           set -euo pipefail
-          candidate=219ec87f7e0008da2597d544bcb6f8f50474cdea
-          parent=4b492f9146d4ec025b86e908613673674ad8ad8a
-          second=1865a1496da87ee385488cfe00b1d34eb3f9397c
-          tree=b25efb632ed362be13185e7cba7d2af3d41c8e9d
-          destination=refs/heads/integration/farmland-1639-1641-qualified
-          cat qualification-transfer/pack-* > "$RUNNER_TEMP/candidate.pack"
-          echo '952db51ee40962a91aef159537607bcd4ec16a27562ba7bb04773194ef908253  candidate.pack' | (cd "$RUNNER_TEMP" && sha256sum --check --strict)
-          git fetch --no-tags --depth=1 origin "$parent" "$second"
-          git index-pack --stdin < "$RUNNER_TEMP/candidate.pack"
-          test "$(git show -s --format=%P "$candidate")" = "$parent $second"
-          test "$(git rev-parse "$candidate^{tree}")" = "$tree"
-          git ls-tree -r "$candidate" >/dev/null
-          git push origin "$candidate:$destination"
-          test "$(git ls-remote origin "$destination" | cut -f1)" = "$candidate"
+          cd "$GITHUB_WORKSPACE"
+          echo '17f4713f0e043e4f91d492f9054a3b0c2de49c893166a1696a61e85dbfb14f58  candidates.pack' | sha256sum --check --strict
+          git fetch --no-tags --depth=1 origin 7bd8b4ca0d23bd54892f713e3856935a7d322a91
+          git index-pack --stdin --fix-thin < candidates.pack
+          test "$(git show -s --format=%P 2d4ddb45506443495f1b4587fe73bdcb737a5a68)" = "7bd8b4ca0d23bd54892f713e3856935a7d322a91"
+          test "$(git rev-parse 2d4ddb45506443495f1b4587fe73bdcb737a5a68^{tree})" = "c155ba4ce3bb7cb2b7cc8d534e72d2cf6f347cd7"
+          git ls-tree -r 2d4ddb45506443495f1b4587fe73bdcb737a5a68 >/dev/null
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          tip=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p 2d4ddb45506443495f1b4587fe73bdcb737a5a68 -m "Retain the source verified by this run [skip ci]")
+          git push origin "$tip:refs/heads/ci/farmland-verified-objects-e6c583"
