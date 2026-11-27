@@ -401,8 +401,8 @@ async def irrigation_mpc_recommendation(
                 "blend_water_quality": blend_water_quality,
                 "requires_expert_review": True,
                 "detail": (
-                    "ملوحة ماء الريّ تتجاوز الحدّ (أو لا عيّنة قرار-درجة / عيّنة قديمة) على مصدر "
-                    "مربوط خادميّاً — لا توصية حتى مراجعة خبير."
+                    "تعذّر إثبات أن ملوحة ماء الريّ ضمن الحدّ المسموح لمصدر "
+                    "مرتبط بالحقل. راجع سبب الحجب لكل مصدر قبل إصدار التوصية."
                 ),
             }
         salinity_provenance = {
