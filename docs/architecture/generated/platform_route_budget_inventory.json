@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "021a9a62c8649bbe268a34983fb0e92ae1b9ac3644b16f495751e8fa4ada1113",
+  "inventory_sha256": "23bafe683142899babefd2217b299f6b22cb3cafe53a06185686e04f7f5e16ab",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -3122,7 +3122,7 @@
     {
       "classification": "domain",
       "function": "compose_crop_twin",
-      "line": 247,
+      "line": 248,
       "method": "POST",
       "path": "/api/v1/crop-twin/compose",
       "source": "api/routers/crop_twin.py"
@@ -3130,7 +3130,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_endpoint",
-      "line": 465,
+      "line": 489,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
       "source": "api/routers/crop_twin.py"
@@ -3138,7 +3138,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_candidate_endpoint",
-      "line": 305,
+      "line": 306,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
       "source": "api/routers/crop_twin.py"
@@ -3146,7 +3146,7 @@
     {
       "classification": "domain",
       "function": "profit_aware_decision_endpoint",
-      "line": 592,
+      "line": 616,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
       "source": "api/routers/crop_twin.py"

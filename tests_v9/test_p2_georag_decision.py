@@ -22,12 +22,13 @@ _PLATFORM = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platf
 if _PLATFORM not in sys.path:
     sys.path.insert(0, _PLATFORM)
 
-from api.georag_evidence import (  # noqa: E402
+from api.unified_decision import unified_decision  # noqa: E402
+from core.rag.production_qdrant import KnowledgeChunk, RetrievedAnnotation  # noqa: E402
+
+from shared.knowledge.georag_evidence import (  # noqa: E402
     fetch_annotations,
     scope_annotations,
 )
-from api.unified_decision import unified_decision  # noqa: E402
-from core.rag.production_qdrant import KnowledgeChunk, RetrievedAnnotation  # noqa: E402
 
 T = "tenant-a"
 FIELD = {

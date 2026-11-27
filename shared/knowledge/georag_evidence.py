@@ -1,4 +1,4 @@
-"""api/georag_evidence.py — bounded spatial GeoRAG scoping for the unified decision.
+"""Spatial scope and retrieval contract for decision-preview annotations.
 
 Retrieval stays owned by ``core.rag.production_qdrant`` / ``services/rag-retrieval`` (tenant
 scoped, provenance-checked, annotation-only). This module adds only what retrieval lacks:
@@ -17,7 +17,6 @@ import os
 from typing import Any
 
 import httpx
-from fastapi import HTTPException
 
 SCHEMA = "sahool.georag_evidence.v1"
 GLOBAL_REFERENCE_TENANT = "__global__"
@@ -206,26 +205,3 @@ def fetch_annotations(
         return [], _UNAVAILABLE
     rows = payload.get("annotations") if isinstance(payload, dict) else None
     return (rows, None) if isinstance(rows, list) else ([], _UNAVAILABLE)
-
-
-async def field_at_point(
-    conn, tenant_id: str, longitude: float, latitude: float
-) -> tuple[str, dict]:
-    """Resolve a unique stored field polygon under the authenticated tenant transaction."""
-    rows = await conn.fetch(
-        """SELECT field_id, ST_AsGeoJSON(geom, 15) AS geometry
-             FROM fields
-            WHERE tenant_id = $1::uuid
-              AND GeometryType(geom) IN ('POLYGON', 'MULTIPOLYGON')
-              AND ST_IsValid(geom)
-              AND ST_Covers(geom, ST_SetSRID(ST_MakePoint($2, $3), 4326))
-            LIMIT 2""",
-        tenant_id,
-        longitude,
-        latitude,
-    )
-    if not rows:
-        raise HTTPException(404, "georag_point_outside_fields")
-    if len(rows) != 1:
-        raise HTTPException(409, "georag_point_matches_multiple_fields")
-    return rows[0]["field_id"], json.loads(rows[0]["geometry"])

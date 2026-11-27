@@ -8,8 +8,8 @@
       "mobile": 663,
       "prometheus": 2,
       "scripts": 519,
-      "services": 2397,
-      "shared": 197,
+      "services": 2396,
+      "shared": 198,
       "tests": 170
     }
   },
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 110575348
+  "total_size_bytes": 110573479
 }

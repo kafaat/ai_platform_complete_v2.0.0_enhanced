@@ -6632,10 +6632,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/georag_evidence.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/gis_geometry_guard.py",
     "kind": "backend"
   },
