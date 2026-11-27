@@ -320,6 +320,12 @@ def test_field_and_manual_http_contracts(monkeypatch):
     assert client.post(url).status_code == 422
     manual = client.post(url, json={"p_ppm": 5})
     assert manual.status_code == 200 and set(manual.json()) == {"plan"}
+    symbols = client.post(url, json={"nutrients": ["N", "P", "Fe", "Zn"]})
+    named = client.post(url, json={"nutrients": ["nitrogen", "phosphorus", "iron", "zinc"]})
+    assert symbols.status_code == named.status_code == 200
+    assert symbols.json() == named.json()
+    assert len(symbols.json()["plan"]) == 4
+    assert client.post(url, json={"nutrients": ["unobtanium"]}).status_code == 422
     assert client.post(url, params={"field_id": "f"}, json={"p_ppm": 5}).status_code == 422
     assert client.post(url, params={"field_id": "f"}).status_code == 503
 

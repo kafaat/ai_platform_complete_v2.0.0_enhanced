@@ -14,6 +14,8 @@ from typing import Annotated, Literal
 from core.irrigation_water_analysis import WaterSourceType
 from pydantic import BaseModel, Field, TypeAdapter, field_validator, model_validator
 
+from api.nutrient_4r import Nutrient
+
 
 class LoginRequest(BaseModel):
     user_id: str
@@ -574,6 +576,15 @@ class Soil4RRequest(BaseModel):
     om_pct: float | None = None
     nutrients: list[str] | None = None
     fertilizer_scenario: FertilizerPlanningScenario | None = None
+
+    @field_validator("nutrients")
+    @classmethod
+    def normalize_nutrient_names(cls, values: list[str] | None) -> list[str] | None:
+        if values is None:
+            return None
+        return [
+            (Nutrient.__members__.get(value.upper()) or Nutrient(value)).value for value in values
+        ]
 
 
 class ZoneCellInput(BaseModel):
