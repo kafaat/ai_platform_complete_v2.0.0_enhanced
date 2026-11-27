@@ -501,3 +501,32 @@ def test_a_generic_task_close_has_nothing_to_attribute(monkeypatch):
         assert closed.json()["outcome_reason"] == "no_linked_work_order"
 
     _run(monkeypatch, scenario)
+
+
+def test_task_pages_cover_every_task_in_a_batch(monkeypatch):
+    async def scenario(w):
+        w.act_as("a")
+        # Defaults give this single insert one created_at, priority and recommended_date.
+        records = await w.owner.fetch(
+            "INSERT INTO field_tasks (tenant_id, field_id, task_type)"
+            " SELECT $1::uuid, $2, 'scouting' FROM generate_series(1, 31)"
+            " RETURNING task_id",
+            w.tenants["a"],
+            w.fields["a"],
+        )
+        expected = {str(row["task_id"]) for row in records}
+        seen = []
+        for offset in range(0, len(records), 4):
+            response = await w.client.get(
+                "/api/v1/tasks", params={"field_id": w.fields["a"], "limit": 4, "offset": offset}
+            )
+            assert response.status_code == 200, response.text
+            page = response.json()
+            assert page["total"] == len(records)
+            assert page["next_cursor"] == (str(offset + 4) if offset + 4 < len(records) else None)
+            seen.extend(row["task_id"] for row in page["tasks"])
+        assert len(seen) == len(records)
+        assert len(set(seen)) == len(records)
+        assert set(seen) == expected
+
+    asyncio.run(_with_world(monkeypatch, scenario))
