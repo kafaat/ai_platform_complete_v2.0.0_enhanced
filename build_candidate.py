@@ -112,12 +112,86 @@ def verify_transport() -> None:
             "Builder cannot grant production acceptance or update source refs")
 
 
-def review_inputs() -> dict:
+def correction_specs() -> dict:
+    specs = CONFIG["source_corrections"]
+    require(isinstance(specs, dict) and specs, "Missing reviewed source corrections")
+    forbidden = set(CONFIG["protected_control_sha256"]) | set(CONFIG["upstream_source_files"])
+    for path, spec in specs.items():
+        require(isinstance(path, str), "Correction path must be text")
+        parts = PurePosixPath(path)
+        require(not parts.is_absolute() and ".." not in parts.parts and str(parts) == path,
+                f"Unsafe correction path: {path}")
+        require(all(part.casefold() != ".git" for part in parts.parts),
+                f"Correction cannot address Git metadata: {path}")
+        current = SOURCE
+        for part in parts.parts:
+            current = current / part
+            require(not current.is_symlink(), f"Correction cannot traverse a symlink: {path}")
+        require(path not in forbidden and not path.startswith("sahool-brain/"),
+                f"Source correction cannot change a pinned control, upstream source or brain journal: {path}")
+        require(isinstance(spec, dict) and set(spec) == {"before_sha256", "after_sha256"},
+                f"Invalid correction hash contract: {path}")
+        require(all(isinstance(value, str) and re.fullmatch(r"[a-f0-9]{64}", value)
+                    for value in spec.values()), f"Invalid correction digest: {path}")
+        require(spec["before_sha256"] != spec["after_sha256"], f"Empty source correction: {path}")
+        file_bytes(path)
+    return specs
+
+
+def apply_source_corrections() -> dict:
+    require(CONFIG["source_corrections_file"] == "source-corrections.json", "Unexpected correction payload name")
+    target = WORK / CONFIG["source_corrections_file"]
+    require(target.is_file() and not target.is_symlink(), "Correction payload must be a regular file")
+    raw = target.read_bytes()
+    require(sha256(raw) == CONFIG["source_corrections_sha256"], "Reviewed source correction payload changed")
+    payload = json.loads(raw)
+    require(set(payload) == {"schema", "failed_source", "files"}
+            and payload["schema"] == "sahool.inspection-source-corrections/v1",
+            "Unexpected correction payload envelope")
+    require(payload["failed_source"] == CONFIG["correction_failure_source"], "Correction failure identity differs")
+    require(payload["failed_source"]["status"] == "PREFLIGHT_FAIL", "Corrections must preserve the failed source verdict")
+    specs = correction_specs()
+    rows = payload["files"]
+    require(isinstance(rows, list) and len(rows) == len(specs), "Correction file count differs")
+    names = [row["path"] for row in rows]
+    require(len(set(names)) == len(names) and set(names) == set(specs), "Correction path set differs")
+    pending = {}
+    for row in rows:
+        require(set(row) == {"path", "encoding", "content"} and row["encoding"] == "utf-8"
+                and isinstance(row["content"], str), "Unexpected correction file payload")
+        path = row["path"]
+        before = file_bytes(path)
+        after = row["content"].encode("utf-8")
+        require(sha256(before) == specs[path]["before_sha256"], f"Correction baseline drift: {path}")
+        require(sha256(after) == specs[path]["after_sha256"], f"Correction content drift: {path}")
+        pending[path] = after
+    # Validate every path and both hashes before making the first owned-checkout write.
+    for path, data in pending.items():
+        (SOURCE / path).write_bytes(data)
+    require(file_hashes(names) == {path: specs[path]["after_sha256"] for path in names},
+            "Applied source correction bytes differ")
+    shutil.copyfile(target, OUT / CONFIG["source_corrections_file"])
+    receipt = {"status": "APPLIED_PENDING_GENERATION_AND_PREFLIGHT", "files": specs,
+               "payload_sha256": sha256(raw), "failed_source": payload["failed_source"],
+               "historical_source_verdict_unchanged": True, "production_accepted": False}
+    write_json("source-corrections-receipt.json", receipt)
+    return receipt
+
+
+def review_inputs(*, corrected: bool = True) -> dict:
     checks = []
     for path, expected in CONFIG["guard_sha256"].items():
+        original = expected
+        if corrected and path in CONFIG["source_corrections"]:
+            expected = CONFIG["source_corrections"][path]["after_sha256"]
         actual = sha256(file_bytes(path))
-        require(actual == expected, f"Exact 47-case guard candidate differs: {path}")
-        checks.append({"path": path, "sha256": actual, "reference_tree": CONFIG["reconstructed_tree"], "status": "PASS"})
+        require(actual == expected, f"Reviewed guard source differs: {path}")
+        checks.append({"path": path, "sha256": actual, "original_sha256": original,
+                       "original_reference_tree": CONFIG["reconstructed_tree"],
+                       "reviewed_correction_applied": corrected and actual != original, "status": "PASS"})
+    if corrected:
+        for path, spec in correction_specs().items():
+            require(sha256(file_bytes(path)) == spec["after_sha256"], f"Reviewed source correction drift: {path}")
     for path, expected in CONFIG["upstream_source_files"].items():
         actual = file_bytes(path)
         require(actual == git("show", f"{CONFIG['main']}:{path}"), f"Pinned salinity/upstream source changed: {path}")
@@ -289,6 +363,8 @@ def prepare() -> None:
     write_json("merge-review.json", {"status": "PASS", "main": CONFIG["main"], "upstream_paths": upstream_paths,
                "original_merge_returncode": merged["returncode"], "resolved_generated_seeds": resolved,
                "nonoverlap_unchanged_paths": nonoverlap, "generation_completed": False, "production_accepted": False})
+    write_json("functional-review-original.json", review_inputs(corrected=False))
+    corrections = apply_source_corrections()
     write_json("functional-review.json", review_inputs())
     generated = generated_inventory()
     brain = apply_brain_updates()
@@ -296,15 +372,18 @@ def prepare() -> None:
     git("add", "-A")
     git("diff", "--cached", "--check")
     changed = git_paths("diff", "--cached", "--name-only", CONFIG["main"])
-    require(set(changed) <= set(overlay_paths), "Unreviewed changed path before generation")
-    protected = sorted((set(overlay_paths) - set(generated)) | set(CONFIG["upstream_source_files"]) | set(CONFIG["protected_control_paths"]))
+    reviewed_paths = set(overlay_paths) | set(CONFIG["source_corrections"])
+    require(set(changed) <= reviewed_paths, "Unreviewed changed path before generation")
+    protected = sorted((reviewed_paths - set(generated)) | set(CONFIG["source_corrections"])
+                       | set(CONFIG["upstream_source_files"]) | set(CONFIG["protected_control_paths"]))
     functional_hashes = file_hashes(protected)
     write_json("generation-allowed-paths.json", {"classifier": CLASSIFIER, "classifier_sha256": CONFIG["protected_control_sha256"][CLASSIFIER],
                "generated_paths": generated, "explicit_generator_owners": CONFIG["extra_generated_paths"], "protected_paths": protected})
     write_json("build-state.json", {"status": "PREPARED", "prepared_at_utc": now(), "source_parent": CONFIG["main"],
                "main": CONFIG["main"], "reconstructed_tree": CONFIG["reconstructed_tree"],
                "index_tree_before_generation": gt("write-tree"), "functional_hashes": functional_hashes,
-               "allowed_generated_paths": generated, "allowed_changed_paths": sorted(set(overlay_paths) | set(generated)),
+               "allowed_generated_paths": generated, "allowed_changed_paths": sorted(reviewed_paths | set(generated)),
+               "source_corrections": corrections,
                "run_id": os.environ["GITHUB_RUN_ID"], "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
                "transport_sha": os.environ["GITHUB_SHA"], "final_browser_measured": False, "production_accepted": False})
 
@@ -452,7 +531,8 @@ def retain() -> None:
              "source-overlay.patch.gz", "source-overlay-manifest.json", "functional-review-final.json",
              "exact-reconstruction.json", "merge-review.json", "brain-update-receipt.json",
              "generation-allowed-paths.json", "whitespace-policy.json", "capability-impact.json",
-             "capability-impact-validated.json", "source-pr-body.md")
+             "capability-impact-validated.json", "source-pr-body.md", "functional-review-original.json",
+             "source-corrections.json", "source-corrections-receipt.json")
     for name in names:
         shutil.copyfile(OUT / name, WORK / name)
         git("add", "--", name, cwd=WORK)
