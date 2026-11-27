@@ -16,7 +16,7 @@ high,raster-service,function,_clean_cache,services/raster-service/test_cdse_empt
 high,raster-service,function,_clean_runtime_state,services/raster-service/test_job_truth_receipts_and_fencing.py,77,0,review_before_delete,False
 high,sahool-platform,function,_extract_ec,services/sahool-platform/api/field_state_projection.py,281,0,review_before_delete,False
 high,sahool-platform,function,_record_to_json,services/sahool-platform/api/routers/field_ai_context.py,71,0,review_before_delete,False
-high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1147,0,review_before_delete,False
+high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1146,0,review_before_delete,False
 high,sahool-platform,function,_facts_snapshot_hash,services/sahool-platform/api/routers/irrigation_mpc.py,190,0,review_before_delete,False
 high,sahool-platform,function,_source_current_state,services/sahool-platform/api/routers/irrigation_mpc.py,208,0,review_before_delete,False
 high,sahool-platform,function,_weather_tile_interpolation_payload,services/sahool-platform/api/routers/weather.py,435,0,review_before_delete,False
@@ -195,8 +195,8 @@ medium,sahool-platform,function,record_canonical_context,services/sahool-platfor
 medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/reports.py,237,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,743,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,779,0,review_before_delete,False
-medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2428,0,review_before_delete,False
-medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3541,0,review_before_delete,False
+medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2427,0,review_before_delete,False
+medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3540,0,review_before_delete,False
 medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,371,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,91,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False
@@ -626,6 +626,7 @@ medium,vegetation-analysis-service,function,service_env,services/vegetation-anal
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_crop_stress_endpoints.py,118,0,review_before_delete,False
 medium,weather-service,function,patch_openmeteo,services/weather-service/tests/test_p3_weather_service_runtime.py,43,0,review_before_delete,False
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_routes_witnessed_through_the_request_path.py,51,0,review_before_delete,False
+medium,shared,function,range_score,shared/agronomy/suitability.py,4,0,review_before_delete,False
 medium,shared,function,has_capability,shared/ai/capabilities.py,77,0,review_before_delete,False
 medium,shared,function,has_decision_keys,shared/ai/recommendation_runtime/decision_contracts.py,58,0,review_before_delete,False
 medium,shared,class,ReviewRepository,shared/ai/recommendation_runtime/human_review_repository.py,43,0,review_before_delete,False

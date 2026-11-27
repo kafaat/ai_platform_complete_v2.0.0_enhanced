@@ -347,6 +347,7 @@ def test_consumer_halts_only_the_addressed_field(monkeypatch):
     monkeypatch.setattr(main, "_validate_dispatch_device", validate)
     monkeypatch.setattr(main, "is_actuation_halted", halted)
     monkeypatch.setattr(main, "send_mqtt_command", publish)
+    monkeypatch.setattr(main, "record_command_queued", AsyncMock(return_value=True))
     monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "fixture")
     assert asyncio.run(main.run_dispatch_consumer_once(None, "tenant", allowlist={"low"})) == 2
     assert [call.args[2] for call in validate.await_args_list] == ["pivot-1", "pivot-2"]
@@ -404,6 +405,7 @@ def test_a_command_without_a_field_is_held_by_its_device_s_registered_field(monk
     )
     monkeypatch.setattr(main, "is_actuation_halted", halted)
     monkeypatch.setattr(main, "send_mqtt_command", publish)
+    monkeypatch.setattr(main, "record_command_queued", AsyncMock(return_value=True))
     monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "fixture")
     asyncio.run(main.run_dispatch_consumer_once(None, "tenant", allowlist={"low"}))
     assert scopes[-1] == "pivot-1"
@@ -488,6 +490,7 @@ def _run_consumer_with(monkeypatch, command, device_field, halted_field=None):
     )
     monkeypatch.setattr(main, "is_actuation_halted", halted)
     monkeypatch.setattr(main, "send_mqtt_command", publish)
+    monkeypatch.setattr(main, "record_command_queued", AsyncMock(return_value=True))
     monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "fixture")
     asyncio.run(main.run_dispatch_consumer_once(None, "tenant", allowlist={"low"}))
     return receipts, publish

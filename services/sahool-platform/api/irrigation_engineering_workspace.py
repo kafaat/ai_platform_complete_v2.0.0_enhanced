@@ -26,6 +26,8 @@ from pydantic import (
     model_validator,
 )
 
+from api.irrigation_network import HourlyScenario, PumpingTest, simulate_hours
+
 # Catch-can diagnostics are local to the irrigation engineering workspace.
 EvidenceText = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=512)
@@ -771,7 +773,8 @@ def calculate_interactive_irrigation_engineering(
 class WellSupplyInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     well_id: str
-    available_flow_m3_h: float = Field(ge=0)
+    pumping_test: PumpingTest | None = None
+    available_flow_m3_h: float = Field(ge=0, allow_inf_nan=False)
     enabled: bool = True
 
 
@@ -901,6 +904,7 @@ class ReservoirBoosterNetworkRequest(BaseModel):
     field_id: str
     season_id: str | None = None
     required_gross_volume_m3: float = Field(gt=0)
+    hourly_scenario: HourlyScenario | None = None
     wells: list[WellSupplyInput] = Field(default_factory=list)
     reservoir: ReservoirInput
     booster: BoosterPumpInput
@@ -1073,6 +1077,10 @@ def calculate_reservoir_booster_network(
     requested_ids = req.requested_machine_ids or (req.requested_pivot_ids if legacy_mode else [])
     selected = [m for m in enabled if m.machine_id in requested_ids] if requested_ids else []
 
+    if req.hourly_scenario and (
+        len(selected) > 1 or any(m.field_id != req.field_id for m in selected)
+    ):
+        raise ValueError("hourly serial main supports one field and one terminal machine")
     machine_mode = "selected" if selected else "none"
     duty_rates_m3_h = (
         [m.design_flow_m3_h for m in selected] if selected else [req.booster.design_flow_m3_h]
@@ -1222,6 +1230,16 @@ def calculate_reservoir_booster_network(
         "blockers": sorted(set(blockers)),
         "warnings": sorted(set(warnings)),
     }
+    diagnostics = {}
+    if req.hourly_scenario is not None:
+        diagnostics["hourly_scenario"] = simulate_hours(req, duty_flow_m3_h, required_head_m)
+        payload["hourly_inputs"] = req.hourly_scenario.model_dump(mode="json")
+    elif any(w.pumping_test for w in req.wells):
+        diagnostics["pumping_tests"] = {
+            w.well_id: w.pumping_test.result() for w in req.wells if w.pumping_test
+        }
+    if diagnostics:
+        payload["planning_diagnostics"] = diagnostics
     return ReservoirBoosterNetworkResult(
         status=status,
         machine_mode=machine_mode,
@@ -1229,6 +1247,7 @@ def calculate_reservoir_booster_network(
         pivot_mode="selected" if selected_pivots else "none",
         selected_pivots=selected_pivots,
         reservoir_balance={
+            **diagnostics,
             "well_inflow_m3_h": round(well_inflow, 4),
             "booster_outflow_m3_h": round(duty_flow_m3_h, 4),
             "passive_losses_m3_h": round(passive_losses, 4),

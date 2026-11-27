@@ -384,6 +384,8 @@ class _Conn:
 
     async def execute(self, sql, *args):
         now = datetime.now(UTC)
+        if sql == "SET LOCAL synchronous_commit = on":
+            return "SET"
         if "set_config('app.current_tenant'" in sql:
             self.tenant = args[0]
             return "SELECT 1"
@@ -393,46 +395,26 @@ class _Conn:
             if "command_id" not in sql:
                 self.t.rows.append({"tenant_id": args[0], "command_id": None, "status": args[5]})
                 return "INSERT 0 1"
-            cid = args[7] if "'queued'" in sql else args[8]
-            row = self.t.find(args[0], cid)
-            if "'queued'" in sql:  # record_command_queued
-                if row is None:
-                    self.t.rows.append(
-                        {
-                            "tenant_id": args[0],
-                            "device_id": args[2],
-                            "command": args[3],
-                            "status": "queued",
-                            "triggered_by": args[6],
-                            "command_id": cid,
-                            "delivery_state": "queued",
-                            "queued_at": args[8],
-                            "ack_deadline": args[9],
-                            "sent_at": args[8],
-                        }
-                    )
-                return "INSERT 0 1"
-            state, published_at, deadline = args[9], args[11], args[12]
-            if row is None:
-                self.t.rows.append(
-                    {
-                        "tenant_id": args[0],
-                        "device_id": args[2],
-                        "command": args[3],
-                        "status": args[5],
-                        "triggered_by": args[7],
-                        "command_id": cid,
-                        "delivery_state": state,
-                        "queued_at": args[10],
-                        "published_at": published_at,
-                        "ack_deadline": deadline,
-                        "sent_at": args[10],
-                    }
-                )
-            else:
-                self.t.move(
-                    row, state, status=args[5], published_at=published_at, ack_deadline=deadline
-                )
+            cid = args[7]
+            if self.t.find(args[0], cid) is not None:
+                return "INSERT 0 0"
+            self.t.rows.append(
+                {
+                    "tenant_id": args[0],
+                    "rule_id": args[1],
+                    "device_id": args[2],
+                    "command": args[3],
+                    "payload": json.loads(args[4]),
+                    "mqtt_topic": args[5],
+                    "triggered_by": args[6],
+                    "command_id": cid,
+                    "status": "queued",
+                    "delivery_state": "queued",
+                    "queued_at": args[8],
+                    "ack_deadline": args[9],
+                    "sent_at": args[8],
+                }
+            )
             return "INSERT 0 1"
         if sql.lstrip().startswith("UPDATE device_commands_log"):
             if "ack_deadline < now()" in sql:  # expire_overdue_commands
@@ -446,6 +428,13 @@ class _Conn:
             row = self.t.find(args[0], args[1])
             if row is None:
                 return "UPDATE 0"
+            if "SET status=$6" in sql:
+                if row["delivery_state"] != "queued":
+                    return "UPDATE 0"
+                self.t.move(
+                    row, args[6], status=args[5], published_at=args[7], ack_deadline=args[8]
+                )
+                return "UPDATE 1"
             target = re.search(r"SET delivery_state = '(\w+)'", sql).group(1)
             stamp = {"device_acked": "device_acked_at", "device_rejected": "device_rejected_at"}
             self.t.move(
@@ -458,6 +447,16 @@ class _Conn:
         if "FROM iot_devices" in sql:
             return {"tenant_id": TENANT, "field_id": "field-9"}
         row = self.t.find(args[0], args[1])
+        if row is not None and "AS matches" in sql:
+            matches = (
+                row["device_id"],
+                row["command"],
+                row["payload"],
+                row["rule_id"],
+                row["triggered_by"],
+                row["mqtt_topic"],
+            ) == (args[2], args[3], json.loads(args[4]), args[5], args[6], args[7])
+            return {**row, "matches": matches}
         return dict(row) if row is not None else None
 
     async def fetch(self, sql, *args):
@@ -775,27 +774,45 @@ def test_a_signed_ack_of_a_dispatched_command_moves_it_to_device_acked(wired, mo
     )
 
 
-def test_without_the_queued_row_the_dispatched_ack_is_dropped(wired, monkeypatch):
-    """Negative control: the old order (publish only, no record_command_queued/log_command)
-    leaves no row, so the same signed ack is refused as unknown_command."""
-    act, _router_mod, pool = wired
+@pytest.mark.parametrize("raises", [False, True])
+def test_queue_gate_dispatch(wired, monkeypatch, raises):
+    act, _, pool = wired
 
-    async def _no_write(*_a, **_k):
+    async def unavailable(**kwargs):
+        if raises:
+            raise TimeoutError("commit outcome unknown")
         return False
 
-    monkeypatch.setattr(act, "record_command_queued", _no_write)
-    monkeypatch.setattr(act, "log_command", _no_write)
+    monkeypatch.setattr(act, "record_command_queued", unavailable)
     receipts, wire_ids = _run_dispatch(act, monkeypatch)
-    assert [r["receipt_status"] for r in receipts] == ["accepted"], f"receipts: {receipts}"
-    assert wire_ids == [_DISPATCH_IDEMPOTENCY_KEY], f"wire ids: {wire_ids}"
+    assert wire_ids == []
+    assert [r["receipt_status"] for r in receipts] == ["failed"]
+    assert receipts[0]["receipt_payload"]["reason"] == "command_queue_unavailable"
+    assert pool.table.rows == []
 
-    ack = json.dumps(_ack_v2(command_id=_DISPATCH_IDEMPOTENCY_KEY)).encode()
-    decision = asyncio.run(act.handle_device_ack(_ack_topic(), ack))
 
-    assert (decision.accepted, decision.reason) == (False, "unknown_command"), (
-        f"without a recorded command the ack must be refused, got {decision}"
-    )
-    assert pool.table.find(TENANT, _DISPATCH_IDEMPOTENCY_KEY) is None, "no row may be created"
+@pytest.mark.parametrize("command", ["start", "close", "off"])
+def test_queue_gate_manual(wired, monkeypatch, command):
+    from fastapi import HTTPException
+
+    act, router, pool = wired
+
+    async def unavailable(**kwargs):
+        return False
+
+    monkeypatch.setattr(act, "record_command_queued", unavailable)
+    if command == "start":
+        with pytest.raises(HTTPException) as error:
+            _send(act, router, command=command)
+        assert error.value.status_code == 503
+        assert _FakeMQTT.published == []
+    else:
+        result = _send(act, router, command=command)
+        assert result["sent"] and result["queue_recorded"] is False
+        [(_, wire)] = _FakeMQTT.published
+        assert (wire["v"], wire["cmd"], wire["id"]) == (2, "CLOSE", result["command_id"])
+        assert result["delivery_state"] == "untracked"
+    assert pool.table.rows == []
 
 
 def test_a_failed_dispatch_publish_is_recorded_publish_failed(wired, monkeypatch):
@@ -814,16 +831,15 @@ def test_a_failed_dispatch_publish_is_recorded_publish_failed(wired, monkeypatch
     )
 
 
-def test_a_recovery_republish_does_not_move_an_acked_dispatch_back(wired, monkeypatch):
-    """Recovery republishes with the same command id: the queued insert is a no-op and the
-    v238 trigger (imitated by the table) refuses device_acked -> published; log_command
-    swallows that refusal, so the acked evidence survives."""
+def test_recovery_of_acked_dispatch_reuses_evidence_without_publishing(wired, monkeypatch):
     act, _router_mod, pool = wired
     _run_dispatch(act, monkeypatch)
     ack = json.dumps(_ack_v2(command_id=_DISPATCH_IDEMPOTENCY_KEY)).encode()
     assert asyncio.run(act.handle_device_ack(_ack_topic(), ack)).accepted, "first ack refused"
 
-    _run_dispatch(act, monkeypatch)
+    receipts, wire_ids = _run_dispatch(act, monkeypatch)
+    assert wire_ids == [_DISPATCH_IDEMPOTENCY_KEY]
+    assert receipts[0]["receipt_payload"]["reason"] == "existing_device_acked"
 
     rows = [r for r in pool.table.rows if r["command_id"] == _DISPATCH_IDEMPOTENCY_KEY]
     assert len(rows) == 1, f"a republish must not duplicate the command row: {rows}"

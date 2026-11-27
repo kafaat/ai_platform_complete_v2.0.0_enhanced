@@ -20,6 +20,7 @@ import json
 import sys
 import types
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -204,6 +205,7 @@ def wired(act, monkeypatch):
     monkeypatch.setattr(act, "send_mqtt_command", trace.send)
     monkeypatch.setattr(act, "is_actuation_halted", trace.ks)
     monkeypatch.setattr(act, "log_command", trace.log)
+    monkeypatch.setattr(act, "record_command_queued", AsyncMock(return_value=True))
     monkeypatch.setattr(act, "FEATURE_AUTOMATION_RULES_ACTUATION", "true")
     return act, db, trace
 
@@ -695,6 +697,7 @@ def test_a5_dispatch_consumer_passes_the_stable_identity_to_the_publisher(act, m
             return _C()
 
     monkeypatch.setattr(act, "_pool", _P())
+    monkeypatch.setattr(act, "record_command_queued", AsyncMock(return_value=True))
     monkeypatch.setattr(act, "is_actuation_halted", _halt)
     monkeypatch.setattr(act, "_validate_dispatch_device", _device_ok)
     monkeypatch.setattr(act, "_decision_request", _request)
@@ -706,7 +709,7 @@ def test_a5_dispatch_consumer_passes_the_stable_identity_to_the_publisher(act, m
 
     tag = __import__("hashlib").sha256(b"req-9").hexdigest()[:12]
     # R-C2: the tenant is passed so the v2 signature binds it; the payload names no field, so
-    # the publisher reads the device's field from the registry (field_id=None here).
+    # the publish uses the field the device registry just attested.
     assert (
         captured
         == [
@@ -714,7 +717,7 @@ def test_a5_dispatch_consumer_passes_the_stable_identity_to_the_publisher(act, m
                 "command_id": "req-9",
                 "issued_at": f"2026-11-01T09:00:00+00:00~{tag}",
                 "tenant_id": TENANT,
-                "field_id": None,
+                "field_id": "field-a",
             }
         ]
         * 2
@@ -828,3 +831,26 @@ def test_a_republished_dispatch_open_is_a_duplicate_on_the_wire(act):
     callback = fw[fw.index("void mqttCallback(") :]
     assert callback.index("cmdauth::verify_command(") < callback.index("valveRequestedMs =")
     assert callback.index("persistLastCtr(m.ctr)") < callback.index("valveRequestedMs =")
+
+
+@pytest.mark.parametrize("raises", [False, True])
+def test_queue_gate_rule_and_compensation(wired, monkeypatch, raises):
+    act, db, trace = wired
+    monkeypatch.setattr(act, "ACTUATOR_MODE", "real")
+    db.rules[0]["action_payload"] = {"duration_sec": 60}
+
+    async def unavailable(**kwargs):
+        if raises:
+            raise TimeoutError("queue unavailable")
+        return False
+
+    monkeypatch.setattr(act, "record_command_queued", unavailable)
+    result = asyncio.run(act.evaluate_rules("soil_moisture", 42.0, TENANT, "field-9"))
+    assert trace.mqtt == []
+    assert result[0]["sent"] is False and result[0]["reason"] == "command_queue_unavailable"
+    prior = [
+        {"device": "valve-a", "command": cmd, "payload": {"duration_sec": 60}}
+        for cmd in ("open", "close")
+    ]
+    asyncio.run(act._compensate(prior, TENANT, "valve-b", "start", field_id="field-9"))
+    assert [command for _, command, _ in trace.mqtt] == ["close"]

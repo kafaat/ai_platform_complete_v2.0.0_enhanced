@@ -2174,6 +2174,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_farmland_lifecycle.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
           "signal": "filename:test_"
         },
@@ -2226,6 +2231,11 @@
           "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
           "signal": "filename:contract_without_integration_signal"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "services/soil-service/test_farmland_drainage_design.py",
+          "signal": "filename:test_"
         },
         {
           "evidence_type": "unit",
@@ -2299,6 +2309,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "tests_v9/test_farmland_p1_network.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
           "path": "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
           "signal": "pytest.mark.unit"
         },
@@ -2357,6 +2372,7 @@
         "services/sahool-platform/tests/test_farmer_agency.py",
         "services/sahool-platform/tests/test_farmer_knowledge.py",
         "services/sahool-platform/tests/test_farmland_fertilizer_integration.py",
+        "services/sahool-platform/tests/test_farmland_lifecycle.py",
         "services/sahool-platform/tests/test_farmland_water_cost_feasibility.py",
         "services/sahool-platform/tests/test_farmonaut.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
@@ -2368,6 +2384,7 @@
         "services/sahool-platform/tests/test_simple_farm_book.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
         "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
+        "services/soil-service/test_farmland_drainage_design.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "tests_v9/test_export_season_runs_for_golden.py",
         "tests_v9/test_farm_access_backfill_diff.py",
@@ -2376,6 +2393,7 @@
         "tests_v9/test_farm_book_receipt_field.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_farm_water_ledger_projection.py",
+        "tests_v9/test_farmland_p1_network.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
         "tests_v9/test_sim_golden.py",
         "tests_v9/test_writeops_events_emitted.py"
@@ -7843,9 +7861,10 @@
       "unit_test_paths": []
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -7877,7 +7896,7 @@
         "database": true,
         "documentation": true,
         "events": false,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": true,
         "production": false,
         "runtime": false,
@@ -7912,7 +7931,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -7947,21 +7966,29 @@
           "type": "web"
         }
       ],
-      "evidence_score": 4,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_equipment_schedule_wiring.py"
+      ],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
-      "test_evidence_attribution": [],
+      "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_equipment_schedule_wiring.py",
+          "signal": "pytest.mark.integration"
+        }
+      ],
       "title": "Maintenance",
       "unit_test_paths": []
     },
@@ -15305,7 +15332,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 36,
-    "average_assessed_maturity": 2.11,
+    "average_assessed_maturity": 2.12,
     "capability_count": 81,
     "declared_above_evidence": 37,
     "evidence_above_declared": 8,

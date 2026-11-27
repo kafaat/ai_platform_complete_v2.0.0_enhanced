@@ -359,9 +359,10 @@ def evaluate_profile(
         standards, observations, on=on, contexts=contexts, profile_id=profile_id
     )
     for s in standards:
-        a = registry.adoption_status(profile_id, s.standard_id)
+        a = registry.adoption_status(profile_id, s.standard_id, s.version)
         report.standards[s.ref].update(
             adoption=a.status,
+            adoption_version=a.version if a.status != "reference_only" else None,
             adoption_authority=a.authority or None,
             adoption_reference=a.reference or None,
             adopted_on=a.adopted_on.isoformat() if a.adopted_on else None,

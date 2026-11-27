@@ -43,6 +43,7 @@ def cost_categories() -> dict:
     return {
         "categories": _COST_CATEGORIES,
         "supports_well_pumping_scenario": True,
+        "supports_energy_lifecycle": True,
         "note_ar": ("قدّر كلّ بند بأسعار منطقتك. ليست كلّها تنطبق على كلّ محصول — املأ ما يخصّ حالتك."),
     }
 

@@ -51,6 +51,7 @@ import {
   type WaterSampleFormText,
 } from '../../lib/waterFieldOps';
 import { T } from '../ds';
+import FertilizerScenarioCard from './FertilizerScenarioCard';
 import { OpenMeteoAttribution } from '../OpenMeteoAttribution';
 
 interface Props {
@@ -590,6 +591,7 @@ export default function WaterFieldOpsCard({ fieldId, cropLabel, enabled = true }
             <NumField id="wfo-4r-zn" label="Zn (ppm):" value={soil4r.znPpm} onChange={set4rField('znPpm')} width="w-14" />
             <NumField id="wfo-4r-om" label="مادّة عضويّة (٪):" value={soil4r.omPct} onChange={set4rField('omPct')} width="w-14" />
           </div>
+          <FertilizerScenarioCard />
           {soil4rReq && <div className="text-[11px]" style={{ color: T.muted }}>المصدر: القيم المدخلة يدويًا.</div>}
           {!soil4rReq && planQ.data?.sample_id && (
             <div className="text-[11px]" style={{ color: T.muted }}>

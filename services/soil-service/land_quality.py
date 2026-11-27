@@ -83,7 +83,7 @@ def esp_from_exchangeable_na(na_cmolc_kg: float, cec_cmolc_kg: float) -> EspResu
     if na > cec:
         raise LandQualityInputError("exchangeable_na_exceeds_cec")
     return EspResult(
-        esp_pct=round(100.0 * na / cec, 4),
+        esp_pct=round((na / cec) * 100.0, 4),
         basis="measured_exchangeable_na",
         source="USDA HB60 (1954): ESP = exchangeable Na / CEC × 100",
     )

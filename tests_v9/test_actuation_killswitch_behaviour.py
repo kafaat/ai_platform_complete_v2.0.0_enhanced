@@ -34,6 +34,7 @@ import importlib.util
 import sys
 import types
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -166,6 +167,7 @@ def manual(actuator, monkeypatch) -> _Trace:
     monkeypatch.setattr(main, "_pool", _Pool({"tenant_id": TENANT, "field_id": "field-9"}))
     monkeypatch.setattr(main, "send_mqtt_command", trace.mqtt)
     monkeypatch.setattr(main, "log_command", trace.log)
+    monkeypatch.setattr(main, "record_command_queued", AsyncMock(return_value=True))
     monkeypatch.setattr(router_mod, "is_actuation_halted", trace.killswitch)
     trace.send = router_mod.send_command  # type: ignore[attr-defined]
     trace.request = main.CommandRequest  # type: ignore[attr-defined]
@@ -374,6 +376,7 @@ def rules(actuator, monkeypatch) -> _Trace:
     main._trigger_since.clear()
     monkeypatch.setattr(main, "send_mqtt_command", trace.mqtt)
     monkeypatch.setattr(main, "log_command", trace.log)
+    monkeypatch.setattr(main, "record_command_queued", AsyncMock(return_value=True))
     monkeypatch.setattr(main, "is_actuation_halted", trace.killswitch)
     monkeypatch.setattr(main, "ACTUATOR_IDEMPOTENCY_MODE", "local")
     main._dedup_last_fired.clear()
