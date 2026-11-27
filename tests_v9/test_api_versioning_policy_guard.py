@@ -1427,3 +1427,42 @@ def test_check_keeps_missing_or_stale_inventory_unchanged(tmp_path: Path):
         assert inventory.name in result.stderr and csv.name in result.stderr
         assert not inventory.exists()
         assert csv.read_text(encoding="utf-8") == "stale\n"
+
+
+def test_two_stage_registration_is_subject_to_legacy_ceiling(tmp_path: Path):
+    root = _isolated_policy_root(tmp_path)
+    _write_probe(
+        root,
+        '\nasync def forecast():\n    return {}\n\nrouter.post("/forecast")(forecast)\n',
+    )
+    subprocess.run(
+        [sys.executable, "scripts/ci/api_versioning_policy_guard.py"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+    )
+    checked = _run_check(root)
+    assert checked.returncode != 0
+    assert "0 ⇒ 1" in checked.stderr
+
+
+def test_two_stage_registration_retains_prefix_and_handler(tmp_path: Path, monkeypatch):
+    root = _isolated_policy_root(tmp_path)
+    _write_probe(
+        root,
+        '\nweather = APIRouter(prefix="/v1/weather")\n'
+        'weather.get("/forecast")(handlers.forecast)\n'
+        'weather.get("/incomplete")\n'
+        'handlers.get("/unrelated")(callback)\n'
+        "weather.get(dynamic_path)(callback)\n"
+        'weather.websocket("/updates")(callback)\n'
+        '@weather.get("/decorated")\n'
+        "def decorated(): pass\n",
+    )
+    monkeypatch.setattr(guard, "ROOT", root)
+    rows = guard._routes(_probe_path(root))
+    actual = [(r["method"], r["path"], r["handler"], r["line"]) for r in rows]
+    assert sorted(actual) == [
+        ("GET", "/v1/weather/decorated", "decorated", 14),
+        ("GET", "/v1/weather/forecast", "handlers.forecast", 8),
+    ]

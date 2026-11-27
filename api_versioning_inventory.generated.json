@@ -10276,5 +10276,257 @@
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
     "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 23,
+    "method": "GET",
+    "path": "/healthz",
+    "handler": "rt.healthz",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 24,
+    "method": "GET",
+    "path": "/health",
+    "handler": "rt.health",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 25,
+    "method": "GET",
+    "path": "/readyz",
+    "handler": "rt.readyz",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 26,
+    "method": "GET",
+    "path": "/metrics",
+    "handler": "rt.metrics",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 27,
+    "method": "GET",
+    "path": "/",
+    "handler": "rt.root",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 28,
+    "method": "GET",
+    "path": "/contract",
+    "handler": "rt.contract",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 29,
+    "method": "POST",
+    "path": "/v1/weather/raw/process",
+    "handler": "rt.raw_weather_process",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 30,
+    "method": "GET",
+    "path": "/v1/weather/current",
+    "handler": "rt.current_weather",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 31,
+    "method": "GET",
+    "path": "/v1/weather/forecast",
+    "handler": "rt.forecast_weather",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 32,
+    "method": "GET",
+    "path": "/v1/weather/historical",
+    "handler": "rt.historical_weather",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 33,
+    "method": "GET",
+    "path": "/v1/weather/operation-window",
+    "handler": "rt.operation_window",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 34,
+    "method": "GET",
+    "path": "/v1/weather/operation-plan",
+    "handler": "rt.operation_plan",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 35,
+    "method": "GET",
+    "path": "/v1/weather/thermal-stress",
+    "handler": "rt.thermal_stress",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 36,
+    "method": "GET",
+    "path": "/v1/weather/lodging-risk",
+    "handler": "rt.lodging_risk",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 37,
+    "method": "GET",
+    "path": "/v1/weather/pollination-risk",
+    "handler": "rt.pollination_risk",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 38,
+    "method": "GET",
+    "path": "/v1/weather/chill-accumulation",
+    "handler": "rt.chill_accumulation",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 39,
+    "method": "POST",
+    "path": "/v1/weather/agro/et0",
+    "handler": "rt.agro_et0",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 40,
+    "method": "POST",
+    "path": "/v1/weather/agro/et0/series",
+    "handler": "rt.agro_et0_series",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 41,
+    "method": "POST",
+    "path": "/v1/weather/agro/etc/hourly",
+    "handler": "rt.agro_hourly_etc",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 42,
+    "method": "POST",
+    "path": "/v1/weather/agro/gdd",
+    "handler": "rt.agro_gdd",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 43,
+    "method": "POST",
+    "path": "/v1/weather/agro/vpd",
+    "handler": "rt.agro_vpd",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 44,
+    "method": "POST",
+    "path": "/v1/weather/agro/canonical-state",
+    "handler": "rt.agro_canonical_state",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 45,
+    "method": "POST",
+    "path": "/v1/weather/agro/state-report",
+    "handler": "rt.agro_weather_state_report",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 46,
+    "method": "GET",
+    "path": "/v1/weather/tile-data/{z}/{x}/{y}",
+    "handler": "rt.tile_data",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 47,
+    "method": "GET",
+    "path": "/v1/weather/operation-tile-data/{z}/{x}/{y}",
+    "handler": "rt.operation_tile_data",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 48,
+    "method": "GET",
+    "path": "/v1/weather/tile-series/{z}/{x}/{y}",
+    "handler": "rt.tile_series",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 49,
+    "method": "GET",
+    "path": "/v1/weather/wind-grid/{z}/{x}/{y}",
+    "handler": "rt.wind_grid",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 50,
+    "method": "GET",
+    "path": "/v1/weather/cache-stats",
+    "handler": "rt.tile_cache_stats",
+    "classification": "versioned"
   }
 ]
