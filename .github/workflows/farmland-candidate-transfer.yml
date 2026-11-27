@@ -15,13 +15,13 @@ jobs:
         run: |
           set -euo pipefail
           cd "$GITHUB_WORKSPACE"
-          echo '17b2cf932c02f7775d919983af743875b3c5aad394fab73e06d0573752334b41  candidates.pack' | sha256sum --check --strict
+          echo '8a6d20a28d64e96dc58b367de62f49ef1db835b60c43f5dac733337cc2a8fa78  candidates.pack' | sha256sum --check --strict
           git fetch --no-tags --depth=1 origin 2d4ddb45506443495f1b4587fe73bdcb737a5a68
           git index-pack --stdin --fix-thin < candidates.pack
-          test "$(git show -s --format=%P fbdd03477504d07d1021e6b3434b987dad88c662)" = "2d4ddb45506443495f1b4587fe73bdcb737a5a68"
-          test "$(git rev-parse fbdd03477504d07d1021e6b3434b987dad88c662^{tree})" = "1a22e602f3165ecf060ae0837b1aa2a6b6b0a1ad"
-          git ls-tree -r fbdd03477504d07d1021e6b3434b987dad88c662 >/dev/null
+          test "$(git show -s --format=%P 94456164654f43b408edd82f86265fdaee19849b)" = "2d4ddb45506443495f1b4587fe73bdcb737a5a68"
+          test "$(git rev-parse 94456164654f43b408edd82f86265fdaee19849b^{tree})" = "59e0cdb6d9fb45c5184b59ffc9f9458a30e8eaec"
+          git ls-tree -r 94456164654f43b408edd82f86265fdaee19849b >/dev/null
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          tip=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p fbdd03477504d07d1021e6b3434b987dad88c662 -m "Retain the source verified by this run [skip ci]")
+          tip=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p 94456164654f43b408edd82f86265fdaee19849b -m "Retain the source verified by this run [skip ci]")
           git push origin "$tip:refs/heads/ci/farmland-verified-objects-e6c583"
