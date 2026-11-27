@@ -5,9 +5,9 @@
     "mapped_routes": 627,
     "surface_routes": 627
   },
-  "inventory_sha256": "6413b6410c10b6c0dfe8c8f492fb4b4c1b2b404adcad66cf91278ef543a9e551",
+  "inventory_sha256": "80d019eb2ecec8e04657a004d09c9a76ab4bb7ccb177a123dc513dcae35ece8a",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "332a10134f0dac591e2a85043321e6a944fdd1d0f38f76f81b25a5388add6a92",
+  "map_sha256": "340aa62ca8aef6a9183bffd9b9d2fecbbad8373f086f05f72e0c84fb6efe8e48",
   "routes": [
     {
       "classification": null,
@@ -1429,7 +1429,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/equipment.py",
       "function": "list_equipment",
-      "line": 95,
+      "line": 112,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -1443,7 +1443,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/equipment.py",
       "function": "list_maintenance",
-      "line": 218,
+      "line": 251,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -5825,7 +5825,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/equipment.py",
       "function": "log_maintenance",
-      "line": 151,
+      "line": 175,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",

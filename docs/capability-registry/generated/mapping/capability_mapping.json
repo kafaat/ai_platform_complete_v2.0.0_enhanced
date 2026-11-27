@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7773,
     "files_by_kind": {
       "backend": 1321,
-      "database": 360,
+      "database": 362,
       "governance": 92,
       "mobile": 429,
       "other": 2259,
-      "tests": 2722,
+      "tests": 2723,
       "web": 587
     },
-    "unmapped_artifacts": 3703,
+    "unmapped_artifacts": 3704,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4224,
-      "raw": 3546
+      "python_functional": 4225,
+      "raw": 3548
     },
-    "test_dependency_files": 2075,
-    "test_dependency_edges": 5617,
-    "test_dependency_bounded_files": 1193,
+    "test_dependency_files": 2076,
+    "test_dependency_edges": 5618,
+    "test_dependency_bounded_files": 1194,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -13345,19 +13345,19 @@
       ],
       "routes": [
         {
+          "value": "/api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:112",
+          "score": 20
+        },
+        {
           "value": "/api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:39",
           "score": 20
         },
         {
-          "value": "/api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:95",
+          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:175",
           "score": 20
         },
         {
-          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:151",
-          "score": 20
-        },
-        {
-          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:218",
+          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:251",
           "score": 20
         },
         {
@@ -17525,12 +17525,52 @@
           "score": 12
         },
         {
+          "value": "equipment @ migrations/v291_equipment_hierarchy_preventive_plan.sql:13",
+          "score": 12
+        },
+        {
+          "value": "equipment @ migrations/v291_equipment_hierarchy_preventive_plan.sql:7",
+          "score": 12
+        },
+        {
           "value": "equipment_maintenance @ migrations/v23_equipment.sql:33",
+          "score": 12
+        },
+        {
+          "value": "equipment_maintenance @ migrations/v291_equipment_hierarchy_preventive_plan.sql:24",
+          "score": 12
+        },
+        {
+          "value": "equipment_maintenance @ migrations/v291_equipment_hierarchy_preventive_plan.sql:26",
           "score": 12
         },
         {
           "path": "migrations/v23_equipment.sql",
           "score": 12,
+          "signals": [
+            "content:equipment maintenance",
+            "content:Maintenance"
+          ]
+        },
+        {
+          "path": "migrations/v291_equipment_hierarchy_preventive_plan.sql",
+          "score": 12,
+          "signals": [
+            "content:equipment maintenance",
+            "content:Maintenance"
+          ]
+        },
+        {
+          "value": "equipment @ migrations/v291_equipment_hierarchy_preventive_plan.down.sql:8",
+          "score": 8
+        },
+        {
+          "value": "equipment_maintenance @ migrations/v291_equipment_hierarchy_preventive_plan.down.sql:15",
+          "score": 8
+        },
+        {
+          "path": "migrations/v291_equipment_hierarchy_preventive_plan.down.sql",
+          "score": 8,
           "signals": [
             "content:equipment maintenance",
             "content:Maintenance"
@@ -17568,7 +17608,7 @@
       "evidence_counts": {
         "backend": 0,
         "routes": 0,
-        "database": 3,
+        "database": 11,
         "events": 0,
         "web": 0,
         "mobile": 1,
@@ -45793,6 +45833,10 @@
     },
     {
       "path": "tests_v9/test_eo_operational_quality_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_equipment_hierarchy_plan_live_pg.py",
       "kind": "tests"
     },
     {
@@ -84359,6 +84403,19 @@
           "import": "api.canonical_water_stress"
         }
       ]
+    },
+    {
+      "test": "tests_v9/test_equipment_hierarchy_plan_live_pg.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 63
+        }
+      ],
+      "unresolved": []
     },
     {
       "test": "tests_v9/test_equipment_schedule_wiring.py",

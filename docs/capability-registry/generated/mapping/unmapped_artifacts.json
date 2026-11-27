@@ -12276,6 +12276,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_equipment_hierarchy_plan_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_erp_sync_recovery.py",
     "kind": "tests"
   },

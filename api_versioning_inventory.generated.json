@@ -5204,7 +5204,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 96,
+    "line": 113,
     "method": "GET",
     "path": "/api/v1/equipment",
     "handler": "list_equipment",
@@ -5213,7 +5213,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 152,
+    "line": 176,
     "method": "POST",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "handler": "log_maintenance",
@@ -5222,7 +5222,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 219,
+    "line": 252,
     "method": "GET",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "handler": "list_maintenance",

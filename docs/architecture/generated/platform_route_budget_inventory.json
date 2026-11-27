@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "f5582f8ec19d6d37a7e7a2b0b42062d3e226da17db52bfadf22824712150aa15",
+  "inventory_sha256": "06dd09c5212bf1a920c5472917596dbbccd1402c908c56dce629060fca51309e",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "332a10134f0dac591e2a85043321e6a944fdd1d0f38f76f81b25a5388add6a92"
+    "policy_sha256": "340aa62ca8aef6a9183bffd9b9d2fecbbad8373f086f05f72e0c84fb6efe8e48"
   },
   "routes": [
     {
@@ -818,7 +818,7 @@
     {
       "classification": "domain",
       "function": "list_equipment",
-      "line": 95,
+      "line": 112,
       "method": "GET",
       "path": "/api/v1/equipment",
       "source": "api/routers/equipment.py"
@@ -826,7 +826,7 @@
     {
       "classification": "domain",
       "function": "list_maintenance",
-      "line": 218,
+      "line": 251,
       "method": "GET",
       "path": "/api/v1/equipment/{equipment_id}/maintenance",
       "source": "api/routers/equipment.py"
@@ -3322,7 +3322,7 @@
     {
       "classification": "domain",
       "function": "log_maintenance",
-      "line": 151,
+      "line": 175,
       "method": "POST",
       "path": "/api/v1/equipment/{equipment_id}/maintenance",
       "source": "api/routers/equipment.py"

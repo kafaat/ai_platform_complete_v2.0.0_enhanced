@@ -1996,10 +1996,10 @@ OPS-005,test,tests_v9/test_offline_first_behavior_v66.py,3,applied
 OPS-005,test,tests_v9/test_offline_pending_ops_terminal_v19_5.py,3,applied
 OPS-005,test,tests_v9/test_offline_pending_queue.py,3,applied
 OPS-005,test,tests_v9/test_wofost_pcse_offline_integration.py,3,applied
-OPS-006,api,GET /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:96,3,applied
-OPS-006,api,GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:219,3,applied
+OPS-006,api,GET /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:113,3,applied
+OPS-006,api,GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:252,3,applied
 OPS-006,api,POST /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:40,3,applied
-OPS-006,api,POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:152,3,applied
+OPS-006,api,POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:176,3,applied
 OPS-006,mobile,mobile/sahool_app/lib/features/equipment/data/equipment_api.dart,2,applied
 OPS-006,mobile,mobile/sahool_app/lib/features/equipment/data/equipment_models.dart,2,applied
 OPS-006,mobile,mobile/sahool_app/lib/features/equipment/equipment_routes.dart,2,applied
@@ -2012,10 +2012,11 @@ OPS-006,service,services/sahool-platform/api/main.py,10,applied
 OPS-006,test,mobile/sahool_app/test/features/equipment/equipment_test.dart,3,applied
 OPS-006,test,services/sahool-platform/tests/test_equipment_intelligence_wiring.py,3,applied
 OPS-006,test,services/sahool-platform/tests/test_machinery_export.py,3,applied
+OPS-006,test,tests_v9/test_equipment_hierarchy_plan_live_pg.py,3,applied
 OPS-006,test,tests_v9/test_equipment_schedule_wiring.py,3,applied
 OPS-006,test,tests_v9/test_inventory_equipment.py,3,applied
-OPS-007,api,GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:219,3,applied
-OPS-007,api,POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:152,3,applied
+OPS-007,api,GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:252,3,applied
+OPS-007,api,POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:176,3,applied
 OPS-007,service,services/sahool-platform/api/main.py,10,applied
 OPS-008,service,services/auth/main.py,10,applied
 OPS-008,test,services/decision-service/tests/test_worker_identity_binding.py,5,applied

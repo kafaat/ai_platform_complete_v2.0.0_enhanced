@@ -8585,7 +8585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "147ddfec277e3378ac00267c41d0268d18fd37ea9930d423a86ed36417bc3a84"
+          "content": "d1a216ba6d8db69e99f22b2190175be623e9905ce86a1927251d25f135b18bc7"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -10769,6 +10769,26 @@
         }
       ],
       "name": "migrations/v290_scouting_verification_initial_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4fa9ce60e1d31416245033b216a4049cde96820ca7880a9348e3a0d6e16b86ac"
+        }
+      ],
+      "name": "migrations/v291_equipment_hierarchy_preventive_plan.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c97c64f1de6ed129686bdfaf635834fbb1329501509f28a547895b7995f373cd"
+        }
+      ],
+      "name": "migrations/v291_equipment_hierarchy_preventive_plan.sql",
       "type": "file"
     },
     {
@@ -26565,7 +26585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8dead57db99865e0459aaeeb67df6de92dca38f6b64ae1ea509eaa916e177bc0"
+          "content": "ba5890a53a211a4ec2fcba4f723fe35b8de0308faa8b88ff81d02de62d659181"
         }
       ],
       "name": "services/sahool-platform/api/equipment_models.py",
@@ -28395,7 +28415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "35f870b69ec393983ea68201ce05fdef7e8c97af853e7c11ccb7cdc783ea8ce5"
+          "content": "a77953ec86c58c98f5bf2d3b420877b63412cc2afac02a3ed3a844dd7d61a02c"
         }
       ],
       "name": "services/sahool-platform/api/routers/equipment.py",
@@ -35495,7 +35515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4728d4f6138df065ae2fc13f3c81052e6564920d4cbc7f2778ad1fd14fb97afb"
+          "content": "551a6a7180fcf83423883ad5d023bd249011502f650e6290af90fe04faa52e6f"
         }
       ],
       "name": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
