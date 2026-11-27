@@ -16,16 +16,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          candidate=2c8ce373dad6682ae746822ed5d2dc1f8350dde6
-          first=4b01316448fc6aa43c3cee0c8b38f2240f422a0e
-          second=0fcbda7ab3f5d8a2fd2031ba1b75dcdbba819f11
-          tree=fc1c169aa89e013b3ceee3c22642def5712c3afb
+          candidate=4b492f9146d4ec025b86e908613673674ad8ad8a
+          parent=90b25683070dda97b543420d04cc6a2a689cc352
+          tree=760e25b1006dd14bea6ebfb826e7deef1b18f5b4
           destination=refs/heads/integration/farmland-1639-1641-qualified
           cat qualification-transfer/pack-* > "$RUNNER_TEMP/candidate.pack"
-          echo '6457901a9750a60035a1a80c453b7109971cccd8e5ca6c70518dbe97ea8dfa90  candidate.pack' | (cd "$RUNNER_TEMP" && sha256sum --check --strict)
-          git fetch --no-tags --depth=1 origin "$first" "$second"
+          echo '8a97012aa8500a40e18b31f6e73e06c5c20879b3190b715a3cae52e43e8dc658  candidate.pack' | (cd "$RUNNER_TEMP" && sha256sum --check --strict)
+          git fetch --no-tags --depth=1 origin "$parent"
           git index-pack --stdin < "$RUNNER_TEMP/candidate.pack"
-          test "$(git show -s --format=%P "$candidate")" = "$first $second"
+          test "$(git show -s --format=%P "$candidate")" = "$parent"
           test "$(git rev-parse "$candidate^{tree}")" = "$tree"
           git ls-tree -r "$candidate" >/dev/null
           git push origin "$candidate:$destination"
