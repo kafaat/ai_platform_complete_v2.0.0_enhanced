@@ -177,13 +177,18 @@ export function canCreateFarm(role: string | undefined): boolean {
   return can(role, 'create', 'farm');
 }
 
-/** Recording a farm-book expense or linking one to a task (activity:execute on the server:
- *  owner, manager and worker, not agronomist or viewer). Independent of analytics:view, so a
- *  worker can record a task receipt without seeing cost totals. A role set, not a rank: the
- *  server grants it to the worker but not to the agronomist. */
-const EXPENSE_RECORDERS: readonly Role[] = ['owner', 'manager', 'worker'];
+/** activity:execute (core/authorization.py): owner, manager and worker, not agronomist
+ *  or viewer. Task execution and expense recording use this exact role set rather than the
+ *  field-edit capability or a rank: the server grants it to workers but not agronomists. */
+const ACTIVITY_EXECUTORS: readonly Role[] = ['owner', 'manager', 'worker'];
+export function canExecuteActivity(role: string | undefined): boolean {
+  return ACTIVITY_EXECUTORS.includes(normalizeRole(role));
+}
+
+/** Recording a farm-book expense or linking one to a task uses activity:execute.
+ *  Independent of analytics:view: a worker can record a receipt without seeing cost totals. */
 export function canRecordExpense(role: string | undefined): boolean {
-  return EXPENSE_RECORDERS.includes(normalizeRole(role));
+  return canExecuteActivity(role);
 }
 
 /** تسمية عربيّة موحّدة للدور. */
