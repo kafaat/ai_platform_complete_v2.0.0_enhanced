@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "f5582f8ec19d6d37a7e7a2b0b42062d3e226da17db52bfadf22824712150aa15",
+  "inventory_sha256": "1470a849d1bc5e62afcaf7f6f70846770b067ef0852cfef4c5b5c72c516e5eb7",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "332a10134f0dac591e2a85043321e6a944fdd1d0f38f76f81b25a5388add6a92"
+    "policy_sha256": "f65d7e5203f40bb97d417cd2360189f5f26a111db99fbcbcd655593f595d978b"
   },
   "routes": [
     {
@@ -914,7 +914,7 @@
     {
       "classification": "domain",
       "function": "get_season_budget",
-      "line": 553,
+      "line": 538,
       "method": "GET",
       "path": "/api/v1/farm-ledger/budgets/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -922,7 +922,7 @@
     {
       "classification": "domain",
       "function": "get_economic_state",
-      "line": 911,
+      "line": 895,
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -930,7 +930,7 @@
     {
       "classification": "domain",
       "function": "get_erp_projection",
-      "line": 703,
+      "line": 687,
       "method": "GET",
       "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -938,7 +938,7 @@
     {
       "classification": "domain",
       "function": "get_inventory_projection",
-      "line": 860,
+      "line": 844,
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -954,7 +954,7 @@
     {
       "classification": "domain",
       "function": "get_season_profitability",
-      "line": 667,
+      "line": 651,
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -970,7 +970,7 @@
     {
       "classification": "domain",
       "function": "get_budget_variance",
-      "line": 629,
+      "line": 613,
       "method": "GET",
       "path": "/api/v1/farm-ledger/variance/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3394,7 +3394,7 @@
     {
       "classification": "domain",
       "function": "operation_autowrite_preview",
-      "line": 794,
+      "line": 778,
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3402,7 +3402,7 @@
     {
       "classification": "domain",
       "function": "upsert_season_budget_lines",
-      "line": 470,
+      "line": 472,
       "method": "POST",
       "path": "/api/v1/farm-ledger/budgets",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3418,7 +3418,7 @@
     {
       "classification": "domain",
       "function": "create_revenue_record",
-      "line": 584,
+      "line": 569,
       "method": "POST",
       "path": "/api/v1/farm-ledger/revenues",
       "source": "api/routers/farm_operations_ledger.py"

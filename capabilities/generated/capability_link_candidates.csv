@@ -449,24 +449,24 @@ FM-002,api,GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/
 FM-002,api,GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:729,2,applied
 FM-002,api,GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:663,2,applied
 FM-002,api,GET /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:247,2,applied
-FM-002,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554,2,applied
-FM-002,api,GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912,2,applied
-FM-002,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:704,2,applied
-FM-002,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:861,2,applied
+FM-002,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:539,2,applied
+FM-002,api,GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:896,2,applied
+FM-002,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:688,2,applied
+FM-002,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:845,2,applied
 FM-002,api,GET /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:279,2,applied
-FM-002,api,GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:668,2,applied
+FM-002,api,GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:652,2,applied
 FM-002,api,GET /api/v1/farm-ledger/summary @ services/sahool-platform/api/routers/farm_operations_ledger.py:331,2,applied
-FM-002,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630,2,applied
+FM-002,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:614,2,applied
 FM-002,api,GET /api/v1/farms @ services/sahool-platform/api/routers/farms.py:107,2,applied
 FM-002,api,GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:142,4,applied
 FM-002,api,GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179,4,applied
 FM-002,api,GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:46,2,applied
 FM-002,api,POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:429,2,applied
 FM-002,api,POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:215,2,applied
-FM-002,api,POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:795,2,applied
-FM-002,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:471,2,applied
+FM-002,api,POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:779,2,applied
+FM-002,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:473,2,applied
 FM-002,api,POST /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:135,2,applied
-FM-002,api,POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:585,2,applied
+FM-002,api,POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:570,2,applied
 FM-002,api,POST /api/v1/farms @ services/sahool-platform/api/routers/farms.py:37,4,applied
 FM-002,api,POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88,3,applied
 FM-002,api,POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:120,2,applied
@@ -1094,12 +1094,12 @@ FM-003,ui,frontend/src/components/FieldIndicatorMap.boundary.test.tsx,2,applied
 FM-003,ui,frontend/src/lib/fields.fieldview.test.ts,2,applied
 FM-003,ui,frontend/src/lib/fields.test.ts,2,applied
 FM-003,ui,frontend/src/lib/fields.ts,2,applied
-FM-004,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554,2,applied
-FM-004,api,GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912,2,applied
-FM-004,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:704,2,applied
-FM-004,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:861,2,applied
-FM-004,api,GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:668,2,applied
-FM-004,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630,2,applied
+FM-004,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:539,2,applied
+FM-004,api,GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:896,2,applied
+FM-004,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:688,2,applied
+FM-004,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:845,2,applied
+FM-004,api,GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:652,2,applied
+FM-004,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:614,2,applied
 FM-004,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:333,2,applied
 FM-004,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:591,2,applied
 FM-004,api,GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:268,2,applied
@@ -1112,7 +1112,7 @@ FM-004,api,GET /v1/imagery/search/season @ services/raster-service/routers/image
 FM-004,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2233,2,applied
 FM-004,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
 FM-004,api,POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:232,2,applied
-FM-004,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:471,2,applied
+FM-004,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:473,2,applied
 FM-004,api,POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:1996,2,applied
 FM-004,api,POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:147,2,applied
 FM-004,api,POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:530,2,applied
@@ -1273,15 +1273,15 @@ FM-005,test,tests_v9/test_variety_policy_resolution.py,3,applied
 FM-006,api,GET /api/v1/decision/economics @ services/sahool-platform/api/routers/decision_impact.py:185,2,applied
 FM-006,api,GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:51,2,applied
 FM-006,api,GET /api/v1/economics/cost-categories @ services/sahool-platform/api/routers/economics.py:26,4,applied
-FM-006,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554,2,applied
-FM-006,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630,2,applied
+FM-006,api,GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:539,2,applied
+FM-006,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:614,2,applied
 FM-006,api,GET /api/v1/orchard/economics @ services/sahool-platform/api/routers/orchard.py:30,2,applied
 FM-006,api,GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:70,2,applied
 FM-006,api,GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147,2,applied
 FM-006,api,GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:214,2,applied
 FM-006,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:537,2,applied
 FM-006,api,POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32,2,applied
-FM-006,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:471,2,applied
+FM-006,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:473,2,applied
 FM-006,api,POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:145,2,applied
 FM-006,api,POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624,2,applied
 FM-006,api,POST /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:154,2,applied
@@ -1299,7 +1299,7 @@ FM-006,test,tests_v9/test_farm_ledger_cost_coverage_live_pg.py,3,applied
 FM-006,test,tests_v9/test_rag_bm25_search_cost.py,3,applied
 FM-006,test,tests_v9/test_tool_loop_budget_v58_2c.py,3,applied
 FM-006,ui,frontend/src/sections/TasksPage.cost.test.tsx,2,applied
-FM-007,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:861,2,applied
+FM-007,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:845,2,applied
 FM-007,api,GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187,2,applied
 FM-007,api,GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92,2,applied
 FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:876,2,applied
@@ -1332,7 +1332,7 @@ FM-007,test,tests_v9/test_resolve_inventory_edges.py,3,applied
 FM-007,test,tests_v9/test_unit_skip_inventory_guard.py,3,applied
 FM-007,test,tests_v9/test_v9_internal_tls_inventory.py,3,applied
 FM-008,api,GET /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:305,2,applied
-FM-008,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:704,2,applied
+FM-008,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:688,2,applied
 FM-008,api,GET /health @ services/odoo-bridge/routers/health.py:77,3,applied
 FM-008,api,GET /healthz @ services/odoo-bridge/routers/health.py:77,3,applied
 FM-008,api,GET /readyz @ services/odoo-bridge/routers/health.py:87,3,applied
