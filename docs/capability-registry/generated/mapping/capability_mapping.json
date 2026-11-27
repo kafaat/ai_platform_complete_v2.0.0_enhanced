@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7770,
+    "files_scanned": 7771,
     "files_by_kind": {
       "backend": 1321,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2259,
-      "tests": 2722,
+      "tests": 2723,
       "web": 587
     },
-    "unmapped_artifacts": 3703,
+    "unmapped_artifacts": 3704,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4224,
-      "raw": 3546
+      "raw": 3547
     },
     "test_dependency_files": 2075,
     "test_dependency_edges": 5617,
@@ -38045,6 +38045,10 @@
     },
     {
       "path": "mobile/sahool_app/test/features/realtime/realtime_screen_layout_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
       "kind": "tests"
     },
     {

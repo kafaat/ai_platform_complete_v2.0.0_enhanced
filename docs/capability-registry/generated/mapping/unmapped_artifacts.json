@@ -4528,6 +4528,10 @@
     "kind": "tests"
   },
   {
+    "path": "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
     "kind": "tests"
   },

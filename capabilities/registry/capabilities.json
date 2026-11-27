@@ -4108,6 +4108,7 @@
         "mobile/sahool_app/lib/screens/tasks_screen.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
         "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
         "mobile/sahool_app/test/features/tasks/task_detail_test.dart",
         "mobile/sahool_app/test/features/tasks/task_grouping_test.dart",
@@ -4168,7 +4169,7 @@
           "path": "migrations/v247_farm_operations_task_link.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=20, tests=16, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=20, tests=17, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5022,6 +5023,7 @@
         "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
         "services/decision-service/tests/test_learning_update_review_contract.py",
         "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -5045,8 +5047,7 @@
         "tests_v9/test_governed_learning_review_contract.py",
         "tests_v9/test_governed_learning_review_live_pg.py",
         "tests_v9/test_lab_water_review_live_pg.py",
-        "tests_v9/test_learning_review_persistence_gap.py",
-        "tests_v9/test_practice_dataset_review.py"
+        "tests_v9/test_learning_review_persistence_gap.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5103,7 +5104,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 5
+        "tests": 6
       }
     },
     {
