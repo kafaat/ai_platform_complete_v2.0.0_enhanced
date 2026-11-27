@@ -26,6 +26,11 @@ async def test_equipment_schedule_wiring(monkeypatch):
     async with asyncpg.create_pool(os.environ["TEST_DATABASE_URL"], min_size=1, max_size=1) as pool:
         monkeypatch.setattr(main, "_DB_POOL", pool)
         async with pool.acquire() as conn:
+            if os.getenv("EQUIPMENT_SCHEDULE_CERTIFICATION_REQUIRED") == "1":
+                privileged = await conn.fetchval(
+                    "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
+                )
+                assert privileged is False, "equipment certification requires a restricted DB role"
             await conn.execute("""
                 CREATE TEMP TABLE equipment (LIKE public.equipment INCLUDING DEFAULTS);
                 CREATE TEMP TABLE equipment_maintenance
