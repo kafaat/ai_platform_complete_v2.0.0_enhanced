@@ -33,7 +33,7 @@ def compare(calculator: Path):
         [sys.executable, str(calculator / "hydraulic-oracle.py")],
         capture_output=True,
         check=True,
-        text=True,
+        encoding="utf-8",
         timeout=180,
     )
     reference = json.loads(oracle.stdout)
