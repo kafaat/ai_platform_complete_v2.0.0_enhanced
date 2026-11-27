@@ -1,0 +1,28 @@
+name: Verify data-path-sources source objects
+on:
+  push:
+    branches: [ci/verify-data-path-sources-e5c40853]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify the candidate parents and content and retain only on the transfer branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'ced52715b2b8d9f4b0368578e128a5ab60d00ffa1f7327e44d8df515a57cc5e5  candidate.pack' | sha256sum --check --strict
+          git fetch --no-tags --depth=1 origin db79cf6d33fb8adb900f049d742de229f8616d4b
+          git index-pack --stdin --fix-thin < candidate.pack
+          test "$(git show -s --format=%P e5c40853f03d1cc6d775bcb92cd157988ee65c90)" = "db79cf6d33fb8adb900f049d742de229f8616d4b"
+          test "$(git rev-parse e5c40853f03d1cc6d775bcb92cd157988ee65c90^{tree})" = "d653c65bfafc196bcbeef494238e527c03acd2a1"
+          git ls-tree -r e5c40853f03d1cc6d775bcb92cd157988ee65c90 >/dev/null
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          retained=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p e5c40853f03d1cc6d775bcb92cd157988ee65c90 -m "Retain verified source [skip ci]")
+          git push origin "$retained:refs/heads/ci/verify-data-path-sources-e5c40853"
