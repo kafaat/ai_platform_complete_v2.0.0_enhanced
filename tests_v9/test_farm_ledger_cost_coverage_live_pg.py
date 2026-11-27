@@ -34,6 +34,7 @@ PLATFORM = ROOT / "services" / "sahool-platform"
 DSN = os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )
+ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or DSN
 TABLES = ("farm_season_projects", "farm_season_budget_lines", "farm_operation_ledger")
 
 
@@ -85,8 +86,9 @@ class Live:
         self.role: str | None = None
 
     async def __aenter__(self):
-        self.owner = await asyncpg.connect(DSN)
-        if await self.owner.fetchval(
+        self.owner = await asyncpg.connect(ADMIN_DSN)
+        # A single privileged DSN needs a restricted role for the request pool.
+        if ADMIN_DSN == DSN and await self.owner.fetchval(
             "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user"
         ):
             self.role = f"cost_rls_{uuid.uuid4().hex[:10]}"
@@ -101,6 +103,10 @@ class Live:
         async def setup(conn):
             if role:
                 await conn.execute(f'SET ROLE "{role}"')
+            restricted = await conn.fetchval(
+                "SELECT NOT (rolsuper OR rolbypassrls) FROM pg_roles WHERE rolname = current_user"
+            )
+            assert restricted is True, "request pool requires a NOSUPERUSER NOBYPASSRLS role"
 
         self.pool = await asyncpg.create_pool(DSN, min_size=1, max_size=2, setup=setup)
         for season, tenant in (
