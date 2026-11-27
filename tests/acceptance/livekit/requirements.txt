@@ -1,3 +1,0 @@
--r ../../../services/realtime-session/requirements.txt
-# The native acceptance client is isolated from the worker's Agents dependency set.
-livekit==1.1.21
