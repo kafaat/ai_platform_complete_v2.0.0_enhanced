@@ -1,0 +1,126 @@
+name: Verify zone metadata through retrieval and spatial previews
+on:
+  push:
+    branches: [ci/farmland-zone-roundtrip-e6c583]
+permissions:
+  contents: read
+env:
+  CANDIDATE: 92948d06e58acfa4c3be7996e9ee2e0c204e1a4d
+  BEFORE: 9c26ed06da244b48c1618e00972b98c619a570bc
+jobs:
+  spatial:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tests_v9/requirements-test.txt
+      - name: Prepare exact source, Qdrant and PostgreSQL
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/source" "$CANDIDATE"
+          git worktree add --detach "$RUNNER_TEMP/before" "$BEFORE"
+          cd "$RUNNER_TEMP/source"
+          test "$(git rev-parse 'HEAD^{tree}')" = f92e8d60a6b0ffe4b2cf87768d9107b98fa29856
+          python -m pip install -r tests_v9/requirements-test.txt 'uvicorn==0.30.6'
+          curl -fsSL --retry 3 https://github.com/qdrant/qdrant/releases/download/v1.17.1/qdrant-x86_64-unknown-linux-gnu.tar.gz -o "$RUNNER_TEMP/qdrant.tgz"
+          echo "318a3b1c548161ad476f9ff70b654787a20fc46685e3e1c2b7dd88b363ef3d58  $RUNNER_TEMP/qdrant.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/qdrant.tgz" -C "$RUNNER_TEMP" qdrant
+          pw=$(openssl rand -hex 24)
+          echo "::add-mask::$pw"
+          docker run -d --name spatial-pg -p 127.0.0.1:55432:5432 -e POSTGRES_PASSWORD="$pw" postgis/postgis:17-3.5
+          for n in {1..60}; do
+            if PGPASSWORD="$pw" psql -Xh 127.0.0.1 -p 55432 -U postgres -Atqc "select 1" >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          fixture=$(openssl rand -hex 24)
+          echo "::add-mask::$fixture"
+          export PGPASSWORD="$pw"
+          psql -Xh 127.0.0.1 -p 55432 -U postgres -v ON_ERROR_STOP=1 -v fixture="$fixture" <<'SQL'
+          CREATE EXTENSION IF NOT EXISTS postgis;
+          CREATE ROLE geo_fixture LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS PASSWORD :'fixture';
+          SELECT version(), postgis_lib_version();
+          SQL
+          echo "TEST_DATABASE_URL=postgresql://geo_fixture:$fixture@127.0.0.1:55432/postgres" >> "$GITHUB_ENV"
+          echo "QDRANT_BIN=$RUNNER_TEMP/qdrant" >> "$GITHUB_ENV"
+      - name: Reproduce the flat-zone regression
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/before"
+          if SAHOOL_REPO=$PWD python -m pytest -q -o addopts='' "$GITHUB_WORKSPACE/ci-evidence/zone_roundtrip.py" > "$RUNNER_TEMP/before.log" 2>&1; then
+            echo 'Expected the previous revision to admit the incorrectly field-wide document'
+            exit 1
+          fi
+          grep -F "zone rejections=['nested-zone']" "$RUNNER_TEMP/before.log"
+      - name: Validate the source and repeat all ten spatial previews
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/source"
+          python -m pytest -q -o addopts='' tests_v9/test_p2_georag_decision.py
+          SAHOOL_REPO=$PWD python -m pytest -q -s -o addopts='' "$GITHUB_WORKSPACE/ci-evidence/zone_roundtrip.py"
+  regenerate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: 92948d06e58acfa4c3be7996e9ee2e0c204e1a4d
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Run the official regeneration and clean verification
+        env:
+          PYTHONUNBUFFERED: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python -m pip install -c constraints-ci-tools.txt ruff
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+          bash scripts/ci/regenerate_all_generated.sh
+          test -z "$(git ls-files --others --exclude-standard)"
+          git add -u
+          git -c core.whitespace=cr-at-eol diff --cached --check
+          git -c user.name=Codex -c user.email=codex@users.noreply.github.com commit --allow-empty -m 'Regenerate governed artifacts for the stored zone restrictions'
+          git branch measured-zone HEAD
+          mkdir "$RUNNER_TEMP/verified"
+          git rev-parse HEAD 'HEAD^{tree}' > "$RUNNER_TEMP/verified/source.txt"
+          git diff --name-only "$CANDIDATE" HEAD > "$RUNNER_TEMP/verified/generated-paths.txt"
+          git bundle create "$RUNNER_TEMP/verified/source.bundle" refs/heads/measured-zone "^$CANDIDATE"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: verified-zone-source
+          path: ${{ runner.temp }}/verified/
+          if-no-files-found: error
+          retention-days: 7
+  retain:
+    needs: [spatial, regenerate]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: 92948d06e58acfa4c3be7996e9ee2e0c204e1a4d
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: verified-zone-source
+          path: ${{ runner.temp }}/verified
+      - name: Retain measured Git objects on an evidence branch
+        run: |
+          set -euo pipefail
+          git bundle verify "$RUNNER_TEMP/verified/source.bundle"
+          git fetch "$RUNNER_TEMP/verified/source.bundle" refs/heads/measured-zone
+          source=$(git rev-parse FETCH_HEAD)
+          test "$(git show -s --format=%P "$source")" = "$CANDIDATE"
+          git rev-parse "$source" "$source^{tree}" | diff - "$RUNNER_TEMP/verified/source.txt"
+          git push origin "$source:refs/heads/ci/farmland-zone-verified-92948d06"
+          cat "$RUNNER_TEMP/verified/source.txt"
