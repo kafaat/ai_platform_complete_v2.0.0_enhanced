@@ -15,13 +15,13 @@ jobs:
         run: |
           set -euo pipefail
           cd "$GITHUB_WORKSPACE"
-          echo 'ac51b763a1da815d6968fb2bda4b675cc7998971d399081c9ce9291645223fce  candidates.pack' | sha256sum --check --strict
-          git fetch --no-tags --depth=1 origin 38bbd51941be469533987c51e4f5cd231da67510
+          echo '57782fdacc261e4af9bb605da9379e679e37ee55f7c5694eededac12f5a6cbb0  candidates.pack' | sha256sum --check --strict
+          git fetch --no-tags --depth=1 origin 6c9f43476686863cadfbe82d9a5f48e8aaf4ab8b
           git index-pack --stdin --fix-thin < candidates.pack
-          test "$(git show -s --format=%P 6c9f43476686863cadfbe82d9a5f48e8aaf4ab8b)" = "38bbd51941be469533987c51e4f5cd231da67510"
-          test "$(git rev-parse 6c9f43476686863cadfbe82d9a5f48e8aaf4ab8b^{tree})" = "a90af103dd9981cc1ff9b925901f789d96a70f5d"
-          git ls-tree -r 6c9f43476686863cadfbe82d9a5f48e8aaf4ab8b >/dev/null
+          test "$(git show -s --format=%P 9222e256591e9f8e707640eefd91832c264ddad6)" = "6c9f43476686863cadfbe82d9a5f48e8aaf4ab8b"
+          test "$(git rev-parse 9222e256591e9f8e707640eefd91832c264ddad6^{tree})" = "317ad2810340ca7ae6d068faf2787ebd2d3c3ac5"
+          git ls-tree -r 9222e256591e9f8e707640eefd91832c264ddad6 >/dev/null
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          tip=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p 6c9f43476686863cadfbe82d9a5f48e8aaf4ab8b -m "Retain the source verified by this run [skip ci]")
+          tip=$(git commit-tree "$GITHUB_SHA^{tree}" -p "$GITHUB_SHA" -p 9222e256591e9f8e707640eefd91832c264ddad6 -m "Retain the source verified by this run [skip ci]")
           git push origin "$tip:refs/heads/ci/farmland-spatial-verified-e6c583"
