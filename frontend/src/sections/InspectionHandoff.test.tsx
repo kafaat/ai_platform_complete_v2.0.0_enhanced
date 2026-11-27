@@ -73,5 +73,5 @@ it('keeps the approved version visible, marks a later photo record as pending an
   fireEvent.change(screen.getByLabelText('نتيجة التفتيش والملاحظات'), {target:{value:'مع الصورة'}});
   fireEvent.click(screen.getByRole('button', {name:'رفع النتيجة للمراجعة'}));
   await waitFor(() => expect(post).toHaveBeenCalledWith(path + '/finding',
-    {action:'submit', reason:'مع الصورة', expected_revision:3, photo_evidence_id:'e-2'}));
+    {action:'submit', reason:'مع الصورة', notes:'مع الصورة', expected_revision:3, photo_evidence_id:'e-2'}));
 });
