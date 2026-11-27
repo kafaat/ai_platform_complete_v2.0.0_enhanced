@@ -1,0 +1,326 @@
+{
+  "schema_version": "2.0.0",
+  "changed_paths": [
+    "SERVICE_REGISTRY.md",
+    "api_versioning_inventory.csv",
+    "api_versioning_inventory.generated.json",
+    "capabilities/generated/capability_link_candidates.csv",
+    "capabilities/registry/capabilities.json",
+    "database-audit/generated/database_contract_graph.json",
+    "database-audit/generated/database_tables.csv",
+    "dependency_graph.generated.json",
+    "docs/architecture/PLATFORM_CATALOG.generated.md",
+    "docs/architecture/fake_connection_debt.json",
+    "docs/architecture/generated/platform_route_budget_inventory.json",
+    "docs/architecture/generated/platform_route_governance_attestation.json",
+    "docs/architecture/generated/platform_route_ownership_inventory.json",
+    "docs/architecture/guard_mutation_registry.json",
+    "docs/architecture/platform_extraction_map.json",
+    "docs/capability-registry/generated/evidence/capability_evidence_matrix.json",
+    "docs/capability-registry/generated/evidence/evidence_manifest.json",
+    "docs/capability-registry/generated/impact/impact_index_summary.json",
+    "docs/capability-registry/generated/management/management_manifest.json",
+    "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    "docs/capability-registry/generated/mapping/capability_mapping.csv",
+    "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "docs/capability-registry/generated/mapping/mapping_manifest.json",
+    "docs/capability-registry/generated/mapping/unmapped_artifacts.json",
+    "execution-audit/generated/.audit.sha256",
+    "execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+    "execution-audit/generated/dead_code_candidates.csv",
+    "execution-audit/generated/execution_audit_summary.json",
+    "execution-audit/generated/execution_dependency_audit.json",
+    "execution-audit/generated/route_conflicts.json",
+    "execution-audit/generated/route_handlers.csv",
+    "execution-audit/generated/router_reachability.json",
+    "frontend/src/lib/platformCatalog.generated.ts",
+    "governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+    "governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_ARTIFACTS.sha256",
+    "platform_catalog.generated.json",
+    "release/FILE_CHECKSUMS.sha256",
+    "release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json",
+    "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+    "release/SBOM_MINIMAL.json",
+    "route_inventory.csv",
+    "route_inventory.generated.json",
+    "runtime_capability_manifest.generated.json",
+    "sahool-brain/decisions/ledger.md",
+    "sahool-brain/gaps/registry.md",
+    "sahool-brain/hot.md",
+    "sahool-brain/log.md",
+    "service_inventory.csv",
+    "service_inventory.generated.json",
+    "services/sahool-platform/api/canonical_well_capability.py",
+    "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+    "services/sahool-platform/api/irrigation_source_binding.py",
+    "services/sahool-platform/api/routers/irrigation_mpc.py",
+    "services/sahool-platform/tests/test_canonical_well_capability.py",
+    "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+    "tests_v9/test_canonical_water_state_mpc.py",
+    "tests_v9/test_h51_field_source_binding_pg.py"
+  ],
+  "direct": [
+    "FM-003",
+    "FM-005",
+    "GIS-003",
+    "IRR-001",
+    "IRR-002",
+    "IRR-003",
+    "IRR-005",
+    "IRR-009",
+    "OPS-004",
+    "PA-001",
+    "SAT-009",
+    "SEC-001",
+    "SEC-003",
+    "WX-002"
+  ],
+  "transitive": [
+    "FM-004",
+    "FM-006",
+    "FM-008",
+    "GIS-001",
+    "GIS-002",
+    "GIS-004",
+    "IRR-004",
+    "IRR-006",
+    "IRR-007",
+    "IRR-008",
+    "IRR-010",
+    "OPS-003",
+    "OPS-005",
+    "PA-002",
+    "PA-003",
+    "PA-004",
+    "SAT-006",
+    "SAT-007",
+    "SEC-002",
+    "SEC-007",
+    "SOIL-002",
+    "SOIL-003",
+    "SOIL-004",
+    "SOIL-005",
+    "WX-007",
+    "WX-008",
+    "WX-009"
+  ],
+  "affected": [
+    "FM-003",
+    "FM-004",
+    "FM-005",
+    "FM-006",
+    "FM-008",
+    "GIS-001",
+    "GIS-002",
+    "GIS-003",
+    "GIS-004",
+    "IRR-001",
+    "IRR-002",
+    "IRR-003",
+    "IRR-004",
+    "IRR-005",
+    "IRR-006",
+    "IRR-007",
+    "IRR-008",
+    "IRR-009",
+    "IRR-010",
+    "OPS-003",
+    "OPS-004",
+    "OPS-005",
+    "PA-001",
+    "PA-002",
+    "PA-003",
+    "PA-004",
+    "SAT-006",
+    "SAT-007",
+    "SAT-009",
+    "SEC-001",
+    "SEC-002",
+    "SEC-003",
+    "SEC-007",
+    "SOIL-002",
+    "SOIL-003",
+    "SOIL-004",
+    "SOIL-005",
+    "WX-002",
+    "WX-007",
+    "WX-008",
+    "WX-009"
+  ],
+  "matched_paths": {
+    "FM-003": [
+      "docs/architecture/platform_extraction_map.json"
+    ],
+    "FM-005": [
+      "tests_v9/test_canonical_water_state_mpc.py"
+    ],
+    "GIS-003": [
+      "capabilities/registry/capabilities.json"
+    ],
+    "IRR-001": [
+      "services/sahool-platform/api/canonical_well_capability.py",
+      "services/sahool-platform/tests/test_canonical_well_capability.py"
+    ],
+    "IRR-002": [
+      "services/sahool-platform/api/routers/irrigation_mpc.py",
+      "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py"
+    ],
+    "IRR-003": [
+      "sahool-brain/gaps/registry.md",
+      "sahool-brain/hot.md",
+      "sahool-brain/log.md",
+      "services/sahool-platform/api/irrigation_source_binding.py",
+      "tests_v9/test_h51_field_source_binding_pg.py"
+    ],
+    "IRR-005": [
+      "services/sahool-platform/api/routers/irrigation_mpc.py",
+      "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py"
+    ],
+    "IRR-009": [
+      "sahool-brain/gaps/registry.md"
+    ],
+    "OPS-004": [
+      "docs/architecture/fake_connection_debt.json"
+    ],
+    "PA-001": [
+      "docs/architecture/platform_extraction_map.json"
+    ],
+    "SAT-009": [
+      "docs/architecture/platform_extraction_map.json"
+    ],
+    "SEC-001": [
+      "docs/architecture/fake_connection_debt.json"
+    ],
+    "SEC-003": [
+      "sahool-brain/hot.md"
+    ],
+    "WX-002": [
+      "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "tests_v9/test_canonical_water_state_mpc.py"
+    ]
+  },
+  "matched_sources": {
+    "FM-003": [
+      "mapping:other_evidence"
+    ],
+    "FM-005": [
+      "mapping:tests"
+    ],
+    "GIS-003": [
+      "mapping:other_evidence"
+    ],
+    "IRR-001": [
+      "registry:evidence",
+      "registry:tests"
+    ],
+    "IRR-002": [
+      "mapping:backend",
+      "mapping:dependency:import:services/sahool-platform/api/routers/irrigation_mpc.py",
+      "mapping:events",
+      "mapping:routes",
+      "mapping:tests",
+      "registry:apis"
+    ],
+    "IRR-003": [
+      "mapping:backend",
+      "mapping:tests",
+      "registry:evidence",
+      "registry:tests"
+    ],
+    "IRR-005": [
+      "mapping:backend",
+      "mapping:dependency:import:services/sahool-platform/api/routers/irrigation_mpc.py",
+      "mapping:events",
+      "mapping:routes",
+      "mapping:tests",
+      "registry:apis"
+    ],
+    "IRR-009": [
+      "registry:evidence"
+    ],
+    "OPS-004": [
+      "mapping:other_evidence"
+    ],
+    "PA-001": [
+      "mapping:other_evidence"
+    ],
+    "SAT-009": [
+      "mapping:other_evidence"
+    ],
+    "SEC-001": [
+      "mapping:other_evidence"
+    ],
+    "SEC-003": [
+      "registry:evidence"
+    ],
+    "WX-002": [
+      "mapping:dependency:import:services/sahool-platform/api/routers/irrigation_mpc.py",
+      "mapping:events",
+      "mapping:tests"
+    ]
+  },
+  "governance_wide": false,
+  "dependent_tests": {
+    "services/sahool-platform/tests/test_canonical_well_capability.py": [
+      "dependency:import:services/sahool-platform/api/canonical_well_capability.py"
+    ],
+    "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py": [
+      "dependency:import:services/sahool-platform/api/canonical_well_capability.py"
+    ],
+    "services/sahool-platform/tests/test_irrigation_blend_water_quality.py": [
+      "dependency:import:services/sahool-platform/api/irrigation_source_binding.py"
+    ],
+    "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py": [
+      "dependency:import:services/sahool-platform/api/routers/irrigation_mpc.py"
+    ],
+    "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py": [
+      "dependency:import:services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "dependency:import:services/sahool-platform/api/routers/irrigation_mpc.py"
+    ],
+    "tests_v9/test_h51_field_source_binding_pg.py": [
+      "dependency:import:services/sahool-platform/api/canonical_well_capability.py",
+      "dependency:import:services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "dependency:import:services/sahool-platform/api/irrigation_source_binding.py",
+      "dependency:import:services/sahool-platform/api/routers/irrigation_mpc.py"
+    ],
+    "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py": [
+      "dependency:import:services/sahool-platform/api/irrigation_runtime_orchestrator.py"
+    ],
+    "tests_v9/test_lexicographic_mpc_bridge.py": [
+      "dependency:import:services/sahool-platform/api/routers/irrigation_mpc.py",
+      "dependency:source_read:services/sahool-platform/api/routers/irrigation_mpc.py"
+    ]
+  },
+  "runtime_claims": false,
+  "production_certification": false,
+  "git": {
+    "base": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+    "head": "e6b96665bb736482adf9bf8c5ccb9e788bebcd0c",
+    "merge_base": "db79cf6d33fb8adb900f049d742de229f8616d4b"
+  },
+  "declaration": {
+    "mode": "explicit",
+    "declared": [
+      "FM-003",
+      "FM-005",
+      "GIS-003",
+      "IRR-001",
+      "IRR-002",
+      "IRR-003",
+      "IRR-005",
+      "IRR-009",
+      "OPS-004",
+      "PA-001",
+      "SAT-009",
+      "SEC-001",
+      "SEC-003",
+      "WX-002"
+    ],
+    "missing_direct": [],
+    "unknown_capabilities": [],
+    "unaffected_declared": [],
+    "errors": [],
+    "required": true
+  },
+  "decision": "PASS"
+}

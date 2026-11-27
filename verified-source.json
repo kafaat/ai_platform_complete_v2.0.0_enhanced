@@ -1,0 +1,83 @@
+{
+  "source_commit": "e6b96665bb736482adf9bf8c5ccb9e788bebcd0c",
+  "source_tree": "068b8195245aca744739919f66737e7074df7bdb",
+  "source_parent": "b9a3e146d19cd4365dfc4ca463932a5c2ad5efbc",
+  "main": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+  "source_branch": "fix/farmland-aquifer-safe-yield-p1-20261127",
+  "source_ref_updated": false,
+  "run_id": "46061385759",
+  "run_attempt": "1",
+  "generation": {
+    "argv": [
+      "bash",
+      "scripts/ci/regenerate_all_generated.sh"
+    ],
+    "started_at_utc": "2026-11-27T20:19:18.528585+00:00",
+    "status": "PASS",
+    "returncode": 0,
+    "finished_at_utc": "2026-11-27T20:39:42.642495+00:00",
+    "log_sha256": "00e15907bfcd3624a8baa03b0b48b2d21aa4d1d5550912ecfa317e12976e9ee0"
+  },
+  "preflight": {
+    "argv": [
+      "/usr/bin/time",
+      "-v",
+      "-o",
+      "/home/runner/work/_temp/daily-build-evidence/resource-usage.txt",
+      "bash",
+      "scripts/ci/preflight.sh",
+      "--no-fetch"
+    ],
+    "started_at_utc": "2026-11-27T20:39:45.453491+00:00",
+    "status": "PASS",
+    "returncode": 0,
+    "finished_at_utc": "2026-11-27T21:18:55.069565+00:00",
+    "log_sha256": "8b744f8a60e148cb488d6d2f93f71f5360efd0b2508f77c1584cda522f644660",
+    "head": "e6b96665bb736482adf9bf8c5ccb9e788bebcd0c",
+    "tree": "068b8195245aca744739919f66737e7074df7bdb",
+    "parent": "b9a3e146d19cd4365dfc4ca463932a5c2ad5efbc",
+    "base": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+    "worktree_status": "",
+    "source_unchanged": true,
+    "functional_inputs_unchanged": true,
+    "gate_failures": 0,
+    "gate_skips": 0,
+    "execution_scope": "Unchanged contiguous default complete preflight; not --full, not final-head source CI.",
+    "skip_scope": "Zero skipped gates does not assert zero individual pytest skips.",
+    "production_accepted": false
+  },
+  "capability_impact": [
+    "FM-003",
+    "FM-005",
+    "GIS-003",
+    "IRR-001",
+    "IRR-002",
+    "IRR-003",
+    "IRR-005",
+    "IRR-009",
+    "OPS-004",
+    "PA-001",
+    "SAT-009",
+    "SEC-001",
+    "SEC-003",
+    "WX-002"
+  ],
+  "functional_hashes": {
+    "docs/architecture/guard_mutation_registry.json": "1545d76e0f621dfbc0c9161217481bbe836f6166cb412345e1b05e4e0637a0d5",
+    "docs/architecture/platform_extraction_map.json": "a8d5079c7345c7fd4910ceb71372afb8c595837badeb806f06d65473dda904c9",
+    "sahool-brain/decisions/ledger.md": "805b899be9ca7bef5942f7889c1d612a6b0aa7a01dc6b16b3bec8ca2347243c4",
+    "sahool-brain/gaps/registry.md": "118462f3a3a4f2f8f4c009bc4e330c90348b942ce7d4c5b53ce9302463fde416",
+    "sahool-brain/hot.md": "8198f1f875c1613a0914c1a7befa91521075c7dca162e04f8d6a738ce2c5bc05",
+    "sahool-brain/log.md": "10fb7c2b96d8e4231089c58d3726eb8ce8befd89a2e999dc9db033fbc90e70cf",
+    "services/sahool-platform/api/canonical_well_capability.py": "37bf083a653b2811c2984c22af5126181873f8b618c5137616426735424c657f",
+    "services/sahool-platform/api/irrigation_source_binding.py": "2cf6b29fb8776fe16c60783b2ff466e10699233ef5e5d56e8a1b41e6bacf56fe",
+    "services/sahool-platform/api/routers/irrigation_mpc.py": "73ebe70c3219ca698fa691dc3ed67cd3b0563bedb1a22d7d159af1dc6be2e941",
+    "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py": "230bb0ba0cda7ec5bf26798a324d618a65ac5a323aec1783095436436aabc4e7",
+    "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py": "ffa04b1d71b49cf964dd3c769943f9aaf0605159b4facbbe5b3e76fd0dfe43b0",
+    "tests_v9/test_canonical_water_state_mpc.py": "9f47839c32f78f256e768f428c07054f8c9e1d0e14df2854b834f47a40af24bc",
+    "tests_v9/test_h51_field_source_binding_pg.py": "d9386a1f2c2ff8d36e82b08d8e2627aca87f412baa7b074140402754a1496fd8",
+    "tests_v9/test_lexicographic_mpc_bridge.py": "a700e321e1467ecedfc5c1da65e67d47e4560d562ca5d8a31c3e20c1948289cf"
+  },
+  "retained_at_utc": "2026-11-27T21:18:57.744591+00:00",
+  "production_accepted": false
+}

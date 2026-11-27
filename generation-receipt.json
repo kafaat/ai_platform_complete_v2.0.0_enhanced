@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "bash",
+    "scripts/ci/regenerate_all_generated.sh"
+  ],
+  "started_at_utc": "2026-11-27T20:19:18.528585+00:00",
+  "status": "PASS",
+  "returncode": 0,
+  "finished_at_utc": "2026-11-27T20:39:42.642495+00:00",
+  "log_sha256": "00e15907bfcd3624a8baa03b0b48b2d21aa4d1d5550912ecfa317e12976e9ee0"
+}

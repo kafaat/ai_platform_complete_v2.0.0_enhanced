@@ -1,0 +1,102 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "path": "services/sahool-platform/api/canonical_well_capability.py",
+      "symbol": "evaluate_water_salinity_gate",
+      "reference": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/canonical_well_capability.py",
+      "symbol": "evaluate_aquifer_safe_yield_evidence",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/canonical_well_capability.py",
+      "symbol": "_number",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/canonical_well_capability.py",
+      "symbol": "CanonicalWellCapability",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/canonical_well_capability.py",
+      "symbol": "well_capability_to_mpc_constraints",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/routers/irrigation_mpc.py",
+      "symbol": "_source_canonical_water",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/routers/irrigation_mpc.py",
+      "symbol": "irrigation_mpc_recommendation",
+      "reference": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/irrigation_source_binding.py",
+      "symbol": "aquifer_allocation_blocker",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/irrigation_source_binding.py",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "sha256": "2cf6b29fb8776fe16c60783b2ff466e10699233ef5e5d56e8a1b41e6bacf56fe",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "sha256": "ffa04b1d71b49cf964dd3c769943f9aaf0605159b4facbbe5b3e76fd0dfe43b0",
+      "status": "PASS"
+    },
+    {
+      "path": "tests_v9/test_h51_field_source_binding_pg.py",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "sha256": "d9386a1f2c2ff8d36e82b08d8e2627aca87f412baa7b074140402754a1496fd8",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/architecture/guard_mutation_registry.json",
+      "reference": "b9a3e146d19cd4365dfc4ca463932a5c2ad5efbc",
+      "sha256": "1545d76e0f621dfbc0c9161217481bbe836f6166cb412345e1b05e4e0637a0d5",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/architecture/platform_extraction_map.json",
+      "reference": "94456164654f43b408edd82f86265fdaee19849b",
+      "sha256": "a8d5079c7345c7fd4910ceb71372afb8c595837badeb806f06d65473dda904c9",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+      "reference": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "sha256": "230bb0ba0cda7ec5bf26798a324d618a65ac5a323aec1783095436436aabc4e7",
+      "status": "PASS"
+    },
+    {
+      "path": "tests_v9/test_lexicographic_mpc_bridge.py",
+      "reference": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "sha256": "a700e321e1467ecedfc5c1da65e67d47e4560d562ca5d8a31c3e20c1948289cf",
+      "status": "PASS"
+    },
+    {
+      "path": "tests_v9/test_canonical_water_state_mpc.py",
+      "sha256": "9f47839c32f78f256e768f428c07054f8c9e1d0e14df2854b834f47a40af24bc",
+      "reference": "Reviewed parent fixture plus scoped current-season graph control",
+      "status": "PASS"
+    }
+  ],
+  "production_accepted": false
+}
