@@ -374,7 +374,7 @@ def test_stored_chunk_preserves_all_declared_scope(metadata, decision_zone, reas
             **metadata,
         },
     )
-    restored = KnowledgeChunk.from_payload(chunk.payload())
+    restored = KnowledgeChunk.from_payload(chunk.payload)
     annotation = RetrievedAnnotation(restored, 0.5, 0.5, 0.1).as_annotation()
     evidence = scope_annotations(
         [annotation], tenant_id=T, field_id="f1", field_geometry=FIELD, zone_id=decision_zone

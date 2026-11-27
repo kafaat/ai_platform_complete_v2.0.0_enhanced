@@ -5,7 +5,7 @@ on:
 permissions:
   contents: read
 env:
-  CANDIDATE: 92948d06e58acfa4c3be7996e9ee2e0c204e1a4d
+  CANDIDATE: 944e88b6d5d60c5b368f1da5d6fcbebe11aca2df
   BEFORE: 9c26ed06da244b48c1618e00972b98c619a570bc
 jobs:
   spatial:
@@ -27,7 +27,7 @@ jobs:
           git worktree add --detach "$RUNNER_TEMP/source" "$CANDIDATE"
           git worktree add --detach "$RUNNER_TEMP/before" "$BEFORE"
           cd "$RUNNER_TEMP/source"
-          test "$(git rev-parse 'HEAD^{tree}')" = f92e8d60a6b0ffe4b2cf87768d9107b98fa29856
+          test "$(git rev-parse 'HEAD^{tree}')" = a70becf90a5a66ae2210ec0d1cec719e7e257f65
           python -m pip install -r tests_v9/requirements-test.txt 'uvicorn==0.30.6'
           curl -fsSL --retry 3 https://github.com/qdrant/qdrant/releases/download/v1.17.1/qdrant-x86_64-unknown-linux-gnu.tar.gz -o "$RUNNER_TEMP/qdrant.tgz"
           echo "318a3b1c548161ad476f9ff70b654787a20fc46685e3e1c2b7dd88b363ef3d58  $RUNNER_TEMP/qdrant.tgz" | sha256sum -c -
@@ -70,7 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
-          ref: 92948d06e58acfa4c3be7996e9ee2e0c204e1a4d
+          ref: 944e88b6d5d60c5b368f1da5d6fcbebe11aca2df
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
@@ -109,7 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
-          ref: 92948d06e58acfa4c3be7996e9ee2e0c204e1a4d
+          ref: 944e88b6d5d60c5b368f1da5d6fcbebe11aca2df
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: verified-zone-source
@@ -122,5 +122,5 @@ jobs:
           source=$(git rev-parse FETCH_HEAD)
           test "$(git show -s --format=%P "$source")" = "$CANDIDATE"
           git rev-parse "$source" "$source^{tree}" | diff - "$RUNNER_TEMP/verified/source.txt"
-          git push origin "$source:refs/heads/ci/farmland-zone-verified-92948d06"
+          git push origin "$source:refs/heads/ci/farmland-zone-verified-944e88b6"
           cat "$RUNNER_TEMP/verified/source.txt"
