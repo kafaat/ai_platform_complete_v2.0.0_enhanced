@@ -1,67 +1,9 @@
-name: Register verified SAHOOL audit blobs
-on:
-  push:
-    branches: ["audit/verified-graph-transport-20261127"]
+name: Archived verified SAHOOL audit transfer
+on: workflow_dispatch
 permissions: {}
 jobs:
-  register:
-    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' && github.ref == 'refs/heads/audit/verified-graph-transport-20261127' && github.event_name == 'push'
-    permissions:
-      contents: write
+  archived:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
     steps:
-      - name: Verify the three declared payloads and create their Git blobs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import base64
-          import gzip
-          import hashlib
-          import io
-          import json
-          import os
-          import urllib.request
-          
-          repo = "kafaat/ai_platform_complete_v2.0.0_enhanced"
-          assert os.environ["GITHUB_REPOSITORY"] == repo
-          assert os.environ["GITHUB_REF"] == "refs/heads/audit/verified-graph-transport-20261127"
-          assert os.environ["GITHUB_EVENT_NAME"] == "push"
-          endpoint = "https://api.github.com/repos/" + repo + "/git/blobs"
-          headers = {
-              "Accept": "application/vnd.github+json",
-              "Authorization": "Bearer " + os.environ["GH_TOKEN"],
-              "Content-Type": "application/json",
-              "User-Agent": "sahool-audit-verified-blob-transfer",
-              "X-GitHub-Api-Version": "2022-11-28",
-          }
-          expected = [
-              ("finance", "execution-audit/generated/execution_dependency_audit.json", "a716614fa8b1501e45ff5a48baccb2dc54f3abb0", 1213366, "0130faa4534a34410a1dd3d046899092430ab624", 21334233, "7dd53e1f016ba57bb072a9de2803f654fe657de0f96fe656c93528c29252fbe5"),
-              ("water", "execution-audit/generated/execution_dependency_audit.json", "60a83db2854b640a5d3a72d24b90b090c39ee27c", 1213428, "d42fc6b0724681aade04c3c5dd1ac0a28b615c1c", 21337924, "604deebc5f4b31dd7b4734c46cc21f91bb6139b8923aac7f2468e92567cb13fa"),
-              ("inventory", "execution-audit/generated/execution_dependency_audit.json", "4b022dadb68786c9d8e510e279939d56ef565753", 1213386, "27406089974dc1c7dd155e23dda12ac1481f71fe", 21335327, "6dee4fabe89dc51baf58ad435002b3a0ce6b97a634d4460fdd15f776f7e36c45"),
-          ]
-          
-          def git_sha(data):
-              return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
-          
-          for lane, path, packed_sha, packed_size, expected_sha, expected_size, sha256 in expected:
-              assert path == "execution-audit/generated/execution_dependency_audit.json"
-              request = urllib.request.Request(endpoint + "/" + packed_sha, headers=headers)
-              with urllib.request.urlopen(request, timeout=60) as response:
-                  source = json.load(response)
-              assert source["encoding"] == "base64" and source["sha"] == packed_sha and source["size"] == packed_size
-              packed = base64.b64decode(source["content"])
-              assert len(packed) == packed_size and git_sha(packed) == packed_sha
-              with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
-                  raw = stream.read(expected_size + 1)
-              assert len(raw) == expected_size and git_sha(raw) == expected_sha
-              assert hashlib.sha256(raw).hexdigest() == sha256
-              body = json.dumps({"encoding": "base64", "content": base64.b64encode(raw).decode("ascii")}).encode()
-              request = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
-              with urllib.request.urlopen(request, timeout=120) as response:
-                  result = json.load(response)
-              assert result["sha"] == expected_sha
-              print(lane, path, expected_size, expected_sha)
-          PY
+      - run: echo "Archived transfer"
