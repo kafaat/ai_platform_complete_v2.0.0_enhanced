@@ -18,6 +18,11 @@ except ModuleNotFoundError:
     from scripts.ci.capability_authority_view import load_authoritative_capabilities
     from scripts.ci.generated_artifact_contract import Artifact, drift, write_all
 
+# Keep report output and drift diagnostics usable under CI's C locale.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "capabilities/generated"
 
