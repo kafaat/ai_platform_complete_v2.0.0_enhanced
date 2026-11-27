@@ -10862,3 +10862,13 @@ The full local unit run exposed two additional test defects. The requirements co
 أذن المالك بالتحقق والدمج بعد عرض حدود إيصال 1621-v2. دُمج أرشيف المختبر #165 في `70b49476fc2177519621b60b0f50d375b6817f8f`، ثم #1621 في `75943311dd1b9ffabf2d147db9eb27a5efccd978` بعد نجاح الفحوص العشرين المطلوبة؛ شجرة الدمج `9d91ab07da3936a9a13018aad6b653407a7ef464` مطابقة للشجرة المقاسة. يبقى حكم الإيصال القديم INCONCLUSIVE العام وPASS المحدود دون تعديل، وليس قبولًا إنتاجيًا.
 
 وصل تعليق Devin 4701730253 بعد الدمج بـ42 ثانية، وأُعيد إنتاجه في المختبر على المصدر المدموج: نهاية صحيحة 500 م³ تظهر None بسبب طرح 220.2 و230 و0.2 قبل الضرب في 50 ساعة. تسجّل `IRRIGATION-RESERVOIR-DECIMAL-RESERVE-01` المصدر والشاهد والعلاج. تقارن المتابعة الميزان من نسب عشرية أصلية قبل القسمة؛ تغطي الحدود المتجاورة، تقسيم الآبار والخسائر، التدفق الفعلي للأجهزة المختارة، وحفظ رفض overflow. نجحت اختبارات التطوير الأربع والعشرون وRuff؛ قبول المتابعة مقيد بالرأس الذي سيقيسه المختبر وCI.
+
+## 2026-11-27 — تدقيق المرشح المحلي عند `ee5929fb4`
+
+شمل تفويض المالك تدقيق المصدر وإجراء التصحيحات القابلة للمراجعة. النتائج أدناه تخصّ المرشح المحلي؛ الدمج إلى main والنشر والتحقق من قاعدة الإنتاج خارج هذه الجلسة.
+
+- ضبطت مدة توقف المضخة بين الدورات في `704014c77`، ووُصل اختبار الراوتر بمدخل ASGI الفعلي في `6bad46cf3`. الشواهد في `tests_v9/test_hourly_energy_aware_irrigation_mpc.py:166` و`services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py`.
+- شمل جرد الإصدار التسجيل الصريح للمعالج في `cdb551338`، مع اختبار السقف في `tests_v9/test_api_versioning_policy_guard.py:1432`. أُسندت ملكية ثلاث وحدات مستخدمة في `8a476e758` وفق `docs/architecture/platform_python_module_baseline.json`.
+- فصل `33183f088` اتصال تهيئة دفتر المزرعة عن دور الطلب المقيد، وفحص امتيازاته في `tests_v9/test_farm_ledger_cost_coverage_live_pg.py:107` و`tests_v9/test_farm_book_settlement_guards_live_pg.py:93`. اعتمد `e2a5455a3` وقت رصد معلوم لحساب عمر الطقس واستعادة الذاكرة المؤقتة؛ شاهدا PostgreSQL في `tests_v9/test_freshness_page_live_pg.py:211` و`:236`.
+- استعاد `418baa24d` تنفيذ العامل المخول للمهمة مع حجب التكاليف، ووضح `4087122cf` تعارض مراجعة الفحص وتغيّر الأدلة. الاختبارات في `frontend/src/sections/TasksPage.execution.test.tsx` و`frontend/src/sections/InspectionHandoff.test.tsx`.
+- طابق `ee5929fb4` دليل المختبر وقائمة الترحيلات مع مصدريهما. الشاهدان في `tests_v9/test_lab_ci_certification_steps.py` و`tests_v9/test_v208_runbook_role_matches_role_model.py`. تصحيح عزل اختباري ربط المصدر ونقل الحافة موجود في فرع العمل عند `f907821c7`؛ وإدراج تقارير التتبع الثلاثة في إعادة التوليد قيد المراجعة عند تدوين هذه اللقطة.
