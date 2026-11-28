@@ -128,10 +128,28 @@ async def test_terminal_or_historical_cancellation_is_preserved(live, terminal):
         "existing history",
     )
     before = await snapshot(live)
+    history = await _history(live, UUID(args["reservation_ids"][0]))
+    # Compensation itself runs as the restricted writer (live["app"]), never the owner.
     async with conn.transaction():
         with pytest.raises(ValueError, match="^COMPENSATION_CONFLICT$"):
             await compensate(conn, **args)
     assert await snapshot(live) == before
+    # The prior terminal row and its events survive byte-for-byte: state, reason, timestamp.
+    assert await _history(live, UUID(args["reservation_ids"][0])) == history
+    assert history[0][0] == terminal and history[0][1] == "existing history"
+
+
+async def _history(live, reservation_id):
+    row = await live["admin"].fetchrow(
+        "SELECT state, release_reason, released_at FROM irrigation_resource_reservations "
+        "WHERE reservation_id=$1",
+        reservation_id,
+    )
+    events = await live["admin"].fetch(
+        "SELECT * FROM irrigation_resource_reservation_events WHERE reservation_id=$1 ORDER BY 1",
+        reservation_id,
+    )
+    return tuple(row), [tuple(e) for e in events]
 
 
 async def test_missing_foreign_and_mixed_reservations_leave_all_rows_intact(live):
