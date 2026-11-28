@@ -45,10 +45,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import signal
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -83,6 +85,7 @@ _STEP = re.compile(
 
 # علم إعادة التوليد لكلّ سكربت يملكه. الغياب = فحص فقط (يُبلَّغ، لا يُتخطّى).
 _GENERATE_FLAG = {
+    "api_versioning_policy_guard.py": "--write",
     "route_mount_contract_guard.py": "",
     "service_dependency_conflict_guard.py": "",
     "generate_service_inventory.py": "--write-registry",
@@ -300,7 +303,72 @@ def _accepted_flags(script: str) -> set[str]:
     return set(re.findall(r"--[a-z][a-z0-9-]*", proc.stdout))
 
 
+def _probe_git(*args: str) -> bytes:
+    proc = subprocess.run(  # noqa: S603 — fixed Git reads against the selected checkout
+        ["git", "--no-optional-locks", *args], cwd=ROOT, capture_output=True
+    )
+    if proc.returncode != 0:
+        raise SystemExit(
+            "--help probe measurement failed before a result could be accepted: "
+            + proc.stderr.decode("utf-8", errors="replace").strip()[:200]
+        )
+    return proc.stdout
+
+
+def _flag_probe_state() -> dict:
+    """Measure tracked bytes/existence/modes, symlink targets, index and HEAD.
+
+    Porcelain cannot distinguish one dirty version from another (M -> M). Include
+    HEAD paths as well as index paths so a staged deletion cannot hide a file.
+    This is a tracked-source boundary, not an audit of ignored or untracked files.
+    """
+    head = _probe_git("rev-parse", "--verify", "HEAD").strip()
+    index = _probe_git("ls-files", "--stage", "-z")
+    flags = _probe_git("ls-files", "-v", "-z")
+    paths = set(_probe_git("ls-tree", "-r", "--name-only", "-z", "HEAD").split(b"\0"))
+    paths.update(row.split(b"\t", 1)[1] for row in index.split(b"\0") if row)
+    paths.discard(b"")
+    files = {}
+    for raw_path in sorted(paths):
+        relative = os.fsdecode(raw_path)
+        path = ROOT / relative
+        try:
+            metadata = path.lstat()
+        except FileNotFoundError:
+            files[relative] = None
+            continue
+        except OSError as error:
+            raise SystemExit(f"--help probe cannot measure {relative}: {error}") from error
+        mode = (stat.S_IFMT(metadata.st_mode), stat.S_IMODE(metadata.st_mode))
+        try:
+            if stat.S_ISLNK(metadata.st_mode):
+                content = os.readlink(path)
+            elif stat.S_ISREG(metadata.st_mode):
+                with path.open("rb") as stream:
+                    content = hashlib.file_digest(stream, "sha256").hexdigest()
+            else:
+                content = None
+        except OSError as error:
+            raise SystemExit(f"--help probe cannot read {relative}: {error}") from error
+        files[relative] = (mode, content)
+    return {"HEAD": head, "index": index, "index_flags": flags, "tracked_files": files}
+
+
 def flag_map_problems(steps) -> list[str]:
+    """Interrogating CLI flags must not repair the files that the sweep checks."""
+    before = _flag_probe_state()
+    problems = _flag_map_problems(steps)
+    after = _flag_probe_state()
+    if before != after:
+        changed = ", ".join(key for key in before if before[key] != after[key])
+        problems.append(
+            f"--help probe changed tracked source state ({changed}); "
+            "refusing to continue after a mutating probe. No files were restored."
+        )
+    return problems
+
+
+def _flag_map_problems(steps) -> list[str]:
     """يستجوب ``_GENERATE_FLAG`` قبل استعماله — وقايةً لا تشخيصاً بعد وقوع الضرر.
 
     ``VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01`` عولج بتصحيح المداخل الخاطئة،

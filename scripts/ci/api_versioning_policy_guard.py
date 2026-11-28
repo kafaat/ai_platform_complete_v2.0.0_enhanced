@@ -8,12 +8,12 @@ allowlist. This avoids breaking existing clients while preventing drift.
 
 from __future__ import annotations
 
+import argparse
 import ast
 import csv
 import io
 import json
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -294,9 +294,15 @@ def write(rows):
 
 
 def main():
-    check = "--check" in sys.argv
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--check", action="store_true", help="Check generated outputs without writing"
+    )
+    mode.add_argument("--write", action="store_true", help="Regenerate outputs (also the default)")
+    args = parser.parse_args()
     rows = collect()
-    if check:
+    if args.check:
         drift = [
             output.name
             for output, text in render(rows).items()
@@ -305,7 +311,7 @@ def main():
         if drift:
             raise SystemExit(
                 f"api versioning inventory drift ({', '.join(drift)}); "
-                "rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
+                "rerun scripts/ci/api_versioning_policy_guard.py --write and review unversioned allowlist"
             )
         # API-VERSIONING-GUARD-IS-A-MIRROR-01: المقارنة أعلاه تكشف الانحراف، لكنّ
         # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد
