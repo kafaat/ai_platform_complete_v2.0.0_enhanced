@@ -1,0 +1,92 @@
+name: Prepare Farmland 1663 generated artifacts
+on:
+  push:
+    branches: [ci/prepare-farmland-1663-c422a992]
+permissions:
+  contents: read
+env:
+  SEED: c422a9922c2e4f4aacdecab91cfd9bed4b98959f
+  SEED_TREE: 3abfa28e5dcf922b5a64f17df50949ca8173ffa2
+  TARGET: refs/heads/codex/farmland-nearest-pump-pressure-20261127
+jobs:
+  regenerate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: c422a9922c2e4f4aacdecab91cfd9bed4b98959f
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Verify seed and run official regeneration
+        env:
+          PYTHONUNBUFFERED: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SEED"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$SEED_TREE"
+          git switch -c measured
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python -m pip install -c constraints-ci-tools.txt ruff
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+          ruff check .
+          ruff format --check .
+          python scripts/ci/guard_mutation_guard.py
+          python scripts/ci/capability_traceability_report.py
+          git add -- capabilities/generated
+          bash scripts/ci/regenerate_all_generated.sh
+          git add -u
+          python scripts/ci/capability_traceability_report.py
+          if ! git diff --quiet -- capabilities/generated; then
+            git add -- capabilities/generated
+            bash scripts/ci/regenerate_all_generated.sh
+          fi
+          python -m pytest -q -o addopts= -p no:cacheprovider tests/architecture/test_capability_traceability.py
+          test -z "$(git ls-files --others --exclude-standard)"
+          git add -u
+          git -c core.whitespace=cr-at-eol diff --cached --check
+          git diff --cached --exit-code -- .github/workflows services shared tests tests_v9 mobile frontend/src frontend/e2e migrations
+          git diff --cached --stat
+          git diff --cached --quiet && { echo "No generated changes; no candidate"; exit 1; }
+          git commit -m "Regenerate and verify Farmland 1663 artifacts"
+          mkdir "$RUNNER_TEMP/verified"
+          git bundle create "$RUNNER_TEMP/verified/carrier.bundle" refs/heads/measured "^$SEED"
+          git rev-parse HEAD 'HEAD^{tree}' > "$RUNNER_TEMP/verified/identity"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: verified-farmland-1663
+          path: ${{ runner.temp }}/verified/
+          if-no-files-found: error
+          retention-days: 7
+  publish:
+    needs: regenerate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: c422a9922c2e4f4aacdecab91cfd9bed4b98959f
+          fetch-depth: 0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: verified-farmland-1663
+          path: ${{ runner.temp }}/verified
+      - name: Advance only unchanged draft branch after verifying generated-only candidate
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$SEED"
+          git bundle verify "$RUNNER_TEMP/verified/carrier.bundle"
+          git fetch "$RUNNER_TEMP/verified/carrier.bundle" refs/heads/measured
+          candidate=$(git rev-parse FETCH_HEAD)
+          git rev-parse "$candidate" "$candidate^{tree}" | diff - "$RUNNER_TEMP/verified/identity"
+          test "$(git show -s --format=%P "$candidate")" = "$SEED"
+          git diff --exit-code "$SEED" "$candidate" -- .github/workflows services shared tests tests_v9 mobile frontend/src frontend/e2e migrations
+          git push origin "$candidate:$TARGET"
+          test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$candidate"
