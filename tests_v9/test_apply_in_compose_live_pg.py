@@ -382,8 +382,11 @@ def test_a_migration_that_creates_no_table_never_becomes_the_empty_default_catal
     # both v289's row-level security and v290's own trigger; the default now stays on v289 and
     # v290's trigger shows on the outbox row.
     _manifest, numbered = _numbered_manifest()
-    assert numbered[-1] == "v290_scouting_verification_initial_state.sql"
-    assert not _creates_a_table(numbered[-1])
+    v290 = "v290_scouting_verification_initial_state.sql"
+    v292 = "v292_inspection_equipment_evidence.sql"
+    assert v290 in numbered and v292 in numbered
+    assert not _creates_a_table(v290)
+    assert not _creates_a_table(v292)
     result = _probe(pg_env, **probe_role)
     assert result.returncode == 0, result.stdout + result.stderr
     rows, summary = _catalog(result.stdout)
@@ -392,9 +395,11 @@ def test_a_migration_that_creates_no_table_never_becomes_the_empty_default_catal
     triggers = rows["scouting_verification_outbox"]["triggers"].split(",")
     assert "scouting_verification_delivery_initial_guard:O" in triggers, triggers
 
-    named = _probe(pg_env, PROBE_CATALOG_FILES=numbered[-1], **probe_role)
-    _rows, named_summary = _catalog(named.stdout)
-    assert named_summary["status"] == "READ" and named_summary["tables"] == "0", named_summary
+    for migration in (v290, v292):
+        named = _probe(pg_env, PROBE_CATALOG_FILES=migration, **probe_role)
+        assert named.returncode == 0, named.stdout + named.stderr
+        _rows, named_summary = _catalog(named.stdout)
+        assert named_summary["status"] == "READ" and named_summary["tables"] == "0", named_summary
 
 
 def test_a_catalog_file_outside_the_manifest_is_reported_and_never_changes_the_verdict(
