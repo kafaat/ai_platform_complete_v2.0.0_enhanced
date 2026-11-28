@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import sys
@@ -85,7 +86,12 @@ def render() -> str:
 
 
 def main() -> int:
-    check = "--check" in sys.argv[1:]
+    parser = argparse.ArgumentParser(
+        description="Build the frontend indicators manifest (write output by default).",
+        allow_abbrev=False,
+    )
+    parser.add_argument("--check", action="store_true", help="Check output drift without writing.")
+    check = parser.parse_args().check
     rendered = render()
     if check:
         current = _OUT.read_text(encoding="utf-8") if _OUT.exists() else ""
