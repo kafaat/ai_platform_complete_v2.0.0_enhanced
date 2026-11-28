@@ -853,3 +853,61 @@ async def test_concurrent_disjoint_windows_respect_period_quota(live, first_comm
     await first.execute("SELECT set_config('app.current_tenant', $1, false)", str(uuid4()))
     for table in CORE_TABLES:
         assert await first.fetchval(f"SELECT count(*) FROM {table}") == 0
+
+
+@pytest.mark.parametrize(
+    ("isolation", "quota_enabled", "refused"),
+    [
+        ("repeatable_read", True, True),
+        ("serializable", True, True),
+        ("read_uncommitted", True, False),
+        ("repeatable_read", False, False),
+    ],
+)
+async def test_period_quota_requires_fresh_statement_snapshots(
+    live, isolation, quota_enabled, refused
+):
+    adapter, kernel = _adapter()
+    app, tenant = live["app"], live["tenant"]
+    req = adapter.ResourceRequest(
+        live["n1"],
+        kernel.ResourcePolicy.SHARED_CAPACITY,
+        Decimal("1500"),
+        Decimal("2000"),
+        requires_period_volume_budget=quota_enabled,
+    )
+    resolver_called = False
+
+    async def resolve(_conn, _request):
+        nonlocal resolver_called
+        resolver_called = True
+        return kernel.PeriodVolumeBudget(
+            START, START + timedelta(days=1), Decimal("2500"), "period-isolation-v1"
+        )
+
+    async def reserve():
+        async with app.transaction(isolation=isolation):
+            await adapter.reserve_and_request_dispatch_db(
+                app,
+                tenant_id=tenant,
+                project_id=live["project"],
+                requested_start=START,
+                requested_end=START + timedelta(hours=1),
+                resources=[req],
+                execution_ref_type="manual_execution",
+                execution_ref_id="isolation-check",
+                calculation_model_version="period-test",
+                execution_port=_Port(),
+                correlation_id=tenant,
+                resolve_period_volume_budget=resolve,
+            )
+
+    if refused:
+        with pytest.raises(ValueError, match="^PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED$"):
+            await reserve()
+    else:
+        await reserve()
+    assert resolver_called == (quota_enabled and not refused)
+    await app.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"SELECT count(*) FROM {table}") == int(not refused)

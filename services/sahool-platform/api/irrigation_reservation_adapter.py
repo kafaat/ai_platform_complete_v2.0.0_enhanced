@@ -215,7 +215,8 @@ async def reserve_and_request_dispatch_db(
     if len(resource_ids) != len(set(resource_ids)):
         raise ValueError("DUPLICATE_HYDRAULIC_RESOURCE")
 
-    if any(r.requires_period_volume_budget for r in resources):
+    needs_period_budget = any(r.requires_period_volume_budget for r in resources)
+    if needs_period_budget:
         if resolve_period_volume_budget is None:
             raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
         if not conn.is_in_transaction():
@@ -225,6 +226,13 @@ async def reserve_and_request_dispatch_db(
     # A disabled/revoked gate raises here, so no lock is taken and no row is written.
     if activation_guard is not None:
         await activation_guard()
+
+    if needs_period_budget:
+        # A transaction-wide snapshot can predate a contending reservation's commit.
+        # PostgreSQL READ UNCOMMITTED uses the same statement snapshots as READ COMMITTED.
+        isolation = await conn.fetchval("SELECT current_setting('transaction_isolation')")
+        if isolation not in ("read committed", "read uncommitted"):
+            raise ValueError("PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED")
 
     tenant = str(tenant_id)
     await conn.execute(SET_TENANT_SQL, tenant)
