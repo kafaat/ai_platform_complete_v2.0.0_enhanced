@@ -24,7 +24,7 @@ jobs:
       - name: Install test and generation dependencies
         run: |
           python -m pip install -c constraints-ci-tools.txt ruff
-          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0 shapely==2.0.6 httpx==0.28.1 pydantic==2.13.4
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0 shapely==2.0.6 httpx==0.28.1 pydantic==2.13.4 'PyJWT[crypto]==2.15.0'
       - name: Same-input baseline RED and source GREEN
         run: |
           set -euo pipefail
