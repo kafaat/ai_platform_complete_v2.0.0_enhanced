@@ -172,6 +172,21 @@ async def _photo(conn, caller: Caller, field_id: str, pin_id: str):
     return dict(row) if row else None
 
 
+# v292 adds inspection_evidence_versions.equipment_id, and applying it needs a separate
+# approval. A field-management revision can be live on a database that is still at v274..v291,
+# so the service must not depend on the column: legacy evidence keeps reading and writing,
+# and only an explicit equipment declaration is refused until the column exists.
+# Probed per connection (a catalogue read), so the service follows the migration without a restart.
+_EQUIPMENT_COLUMN = """SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_attribute
+     WHERE attrelid = to_regclass('inspection_evidence_versions')
+       AND attname = 'equipment_id' AND attnum > 0 AND NOT attisdropped)"""
+
+
+async def _has_equipment_column(conn) -> bool:
+    return bool(await conn.fetchval(_EQUIPMENT_COLUMN))
+
+
 async def _load(conn, caller: Caller, field_id: str, task_id: UUID, *, write: bool):
     lock = "FOR UPDATE" if write else "FOR SHARE"
     row = await conn.fetchrow(
@@ -194,9 +209,10 @@ async def _load(conn, caller: Caller, field_id: str, task_id: UUID, *, write: bo
         field_id,
         task_id,
     )
+    equipment = "equipment_id" if await _has_equipment_column(conn) else "NULL AS equipment_id"
     versions = await conn.fetch(
-        """SELECT version, photo_evidence_id, photo_content_sha256, notes, digest, recorded_by,
-                  recorded_at, equipment_id
+        f"""SELECT version, photo_evidence_id, photo_content_sha256, notes, digest, recorded_by,
+                  recorded_at, {equipment}
              FROM inspection_evidence_versions WHERE tenant_id=$1::uuid AND field_id=$2
               AND task_id=$3 ORDER BY version""",
         caller.tenant_id,
@@ -511,11 +527,7 @@ async def _record_version(
     if latest is not None and str(latest["digest"]).strip() == digest:
         return latest["version"]
     version = (latest["version"] if latest else 0) + 1
-    await conn.execute(
-        """INSERT INTO inspection_evidence_versions
-            (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
-             photo_content_sha256, notes, digest, recorded_by, equipment_id)
-           VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10,$11)""",
+    values = [
         caller.tenant_id,
         field_id,
         task_id,
@@ -526,8 +538,31 @@ async def _record_version(
         notes,
         digest,
         caller.user_id,
-        equipment_id,
-    )
+    ]
+    if await _has_equipment_column(conn):
+        await conn.execute(
+            """INSERT INTO inspection_evidence_versions
+                (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
+                 photo_content_sha256, notes, digest, recorded_by, equipment_id)
+               VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10,$11)""",
+            *values,
+            equipment_id,
+        )
+    elif equipment_id is not None:
+        # Pre-v292 store: never drop a declaration silently, and never bind it into a digest
+        # the database cannot hold. The legacy (equipment-free) path below stays open.
+        raise HTTPException(
+            409,
+            "تصريح المعدّة غير متاح قبل تطبيق الهجرة v292؛ ارفع النتيجة بلا معدّة أو انتظر التطبيق",
+        )
+    else:
+        await conn.execute(
+            """INSERT INTO inspection_evidence_versions
+                (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
+                 photo_content_sha256, notes, digest, recorded_by)
+               VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10)""",
+            *values,
+        )
     return version
 
 
