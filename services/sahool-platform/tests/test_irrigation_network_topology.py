@@ -135,3 +135,33 @@ def test_synthetic_two_pivots_http_real_screen(
     assert all(wells[f"w{i}"]["load_m3"] == 0 for i in range(2, 7))
     assert result["thresholds_estimated"] is True
     assert result["calibrated"] == "not_applicable"
+
+
+@pytest.mark.parametrize(
+    ("links", "expected"),
+    [
+        ([("w1", "p1"), ("w2", "p1"), ("p1", "a")], 422),
+        ([("w2", "p1"), ("w1", "p1"), ("p1", "a")], 422),
+        ([("w1", "p1"), ("w1", "p2"), ("p1", "a"), ("p2", "a")], 422),
+        ([("p1", "p2"), ("p2", "p1"), ("p2", "a")], 422),
+        ([("w1", "p1"), ("p1", "a"), ("p1", "b")], 200),
+        ([("w1", "p1"), ("p1", "a"), ("w2", "p2"), ("p2", "b")], 200),
+        ([("w1", "p1"), ("p1", "a"), ("p1", "a")], 200),
+        ([("p1", "a")], 200),
+    ],
+)
+def test_screen_requires_unambiguous_selected_paths(boundary, links, expected):
+    client, calls = boundary
+    nodes = [
+        *[{"node_id": f"w{i}", "kind": "well"} for i in range(1, 7)],
+        {"node_id": "p1", "kind": "pump"},
+        {"node_id": "p2", "kind": "pump"},
+        {"node_id": "a", "kind": "zone", "demand_m3": 1500},
+        {"node_id": "b", "kind": "zone", "demand_m3": 1500},
+    ]
+    edges = [{"from_id": u, "to_id": v} for u, v in links]
+    response = client.post(URL, json={"nodes": nodes, "edges": edges})
+    assert response.status_code == expected
+    assert len(calls) == (1 if expected == 200 else 0)
+    if expected == 422:
+        assert "selected" in response.json()["detail"]
