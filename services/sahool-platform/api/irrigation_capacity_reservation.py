@@ -16,9 +16,10 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
+from fractions import Fraction
 from typing import Protocol, TypeVar
 from uuid import UUID
 
@@ -58,6 +59,75 @@ class CapacityAdmission:
     peak_with_request_m3h: Decimal
     remaining_at_peak_m3h: Decimal
     blocking_code: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PeriodVolumeBudget:
+    """Owner-resolved quota net of settled consumption, before outstanding reservations.
+
+    This is not an authorization or a new allocation store. The caller must resolve the
+    current approved version under the same resource lock as reservation and settlement.
+    """
+
+    starts_at: datetime
+    ends_at: datetime
+    available_m3: Decimal
+    evidence_ref: str
+
+    def __post_init__(self) -> None:
+        start, end = _utc(self.starts_at), _utc(self.ends_at)
+        if end <= start:
+            raise ValueError("PERIOD_VOLUME_INTERVAL_INVALID")
+        if not self.available_m3.is_finite() or self.available_m3 < 0:
+            raise ValueError("PERIOD_VOLUME_BUDGET_INVALID")
+        if not isinstance(self.evidence_ref, str) or not self.evidence_ref.strip():
+            raise ValueError("PERIOD_VOLUME_EVIDENCE_REQUIRED")
+
+
+def _utc(value: datetime) -> datetime:
+    if value.utcoffset() is None:
+        raise ValueError("PERIOD_VOLUME_TIMESTAMP_UNZONED")
+    return value.astimezone(UTC)
+
+
+def _volume_in_period(
+    window: ReservationWindow, start: datetime, end: datetime
+) -> Fraction:
+    """Integrate constant flow exactly over the clipped half-open window."""
+    flow = window.reserved_flow_m3h
+    if not flow.is_finite() or flow <= 0:
+        raise ValueError("PERIOD_VOLUME_FLOW_INVALID")
+    delta = min(end, _utc(window.ends_at)) - max(start, _utc(window.starts_at))
+    micros = (delta.days * 86400 + delta.seconds) * 1_000_000 + delta.microseconds
+    return Fraction(flow) * max(0, micros) / 3_600_000_000
+
+
+def _period_volume_blocker(
+    budget: PeriodVolumeBudget,
+    existing: Sequence[ReservationWindow],
+    requested_start: datetime,
+    requested_end: datetime,
+    requested_flow_m3h: Decimal,
+) -> str | None:
+    start, end = _utc(budget.starts_at), _utc(budget.ends_at)
+    request_start, request_end = _utc(requested_start), _utc(requested_end)
+    if not start <= request_start < request_end <= end:
+        return "REQUEST_OUTSIDE_VOLUME_PERIOD"
+    # v195 persists NUMERIC(14,4): never admit less volume than the stored reservation.
+    if (
+        not requested_flow_m3h.is_finite()
+        or requested_flow_m3h <= 0
+        or requested_flow_m3h > Decimal("9999999999.9999")
+        or (Fraction(requested_flow_m3h) * 10_000).denominator != 1
+    ):
+        raise ValueError("PERIOD_VOLUME_FLOW_NOT_STORABLE")
+    committed = sum((_volume_in_period(item, start, end) for item in existing), Fraction(0))
+    requested = _volume_in_period(
+        ReservationWindow(request_start, request_end, requested_flow_m3h), start, end
+    )
+    if committed + requested > Fraction(budget.available_m3):
+        return "PERIOD_VOLUME_EXCEEDED"
+    return None
 
 
 def advisory_lock_key(resource: ResourceRef) -> int:
@@ -147,6 +217,7 @@ def evaluate_admission(
     requested_end: datetime,
     requested_flow_m3h: Decimal,
     derated_capacity_m3h: Decimal | None,
+    period_volume_budget: PeriodVolumeBudget | None = None,
 ) -> CapacityAdmission:
     """Evaluate one locked resource for exclusive or shared-capacity admission."""
 
@@ -154,6 +225,18 @@ def evaluate_admission(
         raise ValueError("REQUESTED_FLOW_MUST_BE_POSITIVE")
 
     peak_existing = peak_reserved_flow(existing, requested_start, requested_end)
+    if period_volume_budget is not None:
+        blocker = _period_volume_blocker(
+            period_volume_budget, existing, requested_start, requested_end, requested_flow_m3h
+        )
+        if blocker is not None:
+            return CapacityAdmission(
+                eligible=False,
+                peak_existing_flow_m3h=peak_existing,
+                peak_with_request_m3h=peak_existing + requested_flow_m3h,
+                remaining_at_peak_m3h=Decimal("0"),
+                blocking_code=blocker,
+            )
     if policy is ResourcePolicy.EXCLUSIVE:
         if peak_existing > 0:
             return CapacityAdmission(
