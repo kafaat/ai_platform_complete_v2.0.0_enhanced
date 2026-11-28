@@ -1,0 +1,79 @@
+name: Prepare Farmland GeoRAG 1662 evidence and generated artifacts
+on:
+  push:
+    branches: [ci/prepare-farmland-1662-7b346622]
+permissions:
+  contents: read
+env:
+  SEED: 7b346622997819bf7006309bdcc27081086c0950
+  BASE: 293b12640ed5eccc5e4dc6c07e19eacd37ad68de
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 7b346622997819bf7006309bdcc27081086c0950
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install measured test and generation dependencies
+        run: |
+          python -m pip install -c constraints-ci-tools.txt ruff
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0 shapely==2.0.6 httpx==0.28.1 pydantic==2.13.4
+      - name: Same-input baseline RED and source GREEN
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SEED"
+          git rev-parse HEAD 'HEAD^{tree}'
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE"
+          mkdir "$RUNNER_TEMP/cases"
+          cp tests_v9/test_georag_metadata_boundary.py "$RUNNER_TEMP/cases/"
+          set +e
+          (cd "$RUNNER_TEMP/base" && PYTHONPATH="$PWD" python -m pytest -c /dev/null -q -o addopts= -p no:cacheprovider "$RUNNER_TEMP/cases/test_georag_metadata_boundary.py") | tee "$RUNNER_TEMP/red.log"
+          code=${PIPESTATUS[0]}
+          set -e
+          test "$code" = 1
+          grep -E '9 failed, 2 passed' "$RUNNER_TEMP/red.log"
+          PYTHONPATH="$PWD" python -m pytest -c /dev/null -q -o addopts= -p no:cacheprovider "$RUNNER_TEMP/cases/test_georag_metadata_boundary.py" | tee "$RUNNER_TEMP/green.log"
+          grep -E '11 passed' "$RUNNER_TEMP/green.log"
+      - name: Official generators and unchanged-source evidence
+        run: |
+          set -euo pipefail
+          git switch -c measured
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          ruff check .
+          ruff format --check .
+          python scripts/ci/guard_mutation_guard.py
+          python scripts/ci/capability_traceability_report.py
+          git add -- capabilities/generated
+          bash scripts/ci/regenerate_all_generated.sh
+          git add -u
+          python scripts/ci/capability_traceability_report.py
+          if ! git diff --quiet -- capabilities/generated; then
+            git add -- capabilities/generated
+            bash scripts/ci/regenerate_all_generated.sh
+          fi
+          python -m pytest -q -o addopts= -p no:cacheprovider tests/architecture/test_capability_traceability.py
+          test -z "$(git ls-files --others --exclude-standard)"
+          git add -u
+          git -c core.whitespace=cr-at-eol diff --cached --check
+          git diff --cached --exit-code -- .github/workflows services shared tests tests_v9 mobile frontend/src frontend/e2e migrations
+          git diff --cached --stat
+          git diff --cached --quiet && { echo "No generated changes; no candidate"; exit 1; }
+          git commit -m "chore: regenerate Farmland GeoRAG artifacts"
+          mkdir "$RUNNER_TEMP/verified"
+          git bundle create "$RUNNER_TEMP/verified/carrier.bundle" refs/heads/measured "^$SEED"
+          git rev-parse HEAD 'HEAD^{tree}' > "$RUNNER_TEMP/verified/identity"
+          cp "$RUNNER_TEMP/red.log" "$RUNNER_TEMP/green.log" "$RUNNER_TEMP/verified/"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: verified-farmland-1662
+          path: ${{ runner.temp }}/verified/
+          if-no-files-found: error
+          retention-days: 7
