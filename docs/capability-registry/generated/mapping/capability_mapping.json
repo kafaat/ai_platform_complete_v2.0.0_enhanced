@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7778,
+    "files_scanned": 7779,
     "files_by_kind": {
       "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2261,
-      "tests": 2727,
+      "tests": 2728,
       "web": 587
     },
     "unmapped_artifacts": 3707,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4230,
+      "python_functional": 4231,
       "raw": 3548
     },
-    "test_dependency_files": 2078,
-    "test_dependency_edges": 5637,
-    "test_dependency_bounded_files": 1195,
+    "test_dependency_files": 2079,
+    "test_dependency_edges": 5640,
+    "test_dependency_bounded_files": 1196,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -9826,7 +9826,16 @@
         }
       ],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+          "score": 13,
+          "signals": [
+            "path:topology",
+            "content:topology"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -9849,11 +9858,11 @@
         "events": 0,
         "web": 1,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 1
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {
@@ -66898,6 +66907,29 @@
           "source": "services/sahool-platform/api/routers/irrigation_mpc.py",
           "kind": "import",
           "line": 14
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/main.py",
+          "kind": "import",
+          "line": 4
+        },
+        {
+          "source": "services/sahool-platform/api/routers/__init__.py",
+          "kind": "import",
+          "line": 5
+        },
+        {
+          "source": "services/sahool-platform/api/routers/irrigation_network.py",
+          "kind": "import",
+          "line": 5
         }
       ],
       "unresolved": []

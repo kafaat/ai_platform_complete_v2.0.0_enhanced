@@ -2511,7 +2511,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 65,
+  "include_edge_count": 67,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2781,6 +2781,24 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.tests.test_indicator_observations_route:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "network.router",
+      "line": 16,
+      "module": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_irrigation_network_topology:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "network.router",
+      "line": 90,
+      "module": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_irrigation_network_topology:<dynamic-source>",
       "target": null
     },
     {
@@ -3099,7 +3117,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "2eedefdfedd260284daf1121e6074ff7a30a1a18552e433e9f8e6c11c0dd0076",
+  "inventory_sha256": "12bea2d8ae9a7b8bfdbb75549d93027fc8c7d09cbc1094d81f83ca02f12695ea",
   "orphan_candidate_count": 239,
   "orphan_candidates": [
     {
@@ -5500,7 +5518,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 59,
+  "unresolved_include_count": 61,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5717,6 +5735,22 @@
       "module": "services.sahool-platform.tests.test_indicator_observations_route",
       "source": null,
       "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+      "line": 16,
+      "module": "services.sahool-platform.tests.test_irrigation_network_topology",
+      "source": null,
+      "target_expression": "network.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+      "line": 90,
+      "module": "services.sahool-platform.tests.test_irrigation_network_topology",
+      "source": null,
+      "target_expression": "network.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

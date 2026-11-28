@@ -147,3 +147,34 @@ def test_thresholds_estimated_flagged():
     nodes, edges = _chain(well_cap=1000, zone_demand=100)
     out = check_network_feasibility(nodes, edges)
     assert out["thresholds_estimated"] is True
+
+
+@pytest.mark.parametrize(
+    ("upstream_pressure", "nearest_pressure", "expected"),
+    [
+        (5.0, 1.5, "infeasible"),
+        (5.0, None, "feasible_unverified"),
+        (1.5, 5.0, "feasible"),
+        (5.0, 0.0, "infeasible"),
+    ],
+)
+def test_pressure_screen_uses_nearest_pump(upstream_pressure, nearest_pressure, expected):
+    """An upstream rating cannot substitute for the pump closest to the zone."""
+    nodes = [
+        NetworkNode("w1", "well", capacity_m3=1000),
+        NetworkNode("p1", "pump", max_pressure_bar=upstream_pressure, max_throughput_m3=500),
+        NetworkNode("p2", "pump", max_pressure_bar=nearest_pressure, max_throughput_m3=500),
+        NetworkNode("z1", "zone", demand_m3=100, min_pressure_bar=3.0),
+    ]
+    edges = [
+        NetworkEdge("w1", "p1"),
+        NetworkEdge("p1", "p2"),
+        NetworkEdge("p2", "z1"),
+    ]
+    result = check_network_feasibility(nodes, edges)
+    zone = result["zones"][0]
+    assert zone["path"] == ["z1", "p2", "p1", "w1"]
+    assert zone["status"] == expected
+    assert ("pressure" in zone["unchecked"]) == (nearest_pressure is None)
+    assert ("pressure" in zone["bottlenecks"]) == (expected == "infeasible")
+    assert result["overall_feasible"] == (expected != "infeasible")

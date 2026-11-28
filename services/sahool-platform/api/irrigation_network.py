@@ -152,12 +152,12 @@ def check_network_feasibility(nodes: list[NetworkNode], edges: list[NetworkEdge]
             # الضغط: أقرب مضخّة عُلويّة على المسار.
             if z.min_pressure_bar is not None:
                 pumps = [by_id[n] for n in path if by_id[n].kind == "pump"]
-                pump_press = [p.max_pressure_bar for p in pumps if p.max_pressure_bar is not None]
-                if not pumps or not pump_press:
+                pump_press = pumps[0].max_pressure_bar if pumps else None
+                if pump_press is None:
                     unchecked.append("pressure")
-                elif max(pump_press) + 1e-9 < z.min_pressure_bar:
+                elif pump_press + 1e-9 < z.min_pressure_bar:
                     reasons.append(
-                        f"نقص ضغط: المطلوب {z.min_pressure_bar} > أقصى مضخّة {max(pump_press)} bar"
+                        f"نقص ضغط: المطلوب {z.min_pressure_bar} > أقرب مضخّة {pump_press} bar"
                     )
                     bottlenecks.append("pressure")
             status = (
