@@ -3771,9 +3771,10 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -3810,7 +3811,7 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": true,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": true
       },
       "evidence_records": [
@@ -3865,7 +3866,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -3875,7 +3876,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -3885,13 +3886,21 @@
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
-      "test_evidence_attribution": [],
+      "test_evidence_attribution": [
+        {
+          "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+          "signal": "filename:test_"
+        }
+      ],
       "title": "Field geometry validation",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "services/sahool-platform/tests/test_irrigation_network_topology.py"
+      ]
     },
     {
       "assessed_maturity": 2,
@@ -15344,7 +15353,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 36,
-    "average_assessed_maturity": 2.12,
+    "average_assessed_maturity": 2.14,
     "capability_count": 81,
     "declared_above_evidence": 37,
     "evidence_above_declared": 8,
