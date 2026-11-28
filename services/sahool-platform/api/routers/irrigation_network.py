@@ -66,6 +66,12 @@ def network_feasibility_endpoint(
             status_code=404,
             detail="ميزة توأم شبكة الريّ غير مُفعَّلة (اضبط FEATURE_IRRIGATION_NETWORK).",
         )
+    # Reject ambiguous graph identities before the engine builds its node dictionaries.
+    node_ids = {node.node_id for node in req.nodes}
+    if len(node_ids) != len(req.nodes) or any(not node_id.strip() for node_id in node_ids):
+        raise HTTPException(status_code=422, detail="Network node IDs must be nonblank and unique")
+    if any(edge.from_id not in node_ids or edge.to_id not in node_ids for edge in req.edges):
+        raise HTTPException(status_code=422, detail="Network edges must reference existing nodes")
     nodes = [
         NetworkNode(
             node_id=n.node_id,
