@@ -11,12 +11,9 @@ import math
 from typing import Any
 
 try:
-    from .field_boundary_ai import bbox_polygon, normalize_bbox
+    from .field_boundary_ai import normalize_bbox
 except ImportError:  # direct spec import used by legacy unit guards
-    from services.ai_agronomist.field_boundary_ai import (  # type: ignore
-        bbox_polygon,
-        normalize_bbox,
-    )
+    from services.ai_agronomist.field_boundary_ai import normalize_bbox  # type: ignore
 
 
 _CLASSES = ("high", "medium", "low")
@@ -55,14 +52,6 @@ def bbox_from_polygon(geometry: dict[str, Any] | None) -> list[float] | None:
     if any(v is None for v in lons + lats):
         return None
     return normalize_bbox([min(lons), min(lats), max(lons), max(lats)])  # type: ignore[arg-type]
-
-
-def _zone_polygon(bbox: list[float], index: int, count: int) -> dict[str, Any]:
-    lon_min, lat_min, lon_max, lat_max = bbox
-    step = (lon_max - lon_min) / count
-    left = lon_min + index * step
-    right = lon_min + (index + 1) * step
-    return bbox_polygon([left, lat_min, right, lat_max])
 
 
 def _source_count(value: Any) -> int:

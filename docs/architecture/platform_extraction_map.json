@@ -1536,7 +1536,7 @@
       "function": "compose_crop_twin",
       "method": "POST",
       "path": "/api/v1/crop-twin/compose",
-      "line": 244,
+      "line": 248,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/compose::compose_crop_twin"
@@ -1546,7 +1546,7 @@
       "function": "crop_decision_candidate_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
-      "line": 302,
+      "line": 306,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision-candidate::crop_decision_candidate_endpoint",
@@ -1557,7 +1557,7 @@
       "function": "profit_aware_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
-      "line": 536,
+      "line": 616,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision/profit-aware::profit_aware_decision_endpoint"
@@ -1567,7 +1567,7 @@
       "function": "crop_decision_endpoint",
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
-      "line": 412,
+      "line": 489,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/crop_twin.py::POST /api/v1/crop-twin/decision::crop_decision_endpoint"
@@ -2393,7 +2393,7 @@
       "function": "get_season_budget",
       "method": "GET",
       "path": "/api/v1/farm-ledger/budgets/{season_id}",
-      "line": 553,
+      "line": 538,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/budgets/{season_id}::get_season_budget"
@@ -2403,7 +2403,7 @@
       "function": "get_economic_state",
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
-      "line": 911,
+      "line": 895,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/economic-state/{season_id}::get_economic_state"
@@ -2413,7 +2413,7 @@
       "function": "get_erp_projection",
       "method": "GET",
       "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
-      "line": 703,
+      "line": 687,
       "target_owner": "erp-bridge",
       "owner_type": "adapter",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/erp-projection/{season_id}::get_erp_projection"
@@ -2423,7 +2423,7 @@
       "function": "get_inventory_projection",
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
-      "line": 860,
+      "line": 844,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/inventory-projection/{season_id}::get_inventory_projection"
@@ -2443,7 +2443,7 @@
       "function": "get_season_profitability",
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
-      "line": 667,
+      "line": 651,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/profitability/{season_id}::get_season_profitability"
@@ -2463,7 +2463,7 @@
       "function": "get_budget_variance",
       "method": "GET",
       "path": "/api/v1/farm-ledger/variance/{season_id}",
-      "line": 629,
+      "line": 613,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::GET /api/v1/farm-ledger/variance/{season_id}::get_budget_variance"
@@ -2473,7 +2473,7 @@
       "function": "operation_autowrite_preview",
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
-      "line": 794,
+      "line": 778,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/autowrite-preview::operation_autowrite_preview"
@@ -2483,7 +2483,7 @@
       "function": "upsert_season_budget_lines",
       "method": "POST",
       "path": "/api/v1/farm-ledger/budgets",
-      "line": 470,
+      "line": 472,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/budgets::upsert_season_budget_lines"
@@ -2503,7 +2503,7 @@
       "function": "create_revenue_record",
       "method": "POST",
       "path": "/api/v1/farm-ledger/revenues",
-      "line": 584,
+      "line": 569,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/farm_operations_ledger.py::POST /api/v1/farm-ledger/revenues::create_revenue_record"
@@ -3843,7 +3843,7 @@
       "function": "list_expiring_batches",
       "method": "GET",
       "path": "/api/v1/inventory/expiring",
-      "line": 186,
+      "line": 176,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::GET /api/v1/inventory/expiring::list_expiring_batches"
@@ -3853,7 +3853,7 @@
       "function": "list_inventory_items",
       "method": "GET",
       "path": "/api/v1/inventory/items",
-      "line": 91,
+      "line": 94,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::GET /api/v1/inventory/items::list_inventory_items"
@@ -3863,7 +3863,7 @@
       "function": "add_inventory_batch",
       "method": "POST",
       "path": "/api/v1/inventory/items/{item_id}/batches",
-      "line": 122,
+      "line": 112,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::POST /api/v1/inventory/items/{item_id}/batches::add_inventory_batch"
@@ -3873,7 +3873,7 @@
       "function": "create_inventory_item",
       "method": "POST",
       "path": "/api/v1/inventory/items",
-      "line": 40,
+      "line": 43,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/inventory.py::POST /api/v1/inventory/items::create_inventory_item"
@@ -4033,7 +4033,7 @@
       "function": "irrigation_mpc_capabilities",
       "method": "GET",
       "path": "/api/v1/irrigation/mpc/capabilities",
-      "line": 164,
+      "line": 168,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::GET /api/v1/irrigation/mpc/capabilities::irrigation_mpc_capabilities"
@@ -4043,7 +4043,7 @@
       "function": "irrigation_mpc_hourly_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "line": 552,
+      "line": 578,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation::irrigation_mpc_hourly_recommendation"
@@ -4053,7 +4053,7 @@
       "function": "irrigation_mpc_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
-      "line": 328,
+      "line": 354,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation::irrigation_mpc_recommendation"
@@ -4063,7 +4063,7 @@
       "function": "reconcile_irrigation_execution",
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
-      "line": 593,
+      "line": 619,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/executions/reconcile::reconcile_irrigation_execution"
@@ -4073,7 +4073,7 @@
       "function": "irrigation_mpc_plan",
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/plan",
-      "line": 97,
+      "line": 101,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/mpc/plan::irrigation_mpc_plan"
@@ -4083,7 +4083,7 @@
       "function": "irrigation_mpc_simulate",
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/simulate",
-      "line": 295,
+      "line": 321,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/mpc/simulate::irrigation_mpc_simulate"

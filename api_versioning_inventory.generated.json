@@ -1253,7 +1253,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 238,
+    "line": 272,
     "method": "POST",
     "path": "/internal/field-tasks/scouting",
     "handler": "create_scouting_task",
@@ -1262,7 +1262,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 281,
+    "line": 315,
     "method": "GET",
     "path": "/internal/field-tasks/scouting",
     "handler": "list_scouting_tasks",
@@ -1289,7 +1289,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 284,
+    "line": 342,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/inspection-assignees",
     "handler": "list_inspection_assignees",
@@ -1298,7 +1298,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 303,
+    "line": 361,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "handler": "get_pin_inspection_task",
@@ -1307,7 +1307,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 318,
+    "line": 376,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "handler": "assign_pin_inspection",
@@ -1316,7 +1316,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 368,
+    "line": 426,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff",
     "handler": "inspect_handoff",
@@ -1325,7 +1325,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 459,
+    "line": 517,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept",
     "handler": "accept_inspection",
@@ -1334,7 +1334,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 474,
+    "line": 532,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign",
     "handler": "reassign_inspection",
@@ -1343,7 +1343,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 607,
+    "line": 668,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
     "handler": "record_inspection_finding",
@@ -2180,7 +2180,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 112,
+    "line": 122,
     "method": "POST",
     "path": "/v1/sync",
     "handler": "trigger_sync",
@@ -2351,7 +2351,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 98,
+    "line": 97,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "handler": "gis_admin_boundaries",
@@ -2360,7 +2360,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 147,
+    "line": 146,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "handler": "process_from_stac",
@@ -2369,7 +2369,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 272,
+    "line": 271,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "handler": "field_historical_backfill",
@@ -4556,7 +4556,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 245,
+    "line": 249,
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "handler": "compose_crop_twin",
@@ -4565,7 +4565,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 303,
+    "line": 307,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "handler": "crop_decision_candidate_endpoint",
@@ -4574,7 +4574,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 413,
+    "line": 490,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "handler": "crop_decision_endpoint",
@@ -4583,7 +4583,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 537,
+    "line": 617,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "handler": "profit_aware_decision_endpoint",
@@ -5339,7 +5339,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 471,
+    "line": 473,
     "method": "POST",
     "path": "/api/v1/farm-ledger/budgets",
     "handler": "upsert_season_budget_lines",
@@ -5348,7 +5348,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 554,
+    "line": 539,
     "method": "GET",
     "path": "/api/v1/farm-ledger/budgets/{season_id}",
     "handler": "get_season_budget",
@@ -5357,7 +5357,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 585,
+    "line": 570,
     "method": "POST",
     "path": "/api/v1/farm-ledger/revenues",
     "handler": "create_revenue_record",
@@ -5366,7 +5366,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 630,
+    "line": 614,
     "method": "GET",
     "path": "/api/v1/farm-ledger/variance/{season_id}",
     "handler": "get_budget_variance",
@@ -5375,7 +5375,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 668,
+    "line": 652,
     "method": "GET",
     "path": "/api/v1/farm-ledger/profitability/{season_id}",
     "handler": "get_season_profitability",
@@ -5384,7 +5384,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 704,
+    "line": 688,
     "method": "GET",
     "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
     "handler": "get_erp_projection",
@@ -5393,7 +5393,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 795,
+    "line": 779,
     "method": "POST",
     "path": "/api/v1/farm-ledger/autowrite-preview",
     "handler": "operation_autowrite_preview",
@@ -5402,7 +5402,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 861,
+    "line": 845,
     "method": "GET",
     "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
     "handler": "get_inventory_projection",
@@ -5411,7 +5411,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 912,
+    "line": 896,
     "method": "GET",
     "path": "/api/v1/farm-ledger/economic-state/{season_id}",
     "handler": "get_economic_state",
@@ -6617,7 +6617,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 41,
+    "line": 44,
     "method": "POST",
     "path": "/api/v1/inventory/items",
     "handler": "create_inventory_item",
@@ -6626,7 +6626,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 92,
+    "line": 95,
     "method": "GET",
     "path": "/api/v1/inventory/items",
     "handler": "list_inventory_items",
@@ -6635,7 +6635,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 123,
+    "line": 113,
     "method": "POST",
     "path": "/api/v1/inventory/items/{item_id}/batches",
     "handler": "add_inventory_batch",
@@ -6644,7 +6644,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 187,
+    "line": 177,
     "method": "GET",
     "path": "/api/v1/inventory/expiring",
     "handler": "list_expiring_batches",
@@ -6896,7 +6896,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 98,
+    "line": 102,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/plan",
     "handler": "irrigation_mpc_plan",
@@ -6905,7 +6905,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 165,
+    "line": 169,
     "method": "GET",
     "path": "/api/v1/irrigation/mpc/capabilities",
     "handler": "irrigation_mpc_capabilities",
@@ -6914,7 +6914,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 296,
+    "line": 322,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/simulate",
     "handler": "irrigation_mpc_simulate",
@@ -6923,7 +6923,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 329,
+    "line": 355,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
     "handler": "irrigation_mpc_recommendation",
@@ -6932,7 +6932,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 553,
+    "line": 579,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
     "handler": "irrigation_mpc_hourly_recommendation",
@@ -6941,7 +6941,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 594,
+    "line": 620,
     "method": "POST",
     "path": "/api/v1/irrigation/executions/reconcile",
     "handler": "reconcile_irrigation_execution",
@@ -10276,5 +10276,257 @@
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
     "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 23,
+    "method": "GET",
+    "path": "/healthz",
+    "handler": "rt.healthz",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 24,
+    "method": "GET",
+    "path": "/health",
+    "handler": "rt.health",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 25,
+    "method": "GET",
+    "path": "/readyz",
+    "handler": "rt.readyz",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 26,
+    "method": "GET",
+    "path": "/metrics",
+    "handler": "rt.metrics",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 27,
+    "method": "GET",
+    "path": "/",
+    "handler": "rt.root",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 28,
+    "method": "GET",
+    "path": "/contract",
+    "handler": "rt.contract",
+    "classification": "infra"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 29,
+    "method": "POST",
+    "path": "/v1/weather/raw/process",
+    "handler": "rt.raw_weather_process",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 30,
+    "method": "GET",
+    "path": "/v1/weather/current",
+    "handler": "rt.current_weather",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 31,
+    "method": "GET",
+    "path": "/v1/weather/forecast",
+    "handler": "rt.forecast_weather",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 32,
+    "method": "GET",
+    "path": "/v1/weather/historical",
+    "handler": "rt.historical_weather",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 33,
+    "method": "GET",
+    "path": "/v1/weather/operation-window",
+    "handler": "rt.operation_window",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 34,
+    "method": "GET",
+    "path": "/v1/weather/operation-plan",
+    "handler": "rt.operation_plan",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 35,
+    "method": "GET",
+    "path": "/v1/weather/thermal-stress",
+    "handler": "rt.thermal_stress",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 36,
+    "method": "GET",
+    "path": "/v1/weather/lodging-risk",
+    "handler": "rt.lodging_risk",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 37,
+    "method": "GET",
+    "path": "/v1/weather/pollination-risk",
+    "handler": "rt.pollination_risk",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 38,
+    "method": "GET",
+    "path": "/v1/weather/chill-accumulation",
+    "handler": "rt.chill_accumulation",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 39,
+    "method": "POST",
+    "path": "/v1/weather/agro/et0",
+    "handler": "rt.agro_et0",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 40,
+    "method": "POST",
+    "path": "/v1/weather/agro/et0/series",
+    "handler": "rt.agro_et0_series",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 41,
+    "method": "POST",
+    "path": "/v1/weather/agro/etc/hourly",
+    "handler": "rt.agro_hourly_etc",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 42,
+    "method": "POST",
+    "path": "/v1/weather/agro/gdd",
+    "handler": "rt.agro_gdd",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 43,
+    "method": "POST",
+    "path": "/v1/weather/agro/vpd",
+    "handler": "rt.agro_vpd",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 44,
+    "method": "POST",
+    "path": "/v1/weather/agro/canonical-state",
+    "handler": "rt.agro_canonical_state",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 45,
+    "method": "POST",
+    "path": "/v1/weather/agro/state-report",
+    "handler": "rt.agro_weather_state_report",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 46,
+    "method": "GET",
+    "path": "/v1/weather/tile-data/{z}/{x}/{y}",
+    "handler": "rt.tile_data",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 47,
+    "method": "GET",
+    "path": "/v1/weather/operation-tile-data/{z}/{x}/{y}",
+    "handler": "rt.operation_tile_data",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 48,
+    "method": "GET",
+    "path": "/v1/weather/tile-series/{z}/{x}/{y}",
+    "handler": "rt.tile_series",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 49,
+    "method": "GET",
+    "path": "/v1/weather/wind-grid/{z}/{x}/{y}",
+    "handler": "rt.wind_grid",
+    "classification": "versioned"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 50,
+    "method": "GET",
+    "path": "/v1/weather/cache-stats",
+    "handler": "rt.tile_cache_stats",
+    "classification": "versioned"
   }
 ]

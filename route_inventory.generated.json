@@ -1114,7 +1114,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 238,
+    "line": 272,
     "method": "POST",
     "path": "/internal/field-tasks/scouting",
     "function": "create_scouting_task"
@@ -1122,7 +1122,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_scouting_tasks.py",
-    "line": 281,
+    "line": 315,
     "method": "GET",
     "path": "/internal/field-tasks/scouting",
     "function": "list_scouting_tasks"
@@ -1146,7 +1146,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 284,
+    "line": 342,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/inspection-assignees",
     "function": "list_inspection_assignees"
@@ -1154,7 +1154,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 303,
+    "line": 361,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "function": "get_pin_inspection_task"
@@ -1162,7 +1162,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 318,
+    "line": 376,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "function": "assign_pin_inspection"
@@ -1170,7 +1170,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 368,
+    "line": 426,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff",
     "function": "inspect_handoff"
@@ -1178,7 +1178,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 459,
+    "line": 517,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept",
     "function": "accept_inspection"
@@ -1186,7 +1186,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 474,
+    "line": 532,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign",
     "function": "reassign_inspection"
@@ -1194,7 +1194,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 607,
+    "line": 668,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
     "function": "record_inspection_finding"
@@ -1962,7 +1962,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 112,
+    "line": 122,
     "method": "POST",
     "path": "/v1/sync",
     "function": "trigger_sync"
@@ -2114,7 +2114,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 98,
+    "line": 97,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "function": "gis_admin_boundaries"
@@ -2122,7 +2122,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 147,
+    "line": 146,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "function": "process_from_stac"
@@ -2130,7 +2130,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 272,
+    "line": 271,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "function": "field_historical_backfill"
@@ -4082,7 +4082,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 245,
+    "line": 249,
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "function": "compose_crop_twin"
@@ -4090,7 +4090,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 303,
+    "line": 307,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "function": "crop_decision_candidate_endpoint"
@@ -4098,7 +4098,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 413,
+    "line": 490,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "function": "crop_decision_endpoint"
@@ -4106,7 +4106,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 537,
+    "line": 617,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "function": "profit_aware_decision_endpoint"
@@ -4778,7 +4778,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 471,
+    "line": 473,
     "method": "POST",
     "path": "/api/v1/farm-ledger/budgets",
     "function": "upsert_season_budget_lines"
@@ -4786,7 +4786,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 554,
+    "line": 539,
     "method": "GET",
     "path": "/api/v1/farm-ledger/budgets/{season_id}",
     "function": "get_season_budget"
@@ -4794,7 +4794,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 585,
+    "line": 570,
     "method": "POST",
     "path": "/api/v1/farm-ledger/revenues",
     "function": "create_revenue_record"
@@ -4802,7 +4802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 630,
+    "line": 614,
     "method": "GET",
     "path": "/api/v1/farm-ledger/variance/{season_id}",
     "function": "get_budget_variance"
@@ -4810,7 +4810,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 668,
+    "line": 652,
     "method": "GET",
     "path": "/api/v1/farm-ledger/profitability/{season_id}",
     "function": "get_season_profitability"
@@ -4818,7 +4818,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 704,
+    "line": 688,
     "method": "GET",
     "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
     "function": "get_erp_projection"
@@ -4826,7 +4826,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 795,
+    "line": 779,
     "method": "POST",
     "path": "/api/v1/farm-ledger/autowrite-preview",
     "function": "operation_autowrite_preview"
@@ -4834,7 +4834,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 861,
+    "line": 845,
     "method": "GET",
     "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
     "function": "get_inventory_projection"
@@ -4842,7 +4842,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 912,
+    "line": 896,
     "method": "GET",
     "path": "/api/v1/farm-ledger/economic-state/{season_id}",
     "function": "get_economic_state"
@@ -5914,7 +5914,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 41,
+    "line": 44,
     "method": "POST",
     "path": "/api/v1/inventory/items",
     "function": "create_inventory_item"
@@ -5922,7 +5922,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 92,
+    "line": 95,
     "method": "GET",
     "path": "/api/v1/inventory/items",
     "function": "list_inventory_items"
@@ -5930,7 +5930,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 123,
+    "line": 113,
     "method": "POST",
     "path": "/api/v1/inventory/items/{item_id}/batches",
     "function": "add_inventory_batch"
@@ -5938,7 +5938,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 187,
+    "line": 177,
     "method": "GET",
     "path": "/api/v1/inventory/expiring",
     "function": "list_expiring_batches"
@@ -6162,7 +6162,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 98,
+    "line": 102,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/plan",
     "function": "irrigation_mpc_plan"
@@ -6170,7 +6170,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 165,
+    "line": 169,
     "method": "GET",
     "path": "/api/v1/irrigation/mpc/capabilities",
     "function": "irrigation_mpc_capabilities"
@@ -6178,7 +6178,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 296,
+    "line": 322,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/simulate",
     "function": "irrigation_mpc_simulate"
@@ -6186,7 +6186,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 329,
+    "line": 355,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
     "function": "irrigation_mpc_recommendation"
@@ -6194,7 +6194,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 553,
+    "line": 579,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
     "function": "irrigation_mpc_hourly_recommendation"
@@ -6202,7 +6202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 594,
+    "line": 620,
     "method": "POST",
     "path": "/api/v1/irrigation/executions/reconcile",
     "function": "reconcile_irrigation_execution"

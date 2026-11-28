@@ -1056,6 +1056,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/hooks/useFieldIntelligenceCard.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/hooks/useFieldIntelligenceCard.ts",
     "kind": "web"
   },
@@ -2040,6 +2044,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldIntelligencePage.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldIntelligencePage.tsx",
     "kind": "web"
   },
@@ -2428,6 +2436,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/TasksPage.execution.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/TasksPage.tsx",
     "kind": "web"
   },
@@ -2630,6 +2642,10 @@
   {
     "path": "frontend/src/services/duckdb.ts",
     "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/fieldIntelligencePolling.test.ts",
+    "kind": "tests"
   },
   {
     "path": "frontend/src/services/scoutPhotoGrants.test.ts",
@@ -2925,6 +2941,14 @@
   },
   {
     "path": "migrations/v28_settings.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v292_inspection_equipment_evidence.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v292_inspection_equipment_evidence.sql",
     "kind": "database"
   },
   {
@@ -4528,6 +4552,10 @@
     "kind": "tests"
   },
   {
+    "path": "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
     "kind": "tests"
   },
@@ -5712,6 +5740,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/landsat_st.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/layer_cache_events.py",
     "kind": "backend"
   },
@@ -5949,6 +5981,10 @@
   },
   {
     "path": "services/raster-service/test_job_truth_receipts_and_fencing.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_landsat_field_lst.py",
     "kind": "tests"
   },
   {
@@ -6621,6 +6657,10 @@
   },
   {
     "path": "services/sahool-platform/api/food_grain_varieties_verified_v1.schema.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/freshness_store.py",
     "kind": "backend"
   },
   {
@@ -8836,6 +8876,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_crop_georag_point_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_crop_inference.py",
     "kind": "tests"
   },
@@ -9388,11 +9432,11 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
+    "path": "services/sahool-platform/tests/test_irrigation_network_topology.py",
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+    "path": "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
     "kind": "tests"
   },
   {
@@ -11004,6 +11048,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/irrigation/test_irrigation_period_volume_reservation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/irrigation/test_irrigation_reservation_adapter.py",
     "kind": "tests"
   },
@@ -11561,6 +11609,10 @@
   },
   {
     "path": "tests_v9/test_auth_main_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_redis_acl_fixture.py",
     "kind": "tests"
   },
   {
@@ -12280,10 +12332,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_erp_sync_schema_honesty.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_etc_dual_browser_source_truth.py",
     "kind": "tests"
   },
@@ -12592,6 +12640,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_georag_metadata_boundary.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gis_enforce.py",
     "kind": "tests"
   },
@@ -12808,6 +12860,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_irr_f01_compensation_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_irr_f01_junit_gate.py",
     "kind": "tests"
   },
@@ -12865,6 +12921,10 @@
   },
   {
     "path": "tests_v9/test_irrigation_runs_v29_5_op.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_runtime_orchestrator_guard.py",
     "kind": "tests"
   },
   {

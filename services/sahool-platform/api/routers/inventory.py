@@ -13,7 +13,10 @@
 from __future__ import annotations
 
 from datetime import date
+from itertools import groupby
+from operator import itemgetter
 
+from core.inventory_units import stock_in_item_unit
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.idempotency import model_digest
@@ -91,32 +94,19 @@ async def create_inventory_item(
 @router.get("/api/v1/inventory/items")
 async def list_inventory_items(
     user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
+    unit_breakdown: bool = False,
 ):
-    """عناصر المخزون مع الكمّيّة الكلّيّة (مجموع الدفعات) — مُرشّحة بـRLS."""
+    """Return available stock in the item's unit. Opt in to per-unit quantities for mixed stock."""
     async with tenant_connection(user) as conn:
         rows = await conn.fetch(
             """SELECT i.item_id, i.category, i.name, i.unit, i.reorder_level,
-                      COALESCE(SUM(b.quantity), 0) AS total_quantity
+                      COALESCE(b.unit, i.unit) AS batch_unit, SUM(b.quantity) AS quantity
                FROM inventory_items i
-               LEFT JOIN inventory_batches b ON b.item_id = i.item_id
-               GROUP BY i.item_id, i.category, i.name, i.unit, i.reorder_level
-               ORDER BY i.category, i.name"""
+               LEFT JOIN inventory_batches b ON b.item_id = i.item_id AND b.tenant_id = i.tenant_id
+               GROUP BY i.item_id, COALESCE(b.unit, i.unit)
+               ORDER BY i.category, i.name, i.item_id, batch_unit"""
         )
-    return [
-        {
-            "item_id": r["item_id"],
-            "category": r["category"],
-            "name": r["name"],
-            "unit": r["unit"],
-            "reorder_level": float(r["reorder_level"]) if r["reorder_level"] is not None else None,
-            "total_quantity": float(r["total_quantity"]),
-            "low_stock": (
-                r["reorder_level"] is not None
-                and float(r["total_quantity"]) <= float(r["reorder_level"])
-            ),
-        }
-        for r in rows
-    ]
+    return inventory_catalogue(rows, unit_breakdown)
 
 
 @router.post("/api/v1/inventory/items/{item_id}/batches", status_code=201)
@@ -211,3 +201,37 @@ async def list_expiring_batches(
         }
         for r in rows
     ]
+
+
+def inventory_catalogue(rows, unit_breakdown: bool) -> list[dict]:
+    """Group per-unit stock rows into the catalogue. Pure: no connection, no request.
+
+    An unconvertible unit is uncertainty about THAT item, so it stays scoped to it: the total
+    and low_stock are null (never a guessed number) and the rest of the catalogue is served.
+    Deployed clients that call without unit_breakdown already read both as nullable; refusing
+    the whole list (409) made every item unreachable for them (Devin review on #1666).
+    """
+    items = []
+    for item_id, group in groupby(rows, key=itemgetter("item_id")):
+        unit_rows = list(group)
+        first = unit_rows[0]
+        amounts = {r["batch_unit"]: r["quantity"] for r in unit_rows if r["quantity"] is not None}
+        total = stock_in_item_unit(first["unit"], amounts)
+        level = first["reorder_level"]
+        item = {
+            "item_id": item_id,
+            "category": first["category"],
+            "name": first["name"],
+            "unit": first["unit"],
+            "reorder_level": float(level) if level is not None else None,
+            "total_quantity": float(total) if total is not None else None,
+            "low_stock": (level is not None and total <= level) if total is not None else None,
+        }
+        if total is None:
+            item["unit_conversion_unavailable"] = True
+        if unit_breakdown:
+            item["quantities_by_unit"] = [
+                {"unit": unit, "quantity": float(quantity)} for unit, quantity in amounts.items()
+            ]
+        items.append(item)
+    return items

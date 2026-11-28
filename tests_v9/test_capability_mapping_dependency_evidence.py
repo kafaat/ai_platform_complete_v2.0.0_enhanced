@@ -149,6 +149,73 @@ def test_farm_inventory_in_context_still_binds():
     assert score >= 8 and "path:inventory" in hits
 
 
+_NETWORK_TOPOLOGY_TEST = "services/sahool-platform/tests/test_irrigation_network_topology.py"
+
+
+def test_irrigation_graph_topology_is_not_field_geometry_evidence():
+    text = (ROOT / _NETWORK_TOPOLOGY_TEST).read_text(encoding="utf-8")
+    score, hits = _score("GIS-001", "Field geometry validation", _NETWORK_TOPOLOGY_TEST, text)
+    assert score == 0 and not hits, "node identities and graph edges do not test field geometry"
+
+
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "migrations/v59_boundary_topology_fn.sql",
+        "frontend/src/components/maphub/drawing/topologyValidation.ts",
+    ],
+)
+def test_field_geometry_topology_still_maps(rel):
+    text = (ROOT / rel).read_text(encoding="utf-8")
+    score, hits = _score("GIS-001", "Field geometry validation", rel, text, ENGINE.classify(rel))
+    assert score >= 8 and "path:topology" in hits
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "# geometry polygon multipolygon postgis field boundary\n"
+        "def test_topology(nodes):\n    assert check_topology(nodes)\n",
+        "def test_topology():\n"
+        '    payload = {"geometry": "Polygon", "context": ["multipolygon", "postgis", "field boundary"]}\n'
+        "    assert check_topology(payload)\n",
+        "def test_topology(geometryish, nonpolygon):\n"
+        "    assert check_topology(geometryish, nonpolygon)\n",
+    ],
+    ids=["comment_only", "fixture_only", "partial_words"],
+)
+def test_python_topology_requires_functional_geometry_context(text):
+    score, hits = _score(
+        "GIS-001", "Field geometry validation", "tests_v9/geometry/test_network_topology.py", text
+    )
+    assert score == 0 and not hits
+
+
+def test_python_polygon_validation_is_functional_topology_evidence():
+    text = "def test_topology(polygon):\n    assert validate_topology(polygon)\n"
+    score, hits = _score("GIS-001", "Field geometry validation", "tests_v9/test_topology.py", text)
+    assert score >= 8 and "path:topology" in hits
+
+
+def test_explicit_geometry_capability_id_remains_a_static_link():
+    text = 'def test_topology(result):\n    assert result.capability == "GIS-001"\n'
+    score, hits = _score("GIS-001", "Field geometry validation", "tests_v9/test_topology.py", text)
+    assert score == 20 and hits == ["explicit_id"]
+
+
+def test_irrigation_graph_test_retains_its_real_import_dependencies():
+    text = (ROOT / _NETWORK_TOPOLOGY_TEST).read_text(encoding="utf-8")
+    found = ENGINE.extract_test_dependencies(
+        _NETWORK_TOPOLOGY_TEST, text, ENGINE.repo_index(ENGINE._tracked_files())
+    )
+    assert _edges(found) == {
+        ("services/sahool-platform/api/main.py", "import"),
+        ("services/sahool-platform/api/routers/__init__.py", "import"),
+        ("services/sahool-platform/api/routers/irrigation_network.py", "import"),
+    }
+    assert found["bounded"] is True and found["unresolved"] == []
+
+
 # ── R3: proven test → source dependencies ───────────────────────────────────────────
 
 _INDEX = ENGINE.repo_index(

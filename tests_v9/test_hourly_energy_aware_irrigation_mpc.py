@@ -1,5 +1,6 @@
 import sys
 from datetime import UTC, datetime, timedelta, timezone
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -134,6 +135,144 @@ def test_required_load_not_permitted_blocks_windows():
         row["permitted_load_ids"] = ["pivot-1"]
     result = solve(hourly_forecast=rows)
     assert "NO_FEASIBLE_HOURLY_ENERGY_WINDOW" in result.blocking_reasons
+
+
+@pytest.mark.parametrize(
+    ("runtime_minutes", "minimum_off_hours", "offsets", "expected"),
+    [
+        (60, 1, [0, 60, 120, 180], [0, 120]),
+        (30, 1, [0, 89, 90], [0, 90]),
+        (30, 0, [0, 29, 30], [0, 30]),
+    ],
+)
+def test_next_start_respects_off_time_after_pump_stops(
+    runtime_minutes, minimum_off_hours, offsets, expected
+):
+    rows = forecast(hours=len(offsets))
+    for row, offset in zip(rows, offsets, strict=True):
+        row["hour"] = (NOW + timedelta(minutes=offset)).isoformat()
+    # With 50 L/s over 50 ha, 0.006 mm is exactly one minute of pumping.
+    cap = {**capability(), "maximum_safe_depth_mm_event": 0.006 * runtime_minutes}
+    result = solve(
+        irrigation_capability=cap, hourly_forecast=rows, minimum_off_hours=minimum_off_hours
+    )
+
+    assert [datetime.fromisoformat(a["hour"]) for a in result.actions] == [
+        NOW + timedelta(minutes=offset) for offset in expected
+    ]
+    assert all(a["runtime_minutes"] == runtime_minutes for a in result.actions)
+
+
+def test_fractional_off_hours_allows_restart_at_exact_microsecond_boundary():
+    restart = NOW + timedelta(minutes=30, seconds=504)
+    rows = forecast(hours=3)
+    for row, when in zip(rows, [NOW, restart - timedelta(microseconds=1), restart], strict=True):
+        row["hour"] = when.isoformat()
+    cap = {**capability(), "maximum_safe_depth_mm_event": 0.18}
+
+    result = solve(irrigation_capability=cap, hourly_forecast=rows, minimum_off_hours=0.14)
+
+    assert [datetime.fromisoformat(a["hour"]) for a in result.actions] == [NOW, restart]
+    assert result.actions[0]["runtime_minutes"] == 30
+
+
+@pytest.mark.parametrize(
+    "invalid", [-1, -0.25, float("nan"), float("inf"), float("-inf"), True, False, "1", None]
+)
+def test_invalid_minimum_off_hours_blocks_schedule(invalid):
+    result = solve(minimum_off_hours=invalid)
+    assert result.status == "blocked"
+    assert result.blocking_reasons == ["INVALID_MINIMUM_OFF_HOURS"]
+    assert result.actions == []
+    assert result.execution_allowed is False
+
+
+def test_daily_depth_accumulates_across_actions_and_renews_at_utc_midnight():
+    rows = forecast(hours=8)
+    # All eight rows have the same local date, but UTC midnight falls between them.
+    local_midnight = datetime(2026, 7, 14, tzinfo=timezone(timedelta(hours=4)))
+    for index, row in enumerate(rows):
+        row["hour"] = (local_midnight + timedelta(hours=index)).isoformat()
+    cap = {**capability(), "maximum_daily_depth_mm": 6.0, "maximum_safe_depth_mm_event": 4.0}
+    result = solve(irrigation_capability=cap, area_ha=4.5, hourly_forecast=rows)
+
+    assert [(a["hour"], a["irrigation_depth_mm"]) for a in result.actions] == [
+        ("2026-07-13T20:00:00Z", 4.0),
+        ("2026-07-13T22:00:00Z", 2.0),
+        ("2026-07-14T00:00:00Z", 4.0),
+        ("2026-07-14T02:00:00Z", 2.0),
+    ]
+    assert result.scheduled_irrigation_mm == 12.0
+    assert result.status == "degraded"
+    assert result.execution_allowed is False
+
+
+def test_seasonal_volume_is_shared_across_all_days_in_one_schedule():
+    cap = {**capability(), "remaining_seasonal_volume_m3": 95.0}
+    rows = forecast(hours=3)
+    for index, row in enumerate(rows):
+        row["hour"] = (NOW.replace(hour=23) + timedelta(hours=index)).isoformat()
+    result = solve(
+        irrigation_capability=cap,
+        hourly_forecast=rows,
+        area_ha=0.5,
+        minimum_runtime_minutes=1,
+    )
+
+    assert [a["irrigation_volume_m3"] for a in result.actions] == [50.0, 45.0]
+    assert result.scheduled_volume_m3 == 95.0
+    assert result.status == "degraded"
+    assert result.recommendation_only is True
+
+
+@pytest.mark.parametrize("invalid", [-1, "missing", True, float("nan"), float("inf")])
+def test_malformed_seasonal_balance_blocks(invalid):
+    result = solve(irrigation_capability={**capability(), "remaining_seasonal_volume_m3": invalid})
+    assert result.status == "blocked"
+    assert result.actions == []
+    assert "INVALID_REMAINING_SEASONAL_VOLUME" in result.blocking_reasons
+
+
+def test_large_finite_seasonal_allocation_is_nonbinding():
+    unlimited = solve()
+    large = solve(irrigation_capability={**capability(), "remaining_seasonal_volume_m3": 1e30})
+    assert large == unlimited
+
+
+def test_tiny_budget_cannot_cut_a_final_refill_below_minimum_runtime():
+    # Existing policy permits a short final 5 mm refill. The budget allows only 2 mm.
+    args = {"canonical_water_state": water(dr=35.0), "area_ha": 1.0}
+    assert solve(**args).scheduled_irrigation_mm == 5.0
+    cap = {**capability(), "remaining_seasonal_volume_m3": 20.0}
+    limited = solve(**args, irrigation_capability=cap)
+    assert limited.actions == []
+    assert limited.status == "degraded"
+
+
+def test_zero_seasonal_balance_blocks_irrigation():
+    result = solve(irrigation_capability={**capability(), "remaining_seasonal_volume_m3": 0})
+    assert result.status == "blocked"
+    assert result.scheduled_volume_m3 == 0
+    assert "SEASONAL_WATER_ALLOCATION_EXHAUSTED" in result.blocking_reasons
+
+
+def test_fractional_published_actions_stay_inside_both_budgets():
+    cap = {
+        **capability(),
+        "remaining_seasonal_volume_m3": 3.000003,
+        "maximum_daily_depth_mm": 1.000001,
+        "maximum_safe_depth_mm_event": 0.3333338,
+    }
+    result = solve(
+        irrigation_capability=cap,
+        hourly_forecast=forecast(hours=8),
+        area_ha=0.3,
+        minimum_runtime_minutes=0,
+    )
+    total_depth = sum(Decimal(str(action["irrigation_depth_mm"])) for action in result.actions)
+    total_volume = sum(Decimal(str(action["irrigation_volume_m3"])) for action in result.actions)
+    assert Decimal("0.99999") <= total_depth <= Decimal("1.000001")
+    assert Decimal("2.99999") <= total_volume <= Decimal("3.000003")
 
 
 pytestmark = pytest.mark.unit

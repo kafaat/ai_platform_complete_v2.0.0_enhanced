@@ -40,6 +40,7 @@ from shared.contracts.remote_sensing.admission import (
     finite_decimal,
     quality_reasons,
 )
+from shared.contracts.remote_sensing.thermal import observation_unit
 
 RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
     "/"
@@ -196,7 +197,7 @@ def canonicalize_timeseries(
                     code=indicator_code,
                     semantic_version="1.0.0",
                     value_type=ValueType.CONTINUOUS,
-                    unit="1",
+                    unit=observation_unit(indicator_code, point.get("algorithm_version")),
                     algorithm_ref="raster-timeseries-real-only",
                 ),
                 acquired_at=acquired,

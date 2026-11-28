@@ -13,11 +13,11 @@ import {
   Wrench, Droplets, Sprout, Bug, Wheat, RefreshCw,
   CheckCircle, Calendar,
 } from 'lucide-react';
-import { kongApi } from '../services/api';
+import { apiErrorMessage, asApiError, kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useTasks, useCompleteTask } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
-import { canAccess, canMutate, canRecordExpense } from '../lib/permissions';
+import { canAccess, canExecuteActivity, canRecordExpense } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { Card, Button, Pill } from '../components/ds/atoms';
 import { Select } from '../components/ds/forms';
@@ -58,11 +58,35 @@ const TASK_CONFIG: Record<string, { icon: typeof Wrench; label: string; color: s
 
 const PRIORITY_MAP: Record<number, string> = { 1: 'حرج', 2: 'عالٍ', 3: 'متوسط', 4: 'منخفض', 5: 'روتيني' };
 
+function taskUpdateError(error: unknown): string {
+  const err = asApiError(error);
+  const status = err.response?.status;
+  if (status === 409) {
+    const detail = err.response?.data?.detail;
+    if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+      const conflict = detail as { error?: unknown; message?: unknown };
+      if (conflict.error === 'inspection_review_required') {
+        return 'يلزم اعتماد نتيجة التفتيش قبل إنجاز المهمة. اطلب اعتماد النسخة الحالية من المراجع في سجل تسليم التفتيش، ثم أعد المحاولة.';
+      }
+      if (conflict.error === 'inspection_evidence_changed') {
+        return 'تغيّرت أدلة التفتيش بعد الاعتماد. ارفع الأدلة الحالية للمراجعة، ثم أعد إنجاز المهمة بعد اعتمادها.';
+      }
+      if (typeof conflict.message === 'string' && conflict.message.trim()) return conflict.message;
+    }
+    return 'تغيّرت حالة المهمة أو سجلها. حدّث البيانات وراجع سجل التسليم قبل إعادة المحاولة.';
+  }
+  if (status === 401) return 'انتهت الجلسة. سجّل الدخول من جديد قبل تحديث المهمة.';
+  if (status === 403) return 'لا تملك صلاحية تحديث هذه المهمة.';
+  if (status && status >= 500) return 'تعذّر تحديث المهمة بسبب مشكلة في الخدمة. حدّث البيانات قبل إعادة المحاولة.';
+  if (!status) return 'تعذّر الاتصال بالخادم، ولم يتأكد حفظ المهمة. حدّث البيانات قبل إعادة المحاولة.';
+  return apiErrorMessage(error, 'تعذّر تحديث المهمة. حدّث البيانات قبل إعادة المحاولة.');
+}
+
 export default function TasksPage() {
   const { user, tenantId } = useAuthStore();
   const canViewCosts = canAccess(user?.role, 'analytics');
   const canRecordCost = canRecordExpense(user?.role);
-  const mutateAllowed = canMutate(user?.role, 'field');
+  const mutateAllowed = canExecuteActivity(user?.role);
   const { data, isLoading, isError, refetch, isFetching } = useTasks();
   const completeMut = useCompleteTask();
 
@@ -103,9 +127,9 @@ export default function TasksPage() {
         return { ...previous, [taskId]: rest };
       });
       toastStore.add('success', '✅ تم إنجاز المهمة', '');
-    } catch {
+    } catch (error) {
       // صدق: لا نُعلن نجاحاً عند فشل الحفظ (كان يُعلَن نجاح زائف ويُخفي العطل).
-      toastStore.add('error', '⚠️ تعذّر إنجاز المهمة', 'فشل الاتصال بالخادم — لم تُحفظ');
+      toastStore.add('error', '⚠️ تعذّر إنجاز المهمة', taskUpdateError(error));
     } finally {
       setCompleting(null);
     }
@@ -116,8 +140,8 @@ export default function TasksPage() {
     try {
       await kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'in_progress' });
       setStatus(taskId, { status: 'in_progress' });
-    } catch {
-      toastStore.add('error', '⚠️ تعذّر بدء المهمة', 'فشل الاتصال بالخادم');
+    } catch (error) {
+      toastStore.add('error', '⚠️ تعذّر بدء المهمة', taskUpdateError(error));
     }
   };
 
@@ -193,24 +217,24 @@ export default function TasksPage() {
                   بدء
                 </Button>
               )}
-              <form key={task.status} className="grid gap-1.5" onSubmit={event => {
+              {(task.status !== 'completed' || canViewCosts) && <form key={task.status} className="grid gap-1.5" onSubmit={event => {
                 event.preventDefault();
-                const input = event.currentTarget.elements.namedItem('actualCost') as HTMLInputElement;
-                if (!input.reportValidity()) return;
-                void completeTask(task.task_id, input.value === '' ? undefined : input.valueAsNumber);
+                const input = event.currentTarget.elements.namedItem('actualCost') as HTMLInputElement | null;
+                if (input && !input.reportValidity()) return;
+                void completeTask(task.task_id, input && input.value !== '' ? input.valueAsNumber : undefined);
               }}>
-                <label className="grid gap-1 text-xs">
+                {canViewCosts && <label className="grid gap-1 text-xs">
                   التكلفة الفعلية بالدولار {task.status !== 'completed' && '(اختياري)'}
                   <input name="actualCost" required={task.status === 'completed'} type="number" min="0" max="99999999.99" step="0.01"
                     placeholder={task.actual_cost_usd?.toString()} className="w-28 rounded border px-2 py-1" />
-                </label>
+                </label>}
                 <button type="submit" disabled={completing !== null}
                   className="inline-flex items-center justify-center gap-1 rounded px-3 py-1.5 text-xs font-bold"
                   style={{ background: T.green, color: '#fff' }}>
                   {completing === task.task_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                   {task.status === 'completed' ? 'حفظ تصحيح التكلفة' : 'إنجاز'}
                 </button>
-              </form>
+              </form>}
               {task.status !== 'completed' && <label className="flex items-center justify-center gap-1 cursor-pointer"
                 style={{ padding: '6px 12px', borderRadius: RADIUS.md, border: `1px solid ${T.line}`, color: T.muted, fontSize: 11, fontWeight: 700 }}>
                 <Camera className="w-3 h-3" /> صورة

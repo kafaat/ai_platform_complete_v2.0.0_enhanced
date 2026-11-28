@@ -2,6 +2,18 @@
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
   "adjudicated_on": "2026-08-02",
   "behavioural": {
+    "scripts/ci/capability_traceability_report.py": {
+      "$why_ar": "c3343288773429dc74c7a4c154fecf2b11151f10 added a blocking check for all three authoritative traceability reports; register its existing corrupt/missing and regenerate-then-check witness without broadening the guard inventory or debt ceiling.",
+      "mutations": [
+        {
+          "expect": "test_traceability_check_detects_each_artifact_without_repair",
+          "find": "        if changed:\n",
+          "replace": "        if False:  # mutated: stale or missing reports accepted\n",
+          "why": "Bypassing the drift rejection lets stale or missing traceability projections pass --check; all six artifact/damage cases must fail at the intended nonzero-result assertion."
+        }
+      ],
+      "test": "tests/architecture/test_capability_traceability.py"
+    },
     "scripts/ci/export_explorer_routes.py": {
       "$policy": "New R13 offline exporter checks source route declarations and exact inventories before creating a provenance-labeled CI artifact. It never claims live execution.",
       "test": "tests_v9/test_explorer_route_export_contract.py",
@@ -2510,8 +2522,8 @@
         },
         {
           "expect": "test_the_hardened_route_has_no_unconditionally_disabled_fact_source",
-          "find": "    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
-          "replace": "    return None  # mutated: المصدرُ يعود مُعطَّلاً بنيويّاً\n    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "find": "    async with tenant_connection(user) as conn:\n        now = datetime.now(UTC)\n        blocker = await aquifer_allocation_blocker(",
+          "replace": "    return None  # mutated: المصدرُ يعود مُعطَّلاً بنيويّاً\n    async with tenant_connection(user) as conn:\n        now = datetime.now(UTC)\n        blocker = await aquifer_allocation_blocker(",
           "test": "tests_v9/test_lexicographic_mpc_bridge.py",
           "why": "يُعيد العطلَ الأصليّ: مصدرُ حقائقَ يُرجِع `None` بلا شرط، فتُرجِع النقطةُ المُحكَمة blocked دائماً ويبقى المسارُ الوحيدُ المُصدِر هو الذي لا يفحص شيئاً. والحارسُ مُشتقٌّ من `ast` فلا يُخدَع بتعليقٍ ولا يبيت باسمٍ جديد."
         },

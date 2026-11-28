@@ -257,52 +257,71 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
 
     native = getattr(req, "_cdse_native_product", None)
     observed = None
-    with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
-        # دقّة أرضيّة بالأمتار (CDSE يُسلِّم EPSG:4326 بالدرجات) — لا وحدات CRS كأمتار.
-        sampling = _product_sampling(req, src.crs, src.transform, src.shape)
+    thermal = None
+    if req.indicator.value == "lst":
+        import landsat_st
+
+        arr, transform, src_crs, thermal = landsat_st.read(ctx, req)
+        sampling = _product_sampling(req, src_crs, transform, arr.shape)
+        if thermal["sensor_gsd_m"] is not None:
+            sampling["native_band_resolution_m"] = {thermal["asset_key"]: thermal["sensor_gsd_m"]}
+        bounds = _grid_bounds_4326(src_crs, transform, arr.shape)
         res_m = sampling["output_pixel_size_m"][0] if sampling["output_pixel_size_m"] else None
-        src_crs = src.crs
-        if src_crs is not None:
-            bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
-        else:
-            bounds = list(src.bounds)
-        # الحجم يُفحَص **قبل** التخصيص كنظيره truecolor أدناه (EXTRA-10): الرابط حرّ عبر
-        # `safe_raster_source`، والفرعان يقرآن المجموعة كاملةً — الإرث نطاقه الأوّل
-        # (`read(1, masked=True)` + float32)، والأصليّ نطاقاته الأربعة.
-        raster_security_context.assert_readable_size(
-            src,
-            what="scalar precomputed",
-            ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
-        )
-        if isinstance(native, cdse_native_product.NativeProduct):
-            arr, observed = cdse_native_product.measured_pixels(src, native, req.raster_url)
-            # Only actual returned contributors can replace catalogue/request guesses.
-            req.scene_id = observed["scene_id"]
-            req.capture_datetime = observed["acquisition_datetime"]
-        else:
-            arr = src.read(1, masked=True).astype("float32").filled(np.nan)
-        if src.nodata is not None:
-            arr = np.where(arr == src.nodata, np.nan, arr)
-        transform = src.transform
+    else:
+        with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
+            # دقّة أرضيّة بالأمتار (CDSE يُسلِّم EPSG:4326 بالدرجات) — لا وحدات CRS كأمتار.
+            sampling = _product_sampling(req, src.crs, src.transform, src.shape)
+            res_m = sampling["output_pixel_size_m"][0] if sampling["output_pixel_size_m"] else None
+            src_crs = src.crs
+            if src_crs is not None:
+                bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
+            else:
+                bounds = list(src.bounds)
+            # الحجم يُفحَص **قبل** التخصيص كنظيره truecolor أدناه (EXTRA-10): الرابط حرّ عبر
+            # `safe_raster_source`، والفرعان يقرآن المجموعة كاملةً — الإرث نطاقه الأوّل
+            # (`read(1, masked=True)` + float32)، والأصليّ نطاقاته الأربعة.
+            raster_security_context.assert_readable_size(
+                src,
+                what="scalar precomputed",
+                ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
+            )
+            if isinstance(native, cdse_native_product.NativeProduct):
+                arr, observed = cdse_native_product.measured_pixels(src, native, req.raster_url)
+                # Only actual returned contributors can replace catalogue/request guesses.
+                req.scene_id = observed["scene_id"]
+                req.capture_datetime = observed["acquisition_datetime"]
+            else:
+                arr = src.read(1, masked=True).astype("float32").filled(np.nan)
+            if src.nodata is not None:
+                arr = np.where(arr == src.nodata, np.nan, arr)
+            transform = src.transform
 
     valid = np.isfinite(arr)
     vals = arr[valid]
     if not vals.size:
         raise ctx.HTTPException(422, {"code": "raw_raster_no_valid_pixels", "valid_pixels": 0})
-    total_px = int(valid.size) if hasattr(valid, "size") else 0
+    total_px = thermal["field_pixels"] if thermal else int(valid.size)
     valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
     topographic_qa = _topographic_qa_for_indicator(
         ctx, req=req, raster_crs=src_crs, raster_transform=transform, raster_shape=arr.shape
     )
+    qa_applied = observed is not None or bool(thermal and thermal["qa_mask_version"])
+    qa = thermal or observed or {}
+    strategy = cdse_native_product.MASK_VERSION if observed else "provider_precomputed_expected"
+    policy = (
+        cdse_native_product.MASK_VERSION if observed else "precomputed_index_provider_mask_expected"
+    )
+    if thermal:
+        strategy = policy = thermal["qa_mask_version"] or "not_requested"
     pixel_qa = raw_data_processing.compute_quality_score(
         valid_pixel_ratio=valid_ratio,
-        cloud_pct=observed["cloud_pct"] if observed else None,
-        cloud_mask_applied=observed is not None,
+        cloud_pct=qa.get("cloud_pct"),
+        cloud_mask_applied=qa_applied,
         terrain_shadow_risk_pct=topographic_qa.get("terrain_shadow_risk_pct"),
         cast_shadow_risk_pct=topographic_qa.get("cast_shadow_risk_pct"),
         slope_risk_pct=topographic_qa.get("slope_risk_pct"),
         topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
-        qa_layer_present=observed is not None,
+        qa_layer_present=qa_applied,
     )
     _admit_min_raw_quality(ctx, req, pixel_qa)
     stats = {
@@ -311,25 +330,26 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         "mean": float(np.mean(vals)) if vals.size else 0.0,
         "std": float(np.std(vals)) if vals.size else 0.0,
         "valid_pixels": int(valid.sum()),
-        "nodata_pixels": int((~valid).sum()),
+        "nodata_pixels": total_px - int(valid.sum()),
         "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
         "raw_quality_score": pixel_qa["quality_score"],
         "pixel_qa": pixel_qa,
         "topographic_qa": topographic_qa,
         "quality_flags": raw_data_processing.build_quality_flags(
             nodata_mask_applied=True,
-            qa_layer_present=observed is not None,
-            cloud_mask_applied=observed is not None,
+            qa_layer_present=qa_applied,
+            cloud_mask_applied=qa_applied,
             topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
             terrain_shadow_risk_applied=topographic_qa.get("terrain_shadow_risk_pct") is not None,
             cast_shadow_risk_applied=topographic_qa.get("cast_shadow_risk_pct") is not None,
             slope_risk_applied=topographic_qa.get("slope_risk_pct") is not None,
             topographic_qa_sources=topographic_qa.get("sources", []),
-            source_native_qa_policy=(
-                cdse_native_product.MASK_VERSION
-                if observed
-                else "precomputed_index_provider_mask_expected"
-            ),
+            cloud_shadow_mask_applied=bool(thermal and qa_applied),
+            snow_mask_applied=bool(thermal and qa_applied),
+            cloud_mask_sources=["QA_PIXEL"] if thermal and qa_applied else [],
+            cloud_shadow_mask_sources=["QA_PIXEL"] if thermal and qa_applied else [],
+            snow_mask_sources=["QA_PIXEL"] if thermal and qa_applied else [],
+            source_native_qa_policy=policy,
         ),
     }
     cog_url = None
@@ -342,12 +362,24 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         spatial_crs=cog_crs,
         bounds_4326=bounds,
         topographic_qa=topographic_qa,
-        cloud_mask_strategy=(
-            cdse_native_product.MASK_VERSION if observed else "provider_precomputed_expected"
-        ),
+        cloud_mask_strategy=strategy,
         reflectance_normalized=False,
         source_uri=getattr(req, "raster_url", None),
     )
+    if thermal:
+        from shared.contracts.remote_sensing.thermal import LANDSAT_ST_KELVIN
+
+        validated_product.provenance.algorithm_version = LANDSAT_ST_KELVIN
+        validated_product.provenance.qa_mask_version = thermal["qa_mask_version"]
+        stats.update(
+            thermal=thermal,
+            median=float(np.median(vals)),
+            cloud_pct=thermal["cloud_pct"],
+            quality_score=pixel_qa["quality_score"],
+            quality_score_semantics=pixel_qa["schema"],
+            cloud_mask_applied=qa_applied,
+            cloud_mask_sources=["QA_PIXEL"] if qa_applied else [],
+        )
     if observed:
         validated_product.provenance.algorithm_version = observed["algorithm_version"]
         validated_product.provenance.qa_mask_version = observed["qa_mask_version"]
@@ -365,12 +397,19 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         cog_uid = uuid.uuid4().hex[:8]
         cog_path = os.path.join(ctx.UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
         cog_info = cog_writer.write_cog(
-            arr, cog_path, transform, crs=cog_crs, nodata=RASTER_NODATA, spatial_sampling=sampling
+            arr,
+            cog_path,
+            transform,
+            crs=cog_crs,
+            nodata=RASTER_NODATA,
+            spatial_sampling=sampling,
+            **({"band_unit": "K"} if thermal else {}),
         )
         stats["cog"] = cog_info
         if _cog_publishable(cog_info):
+            key = f"{req.field_id or 'nofield'}/{req.indicator.value}_{cog_uid}.tif"
             cog_url = ctx.object_store.upload_cog(
-                cog_path, f"{req.field_id or 'nofield'}/{req.indicator.value}_{cog_uid}.tif"
+                cog_path, f"{req.tenant_id}/{key}" if thermal else key
             )
     except Exception as _e:  # noqa: BLE001 — حفظ COG اختياري لا يُفشل الحساب
         stats["cog"] = {"written": False, "reason": str(_e)}

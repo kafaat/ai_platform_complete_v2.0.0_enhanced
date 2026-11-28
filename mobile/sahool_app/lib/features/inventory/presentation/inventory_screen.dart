@@ -315,7 +315,9 @@ class _Summary extends StatelessWidget {
         ),
         Expanded(
           child: MetricTile(
-            label: 'مخزون منخفض',
+            label: state.hasUnknownStock
+                ? 'مخزون منخفض مؤكّد'
+                : 'مخزون منخفض',
             value: state.lowStockCount,
             decimals: 0,
             icon: Icons.trending_down_rounded,
@@ -451,9 +453,11 @@ class _ItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final qty = item.totalQuantity == null
+    final qty = item.totalQuantity != null
+        ? '${fmtNumber(item.totalQuantity, decimals: 2)} ${item.unit}'.trim()
+        : item.quantitiesByUnit.isEmpty
         ? kNotMeasured
-        : '${fmtNumber(item.totalQuantity, decimals: 2)} ${item.unit}'.trim();
+        : item.quantityBreakdown;
     final reorder = item.reorderLevel == null
         ? ''
         : ' · حدّ الطلب ${fmtNumber(item.reorderLevel, decimals: 2)}';
@@ -467,9 +471,14 @@ class _ItemTile extends StatelessWidget {
         title: item.name.isEmpty ? '—' : item.name,
         subtitle: '${item.categoryLabel} · المتوفّر: $qty$reorder',
         icon: inventoryCategoryIcon(item.category),
-        iconColor: item.lowStock ? t.danger : context.colors.primary,
+        iconColor: item.lowStock == true ? t.danger : context.colors.primary,
         chips: [
-          if (item.lowStock)
+          if (item.lowStock == null)
+            const StatusChip(
+              label: 'تعذّر تقييم حدّ الطلب',
+              tone: StatusTone.neutral,
+            ),
+          if (item.lowStock == true)
             const StatusChip(
               label: 'مخزون منخفض',
               tone: StatusTone.danger,

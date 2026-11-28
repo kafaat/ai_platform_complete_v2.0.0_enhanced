@@ -24,6 +24,21 @@ FRESH = {
     "test_event_correlation_id_is_not_nullable",
     "test_event_unique_constraint_treats_null_causation_as_not_distinct",
 }
+# Atomic, replay-safe compensation (#1666 carrier, 386e67036 / 7bf909cb3). Only this certifying
+# run connects as the restricted request role with IRR_F01_CERTIFICATION_REQUIRED=1; the shared
+# integration step skips the file, so without this set a skip would read as a pass.
+COMPENSATION = {
+    "test_empty_and_duplicate_compensation_sets_are_refused_before_the_port",
+    "test_compensation_requires_an_active_caller_transaction",
+    "test_exact_compensation_replay_preserves_history_and_one_failure_event",
+    "test_terminal_or_historical_cancellation_is_preserved[expired]",
+    "test_terminal_or_historical_cancellation_is_preserved[cancelled]",
+    "test_missing_foreign_and_mixed_reservations_leave_all_rows_intact",
+    "test_port_error_caught_by_caller_rolls_back_rows_and_does_not_retry",
+    "test_pre_trace_port_signature_is_bound_before_call",
+    "test_concurrent_reverse_order_replay_waits_then_preserves_one_outbox",
+    "test_incomplete_first_attempts_preserve_group_for_full_compensation",
+}
 UPGRADE = {
     "test_u1_upgrade_left_the_v195_v196_surface_present",
     "test_u1_legacy_capability_survived_and_is_tenant_visible",
@@ -35,6 +50,7 @@ def validate(report: Path, suite: str) -> None:
     expected = {"test_irr_f01_reservation_live_pg": LIVE}
     if suite == "fresh":
         expected["test_v195_postgres"] = FRESH
+        expected["test_irr_f01_compensation_live_pg"] = COMPENSATION
     elif suite == "upgrade":
         expected["test_irr_f01_upgrade_gate_u1_pg"] = UPGRADE
     else:

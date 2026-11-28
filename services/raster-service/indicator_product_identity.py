@@ -20,6 +20,8 @@ class ProductIdentity:
     # واحدة). ``None`` يُعيد بصمة التوافق القديمة **حرفيّاً** (dual-read للسجلّات القائمة).
     provider: str | None = None
 
+    input_digest: str | None = None
+
     def key(self) -> str:
         payload = {
             "tenant_id": self.tenant_id,
@@ -29,6 +31,8 @@ class ProductIdentity:
             "algorithm_version": self.algorithm_version,
             "qa_mask_version": self.qa_mask_version,
         }
+        if self.input_digest is not None:
+            payload["input_digest"] = self.input_digest
         if self.provider is not None:
             # التطبيع عبر المصدر الوحيد المشترك (imagery_product_identity.normalize_provider).
             from imagery_product_identity import normalize_provider

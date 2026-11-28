@@ -25,9 +25,9 @@ pytest يجمع ١٤٣ اختباراً، **واحد** فقط يحوي ``assert`
 
 from __future__ import annotations
 
+import argparse
 import ast
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -94,8 +94,16 @@ def _write(entries: list[str]) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Guard assertionless returning tests (write the manual baseline by default).",
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="Check the frozen set without writing."
+    )
+    check = parser.parse_args().check
     entries = collect()
-    if "--check" not in sys.argv:
+    if not check:
         _write(entries)
         print(f"assertion_presence_baseline_written count={len(entries)}")
         return 0

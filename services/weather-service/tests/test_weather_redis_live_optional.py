@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import sys
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
@@ -22,13 +24,24 @@ def test_weather_cache_live_redis_roundtrip(monkeypatch):
     monkeypatch.setattr(cache, "_REDIS_CLIENT", None)
     monkeypatch.setattr(cache, "_REDIS_ERROR", None)
 
-    key = "live-redis-roundtrip"
-    payload = {"source": "integration", "temperature_c": 31.2}
-    cache.set(key, payload)
-    value, state, age = cache.get(key)
-    stats = cache.stats()
+    import redis
 
-    assert value == payload
-    assert state == "fresh"
-    assert age == 0
-    assert stats["backend"] == "redis"
+    key = "live-redis-roundtrip-" + uuid4().hex
+    payload = {"source": "integration", "temperature_c": 31.2}
+    keys = [cache._fresh_key(key), cache._stale_key(key)]
+    with redis.Redis.from_url(cache.REDIS_URL) as observer:
+        try:
+            cache.set(key, payload)
+            assert [json.loads(raw) for raw in observer.mget(keys)] == [{"value": payload}] * 2
+            for redis_key, ttl in zip(keys, (cache.TTL_S, cache.STALE_TTL_S), strict=True):
+                assert 0 < observer.ttl(redis_key) <= int(ttl)
+            assert key not in cache._CACHE
+            value, state, age = cache.get(key)
+            assert value == payload
+            assert state == "fresh"
+            assert isinstance(age, int) and 0 <= age <= int(cache.TTL_S)
+            stats = cache.stats()
+            assert stats["backend"] == "redis"
+            assert "redis_error" not in stats
+        finally:
+            observer.delete(*keys)

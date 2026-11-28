@@ -341,6 +341,15 @@ CONTEXTUAL_TERMS: dict[str, tuple[str, ...]] = {
         "agrochemical",
         "unit cost",
     ),
+    # Graph node/edge identity is not GIS-001 field geometry. Require geometric
+    # context for the ambiguous topology alias, using the same R2 reading above.
+    "topology": (
+        "geometry",
+        "polygon",
+        "multipolygon",
+        "postgis",
+        "field boundary",
+    ),
 }
 
 

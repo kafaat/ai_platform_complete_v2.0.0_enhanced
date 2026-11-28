@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 623
   },
-  "inventory_sha256": "f5582f8ec19d6d37a7e7a2b0b42062d3e226da17db52bfadf22824712150aa15",
+  "inventory_sha256": "9be80f76b59e49ae42e15105acc13dc85f96e4e2fce5d0ea157befd100b6e805",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 623,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "332a10134f0dac591e2a85043321e6a944fdd1d0f38f76f81b25a5388add6a92"
+    "policy_sha256": "2c803c3e2940f5c817c06047448ad592c77a77c5c2664a95a51c0389e8ab3e80"
   },
   "routes": [
     {
@@ -914,7 +914,7 @@
     {
       "classification": "domain",
       "function": "get_season_budget",
-      "line": 553,
+      "line": 538,
       "method": "GET",
       "path": "/api/v1/farm-ledger/budgets/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -922,7 +922,7 @@
     {
       "classification": "domain",
       "function": "get_economic_state",
-      "line": 911,
+      "line": 895,
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -930,7 +930,7 @@
     {
       "classification": "domain",
       "function": "get_erp_projection",
-      "line": 703,
+      "line": 687,
       "method": "GET",
       "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -938,7 +938,7 @@
     {
       "classification": "domain",
       "function": "get_inventory_projection",
-      "line": 860,
+      "line": 844,
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -954,7 +954,7 @@
     {
       "classification": "domain",
       "function": "get_season_profitability",
-      "line": 667,
+      "line": 651,
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -970,7 +970,7 @@
     {
       "classification": "domain",
       "function": "get_budget_variance",
-      "line": 629,
+      "line": 613,
       "method": "GET",
       "path": "/api/v1/farm-ledger/variance/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -1570,7 +1570,7 @@
     {
       "classification": "domain",
       "function": "list_expiring_batches",
-      "line": 186,
+      "line": 176,
       "method": "GET",
       "path": "/api/v1/inventory/expiring",
       "source": "api/routers/inventory.py"
@@ -1578,7 +1578,7 @@
     {
       "classification": "domain",
       "function": "list_inventory_items",
-      "line": 91,
+      "line": 94,
       "method": "GET",
       "path": "/api/v1/inventory/items",
       "source": "api/routers/inventory.py"
@@ -1634,7 +1634,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_capabilities",
-      "line": 164,
+      "line": 168,
       "method": "GET",
       "path": "/api/v1/irrigation/mpc/capabilities",
       "source": "api/routers/irrigation_mpc.py"
@@ -3122,7 +3122,7 @@
     {
       "classification": "domain",
       "function": "compose_crop_twin",
-      "line": 244,
+      "line": 248,
       "method": "POST",
       "path": "/api/v1/crop-twin/compose",
       "source": "api/routers/crop_twin.py"
@@ -3130,7 +3130,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_endpoint",
-      "line": 412,
+      "line": 489,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision",
       "source": "api/routers/crop_twin.py"
@@ -3138,7 +3138,7 @@
     {
       "classification": "domain",
       "function": "crop_decision_candidate_endpoint",
-      "line": 302,
+      "line": 306,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision-candidate",
       "source": "api/routers/crop_twin.py"
@@ -3146,7 +3146,7 @@
     {
       "classification": "domain",
       "function": "profit_aware_decision_endpoint",
-      "line": 536,
+      "line": 616,
       "method": "POST",
       "path": "/api/v1/crop-twin/decision/profit-aware",
       "source": "api/routers/crop_twin.py"
@@ -3394,7 +3394,7 @@
     {
       "classification": "domain",
       "function": "operation_autowrite_preview",
-      "line": 794,
+      "line": 778,
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3402,7 +3402,7 @@
     {
       "classification": "domain",
       "function": "upsert_season_budget_lines",
-      "line": 470,
+      "line": 472,
       "method": "POST",
       "path": "/api/v1/farm-ledger/budgets",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3418,7 +3418,7 @@
     {
       "classification": "domain",
       "function": "create_revenue_record",
-      "line": 584,
+      "line": 569,
       "method": "POST",
       "path": "/api/v1/farm-ledger/revenues",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3610,7 +3610,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_hourly_recommendation",
-      "line": 552,
+      "line": 578,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
       "source": "api/routers/irrigation_mpc.py"
@@ -3618,7 +3618,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_recommendation",
-      "line": 328,
+      "line": 354,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
       "source": "api/routers/irrigation_mpc.py"
@@ -3850,7 +3850,7 @@
     {
       "classification": "domain",
       "function": "create_inventory_item",
-      "line": 40,
+      "line": 43,
       "method": "POST",
       "path": "/api/v1/inventory/items",
       "source": "api/routers/inventory.py"
@@ -3858,7 +3858,7 @@
     {
       "classification": "domain",
       "function": "add_inventory_batch",
-      "line": 122,
+      "line": 112,
       "method": "POST",
       "path": "/api/v1/inventory/items/{item_id}/batches",
       "source": "api/routers/inventory.py"
@@ -3890,7 +3890,7 @@
     {
       "classification": "domain",
       "function": "reconcile_irrigation_execution",
-      "line": 593,
+      "line": 619,
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
       "source": "api/routers/irrigation_mpc.py"
@@ -3898,7 +3898,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_plan",
-      "line": 97,
+      "line": 101,
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/plan",
       "source": "api/routers/irrigation_mpc.py"
@@ -3906,7 +3906,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_simulate",
-      "line": 295,
+      "line": 321,
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/simulate",
       "source": "api/routers/irrigation_mpc.py"

@@ -142,7 +142,16 @@ async def live():
             kind,
             0,
         )
-    ctx = {"app": app, "tenant": tenant, "project": project, "n1": node1, "n2": node2}
+    # "admin" seeds pre-existing history that the request role may not write itself (the
+    # certifying writer has column UPDATE on state/released_at/release_reason only).
+    ctx = {
+        "app": app,
+        "admin": admin,
+        "tenant": tenant,
+        "project": project,
+        "n1": node1,
+        "n2": node2,
+    }
     try:
         yield ctx
     finally:
@@ -546,19 +555,20 @@ async def test_gate_b1_dispatch_intent_emitted_to_outbox_atomically(live):
     assert await app.fetchval("select count(*) from events where tenant_id = $1", tenant) == before
 
     # Compensation emits dispatch_failed and cancels the reservation (no correlation crash).
-    await adapter.compensate_dispatch_failure(
-        app,
-        tenant_id=tenant,
-        reservation_ids=out.reservation_ids,
-        execution_request_ref=out.dispatch_intent_id,
-        execution_port=port,
-        reason="actuator_nak",
-    )
+    async with app.transaction():
+        await adapter.compensate_dispatch_failure(
+            app,
+            tenant_id=tenant,
+            reservation_ids=out.reservation_ids,
+            execution_request_ref=out.dispatch_intent_id,
+            execution_port=port,
+            reason="actuator_nak",
+        )
     assert (
         await app.fetchval(
             "select count(*) from events where event_type='irrigation.reservation.dispatch_failed'"
         )
-        >= 1
+        == 1
     )
     assert (
         await app.fetchval(
@@ -692,3 +702,433 @@ async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp
         assert effects.read_text(encoding="utf-8").splitlines() == [reservation_id]
     finally:
         await broker.shutdown()
+
+
+async def test_period_volume_serial_reservations_over_live_postgres(live):
+    """Synthetic quota: two nonoverlapping 50-ha pivot requests, each 1500 m3."""
+    import json
+
+    adapter, kernel = _adapter()
+    app, tenant, project, node = live["app"], live["tenant"], live["project"], live["n1"]
+    hour = timedelta(hours=1)
+    resource = adapter.ResourceRequest(
+        resource_node_id=node,
+        policy=kernel.ResourcePolicy.SHARED_CAPACITY,
+        reserved_flow_m3h=Decimal("1500"),
+        derated_capacity_m3h=Decimal("2000"),
+        requires_period_volume_budget=True,
+    )
+
+    async def resolve(conn, req):
+        assert conn.is_in_transaction()
+        assert req.resource_node_id == node
+        assert await conn.fetchval("select current_setting('app.current_tenant')") == str(tenant)
+        return kernel.PeriodVolumeBudget(
+            START, START + 24 * hour, Decimal("2500"), "synthetic-budget-v1"
+        )
+
+    async def reserve(start, ref, resolver):
+        async with app.transaction():
+            return await adapter.reserve_and_request_dispatch_db(
+                app,
+                tenant_id=tenant,
+                project_id=project,
+                requested_start=start,
+                requested_end=start + hour,
+                resources=[resource],
+                execution_ref_type="manual_execution",
+                execution_ref_id=ref,
+                calculation_model_version="period-volume-test",
+                execution_port=_Port(),
+                correlation_id=tenant,
+                resolve_period_volume_budget=resolver,
+            )
+
+    with pytest.raises(ValueError, match="PERIOD_VOLUME_BUDGET_REQUIRED"):
+        await reserve(START, "missing-budget", None)
+
+    first = await reserve(START, "pivot-a", resolve)
+    with pytest.raises(adapter.CapacityNotAdmissible) as blocked:
+        await reserve(START + hour, "pivot-b", resolve)
+    assert blocked.value.admission.blocking_code == "PERIOD_VOLUME_EXCEEDED"
+    assert blocked.value.admission.peak_existing_flow_m3h == 0
+
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"select count(*) from {table}") == 1
+    raw = await app.fetchval(
+        "select derating_factors from hydraulic_capacity_evaluations where evaluation_id=$1",
+        UUID(first.evaluation_id),
+    )
+    evidence = json.loads(raw)["period_volume_budgets"][str(node)]
+    assert evidence["evidence_ref"] == "synthetic-budget-v1"
+    assert evidence["available_m3"] == "2500"
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(uuid4()))
+    assert await app.fetchval("select count(*) from irrigation_resource_reservations") == 0
+
+
+@pytest.mark.parametrize("first_commits", [True, False], ids=["commit", "rollback"])
+async def test_concurrent_disjoint_windows_respect_period_quota(live, first_commits):
+    """The later hour fits peak capacity; quota depends on whether the lock holder commits."""
+    adapter, kernel = _adapter()
+    first, tenant, node = live["app"], live["tenant"], live["n1"]
+    second = await asyncpg.connect(APP_DSN)
+    hour = timedelta(hours=1)
+    resource = adapter.ResourceRequest(
+        node,
+        kernel.ResourcePolicy.SHARED_CAPACITY,
+        Decimal("1500"),
+        Decimal("2000"),
+        requires_period_volume_budget=True,
+    )
+
+    async def resolve(conn, _request):
+        assert conn.is_in_transaction()
+        assert await conn.fetchval("SELECT current_setting('app.current_tenant')") == str(tenant)
+        return kernel.PeriodVolumeBudget(
+            START, START + 24 * hour, Decimal("2500"), "concurrent-period-v1"
+        )
+
+    async def reserve(conn, offset):
+        start = START + offset * hour
+        return await adapter.reserve_and_request_dispatch_db(
+            conn,
+            tenant_id=tenant,
+            project_id=live["project"],
+            requested_start=start,
+            requested_end=start + hour,
+            resources=[resource],
+            execution_ref_type="manual_execution",
+            execution_ref_id=f"period-window-{offset}",
+            idempotency_key=f"period-key-{offset}",
+            calculation_model_version="period-test",
+            correlation_id=tenant,
+            execution_port=_Port(),
+            resolve_period_volume_budget=resolve,
+        )
+
+    async def contender():
+        async with second.transaction(isolation="read_committed"):
+            return await reserve(second, 1)
+
+    task = None
+    try:
+        tx = first.transaction(isolation="read_committed")
+        await tx.start()
+        try:
+            await reserve(first, 0)
+            task = asyncio.create_task(contender())
+            # Observe a server-side lock wait, not a timer expiring on a slow client.
+            async with asyncio.timeout(10):
+                while not await first.fetchval(
+                    "SELECT pg_backend_pid() = ANY(pg_blocking_pids($1))",
+                    second.get_server_pid(),
+                ):
+                    assert not task.done(), "contender finished before the holder released its lock"
+                    await asyncio.sleep(0.01)
+        except BaseException:
+            await tx.rollback()
+            raise
+        if first_commits:
+            await tx.commit()
+            with pytest.raises(adapter.CapacityNotAdmissible) as error:
+                await asyncio.wait_for(task, timeout=10)
+            assert error.value.admission.blocking_code == "PERIOD_VOLUME_EXCEEDED"
+            assert error.value.admission.peak_existing_flow_m3h == 0
+        else:
+            await tx.rollback()
+            await asyncio.wait_for(task, timeout=10)
+    finally:
+        if task is not None:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        await second.close()
+
+    await first.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await first.fetchval(f"SELECT count(*) FROM {table}") == 1
+    kept = 0 if first_commits else 1
+    assert await first.fetchval("SELECT idempotency_key FROM irrigation_resource_reservations") == (
+        f"period-key-{kept}"
+    )
+    assert (
+        await first.fetchval(
+            "SELECT derating_factors->'period_volume_budgets'->$1::text->>'evidence_ref' "
+            "FROM hydraulic_capacity_evaluations WHERE execution_ref_id=$2",
+            str(node),
+            f"period-window-{kept}",
+        )
+        == "concurrent-period-v1"
+    )
+    await first.execute("SELECT set_config('app.current_tenant', $1, false)", str(uuid4()))
+    for table in CORE_TABLES:
+        assert await first.fetchval(f"SELECT count(*) FROM {table}") == 0
+
+
+@pytest.mark.parametrize(
+    ("isolation", "quota_enabled", "refused"),
+    [
+        ("repeatable_read", True, True),
+        ("serializable", True, True),
+        ("read_uncommitted", True, False),
+        ("repeatable_read", False, True),
+        ("serializable", False, True),
+        ("read_committed", False, False),
+        ("read_uncommitted", False, False),
+    ],
+)
+async def test_reservations_require_fresh_statement_snapshots(
+    live, isolation, quota_enabled, refused
+):
+    adapter, kernel = _adapter()
+    app, tenant = live["app"], live["tenant"]
+    req = adapter.ResourceRequest(
+        live["n1"],
+        kernel.ResourcePolicy.SHARED_CAPACITY,
+        Decimal("1500"),
+        Decimal("2000"),
+        requires_period_volume_budget=quota_enabled,
+    )
+    resolver_called = False
+    dispatch_called = False
+
+    class RecordingPort(_Port):
+        async def request_dispatch(self, conn, **kw):
+            nonlocal dispatch_called
+            dispatch_called = True
+            return await super().request_dispatch(conn, **kw)
+
+    async def resolve(_conn, _request):
+        nonlocal resolver_called
+        resolver_called = True
+        return kernel.PeriodVolumeBudget(
+            START, START + timedelta(days=1), Decimal("2500"), "period-isolation-v1"
+        )
+
+    async def reserve():
+        async with app.transaction(isolation=isolation):
+            await adapter.reserve_and_request_dispatch_db(
+                app,
+                tenant_id=tenant,
+                project_id=live["project"],
+                requested_start=START,
+                requested_end=START + timedelta(hours=1),
+                resources=[req],
+                execution_ref_type="manual_execution",
+                execution_ref_id="isolation-check",
+                calculation_model_version="period-test",
+                execution_port=RecordingPort(),
+                correlation_id=tenant,
+                resolve_period_volume_budget=resolve,
+            )
+
+    if refused:
+        code = (
+            "PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED"
+            if quota_enabled
+            else "RESERVATION_FRESH_SNAPSHOT_REQUIRED"
+        )
+        with pytest.raises(ValueError, match=f"^{code}$"):
+            await reserve()
+    else:
+        await reserve()
+    assert dispatch_called == (not refused)
+    assert resolver_called == (quota_enabled and not refused)
+    await app.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"SELECT count(*) FROM {table}") == int(not refused)
+
+
+@pytest.mark.parametrize("quota_enabled", [False, True], ids=["legacy", "period"])
+async def test_reservation_rejects_autocommit_before_resolver_or_dispatch(live, quota_enabled):
+    adapter, kernel = _adapter()
+    app = live["app"]
+    assert not app.is_in_transaction()
+
+    class RefusingPort(_Port):
+        async def request_dispatch(self, conn, **kw):
+            pytest.fail("autocommit must fail before dispatch")
+
+    async def resolver(_conn, _req):
+        pytest.fail("autocommit must fail before budget resolution")
+
+    request = adapter.ResourceRequest(
+        live["n1"],
+        kernel.ResourcePolicy.SHARED_CAPACITY,
+        Decimal("1"),
+        Decimal("2"),
+        requires_period_volume_budget=quota_enabled,
+    )
+    code = (
+        "PERIOD_VOLUME_TRANSACTION_REQUIRED"
+        if quota_enabled
+        else "RESERVATION_TRANSACTION_REQUIRED"
+    )
+    with pytest.raises(ValueError, match=f"^{code}$"):
+        await adapter.reserve_and_request_dispatch_db(
+            app,
+            tenant_id=live["tenant"],
+            project_id=live["project"],
+            requested_start=START,
+            requested_end=START + timedelta(hours=1),
+            resources=[request],
+            execution_ref_type="manual_execution",
+            execution_ref_id="no-tx",
+            calculation_model_version="txn-test",
+            execution_port=RefusingPort(),
+            correlation_id=live["tenant"],
+            resolve_period_volume_budget=resolver,
+        )
+
+    assert not app.is_in_transaction()
+    await app.execute("SELECT set_config('app.current_tenant', $1, false)", str(live["tenant"]))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0
+
+
+async def test_period_volume_concurrent_nonoverlapping_requests_serialize(live):
+    """Two 1500 m3 requests fit alone but cannot both consume a 2500 m3 quota.
+
+    Their half-open operating windows are adjacent, so peak-flow admission cannot
+    detect this overcommit. The second real transaction must read the first one's
+    committed volume after acquiring the same resource lock, then leave no rows
+    or dispatch intent when period-volume admission rejects it.
+    """
+    adapter, kernel = _adapter()
+    from api.irrigation_execution_request_port import EmitEventExecutionRequestPort
+
+    app, tenant, project, node = live["app"], live["tenant"], live["project"], live["n1"]
+    hour = timedelta(hours=1)
+    budget = kernel.PeriodVolumeBudget(
+        START, START + 24 * hour, Decimal("2500"), "synthetic-concurrent-budget-v1"
+    )
+    resource = adapter.ResourceRequest(
+        resource_node_id=node,
+        policy=kernel.ResourcePolicy.SHARED_CAPACITY,
+        reserved_flow_m3h=Decimal("1500"),
+        derated_capacity_m3h=Decimal("2000"),
+        requires_period_volume_budget=True,
+    )
+    for start in (START, START + hour):
+        assert kernel.evaluate_admission(
+            policy=resource.policy,
+            existing=[],
+            requested_start=start,
+            requested_end=start + hour,
+            requested_flow_m3h=resource.reserved_flow_m3h,
+            derated_capacity_m3h=resource.derated_capacity_m3h,
+            period_volume_budget=budget,
+        ).eligible
+
+    async def resolve(conn, req):
+        assert conn.is_in_transaction()
+        assert req.resource_node_id == node
+        assert await conn.fetchval("select current_setting('app.current_tenant')") == str(tenant)
+        return budget
+
+    dispatch_calls = []
+
+    class RecordingPort(EmitEventExecutionRequestPort):
+        async def request_dispatch(self, conn, **kwargs):
+            dispatch_calls.append(kwargs["execution_ref_id"])
+            return await super().request_dispatch(conn, **kwargs)
+
+    port = RecordingPort()
+    t1_has_lock = asyncio.Event()
+    release_t1 = asyncio.Event()
+    t2_has_lock = asyncio.Event()
+
+    async def hook1():
+        t1_has_lock.set()
+        await release_t1.wait()
+
+    async def hook2():
+        t2_has_lock.set()
+
+    async def reserve(conn, start, ref, hook):
+        async with conn.transaction():
+            return await adapter.reserve_and_request_dispatch_db(
+                conn,
+                tenant_id=tenant,
+                project_id=project,
+                requested_start=start,
+                requested_end=start + hour,
+                resources=[resource],
+                execution_ref_type="manual_execution",
+                execution_ref_id=ref,
+                calculation_model_version="period-volume-concurrency-test",
+                execution_port=port,
+                correlation_id=tenant,
+                idempotency_key=ref,
+                after_locks_acquired=hook,
+                resolve_period_volume_budget=resolve,
+            )
+
+    c1 = await asyncpg.connect(APP_DSN)
+    c2 = await asyncpg.connect(APP_DSN)
+    tasks = []
+    try:
+        t1 = asyncio.create_task(reserve(c1, START, "period-cc-1", hook1))
+        tasks.append(t1)
+        await asyncio.wait_for(t1_has_lock.wait(), timeout=5)
+        t2 = asyncio.create_task(reserve(c2, START + hour, "period-cc-2", hook2))
+        tasks.append(t2)
+        with pytest.raises(TimeoutError):
+            await asyncio.wait_for(t2_has_lock.wait(), timeout=1.5)
+        # Prove the server is actually waiting on T1, rather than interpreting an
+        # unscheduled or failed T2 as successful serialization.
+        assert not t2.done()
+        assert await app.fetchval("select pg_blocking_pids($1)", c2.get_server_pid()) == [
+            c1.get_server_pid()
+        ]
+        assert dispatch_calls == []
+        release_t1.set()
+        first = await asyncio.wait_for(t1, timeout=10)
+        with pytest.raises(adapter.CapacityNotAdmissible) as blocked:
+            await asyncio.wait_for(t2, timeout=10)
+        assert t2_has_lock.is_set()
+        assert blocked.value.resource_node_id == str(node)
+        assert blocked.value.admission.blocking_code == "PERIOD_VOLUME_EXCEEDED"
+        assert blocked.value.admission.peak_existing_flow_m3h == 0
+        assert blocked.value.admission.peak_with_request_m3h == Decimal("1500")
+    finally:
+        release_t1.set()
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        await c1.close()
+        await c2.close()
+
+    # The recording wrapper delegates to the real event/outbox port. T2 must not
+    # even reach that boundary, and no evaluation, reservation, or event survives.
+    assert dispatch_calls == ["period-cc-1"]
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"select count(*) from {table} where tenant_id=$1", tenant) == 1
+    for table in ("hydraulic_capacity_evaluations", "irrigation_resource_reservations"):
+        assert (
+            await app.fetchval(f"select execution_ref_id from {table} where tenant_id=$1", tenant)
+            == "period-cc-1"
+        )
+    events = await app.fetch(
+        "select event_id, entity_id, payload->>'execution_ref_id' as execution_ref_id "
+        "from events where tenant_id=$1 "
+        "and event_type='irrigation.reservation.dispatch_requested'",
+        tenant,
+    )
+    assert [dict(row) for row in events] == [
+        {
+            "event_id": UUID(first.dispatch_intent_id),
+            "entity_id": first.evaluation_id,
+            "execution_ref_id": "period-cc-1",
+        }
+    ]
+    assert (
+        await app.fetchval(
+            "select count(*) from event_outbox o join events e using (event_id) "
+            "where e.tenant_id=$1",
+            tenant,
+        )
+        == 1
+    )

@@ -151,7 +151,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 77
+        "tests": 78
       }
     },
     {
@@ -175,24 +175,24 @@
         "GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:729",
         "GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:663",
         "GET /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:247",
-        "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554",
-        "GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912",
-        "GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:704",
-        "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:861",
+        "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:539",
+        "GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:896",
+        "GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:688",
+        "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:845",
         "GET /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:279",
-        "GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:668",
+        "GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:652",
         "GET /api/v1/farm-ledger/summary @ services/sahool-platform/api/routers/farm_operations_ledger.py:331",
-        "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630",
+        "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:614",
         "GET /api/v1/farms @ services/sahool-platform/api/routers/farms.py:107",
         "GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:142",
         "GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179",
         "GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:46",
         "POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:429",
         "POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:215",
-        "POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:795",
-        "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:471",
+        "POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:779",
+        "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:473",
         "POST /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:135",
-        "POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:585",
+        "POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:570",
         "POST /api/v1/farms @ services/sahool-platform/api/routers/farms.py:37",
         "POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88",
         "POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:120",
@@ -457,7 +457,7 @@
       },
       "evidence_truncated": {
         "apis": 245,
-        "tests": 171,
+        "tests": 173,
         "mobile_consumers": 50
       }
     },
@@ -480,12 +480,12 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554",
-        "GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912",
-        "GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:704",
-        "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:861",
-        "GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:668",
-        "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630",
+        "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:539",
+        "GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:896",
+        "GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:688",
+        "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:845",
+        "GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:652",
+        "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:614",
         "GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:333",
         "GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:591",
         "GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:268",
@@ -498,7 +498,7 @@
         "PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2233",
         "PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264",
         "POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:232",
-        "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:471",
+        "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:473",
         "POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:1996",
         "POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:147",
         "POST /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/season-link-events @ services/scout-ingest-service/media_api.py:530",
@@ -629,10 +629,10 @@
         "POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:180",
         "POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:215",
         "POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31",
-        "POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:245",
-        "POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:413",
-        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303",
-        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:537",
+        "POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:249",
+        "POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:490",
+        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:307",
+        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:617",
         "POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3203",
         "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:469"
       ],
@@ -663,6 +663,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_crop_decision_endpoint.py",
+        "services/sahool-platform/tests/test_crop_georag_point_pg.py",
         "services/sahool-platform/tests/test_crop_inference.py",
         "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py",
         "services/sahool-platform/tests/test_crop_intelligence_canonical_inputs.py",
@@ -674,8 +675,7 @@
         "services/sahool-platform/tests/test_crop_intelligence_spectral_state.py",
         "services/sahool-platform/tests/test_crop_introduction.py",
         "services/sahool-platform/tests/test_crop_market_gap.py",
-        "services/sahool-platform/tests/test_crop_operations.py",
-        "services/sahool-platform/tests/test_crop_policy_engine.py"
+        "services/sahool-platform/tests/test_crop_operations.py"
       ],
       "runtime": {
         "metrics": [],
@@ -726,7 +726,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 28
+        "tests": 29
       }
     },
     {
@@ -749,15 +749,15 @@
         "GET /api/v1/decision/economics @ services/sahool-platform/api/routers/decision_impact.py:185",
         "GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:51",
         "GET /api/v1/economics/cost-categories @ services/sahool-platform/api/routers/economics.py:26",
-        "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:554",
-        "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:630",
+        "GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:539",
+        "GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:614",
         "GET /api/v1/orchard/economics @ services/sahool-platform/api/routers/orchard.py:30",
         "GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:70",
         "GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147",
         "GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:214",
-        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:537",
+        "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:617",
         "POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32",
-        "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:471",
+        "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:473",
         "POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:145",
         "POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624",
         "POST /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:154"
@@ -840,15 +840,17 @@
       "dependencies": [],
       "services": [],
       "apis": [
-        "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:861",
-        "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:187",
-        "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:92",
+        "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:845",
+        "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:177",
+        "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:95",
         "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:876",
-        "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:41",
-        "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:123",
+        "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:44",
+        "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:113",
         "POST /v1/procurement @ services/mcp_servers/market_server.py:868"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/inventory-units.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/inventory/data/inventory_api.dart",
         "mobile/sahool_app/lib/features/inventory/data/inventory_models.dart",
@@ -906,7 +908,7 @@
           "path": "services/sahool-platform/core/data_inventory.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=17, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=17, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -934,7 +936,7 @@
       ],
       "apis": [
         "GET /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:305",
-        "GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:704",
+        "GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:688",
         "GET /health @ services/odoo-bridge/routers/health.py:77",
         "GET /healthz @ services/odoo-bridge/routers/health.py:77",
         "GET /readyz @ services/odoo-bridge/routers/health.py:87",
@@ -945,7 +947,7 @@
         "GET /v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:130",
         "GET /v1/suppliers @ services/odoo-bridge/routers/catalog.py:78",
         "POST /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:222",
-        "POST /v1/sync @ services/odoo-bridge/routers/sync.py:112",
+        "POST /v1/sync @ services/odoo-bridge/routers/sync.py:122",
         "POST /v1/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:23"
       ],
       "ui_consumers": [],
@@ -1142,7 +1144,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 41
+        "tests": 42
       }
     },
     {
@@ -1469,7 +1471,7 @@
         "POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:2045",
         "POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:2030",
         "POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:830",
-        "POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:147",
+        "POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:146",
         "POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114",
         "POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33"
       ],
@@ -1853,7 +1855,7 @@
         "POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:873",
         "POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3467",
         "POST /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:96",
-        "POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:272"
+        "POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:271"
       ],
       "ui_consumers": [
         "frontend/e2e/gis-tools-timeline-comparison.spec.ts"
@@ -2116,7 +2118,7 @@
         "GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1553",
         "GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1299",
         "GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1215",
-        "GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:98",
+        "GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:97",
         "GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22",
         "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:66",
         "GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:189",
@@ -2200,7 +2202,7 @@
       },
       "evidence_truncated": {
         "apis": 66,
-        "tests": 174
+        "tests": 175
       }
     },
     {
@@ -3266,8 +3268,8 @@
         "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:750",
         "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2541",
         "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:202",
-        "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:553",
-        "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329",
+        "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:579",
+        "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:355",
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:115",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:579",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2890",
@@ -4067,25 +4069,25 @@
       ],
       "apis": [
         "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:46",
-        "GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:284",
-        "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:303",
-        "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:368",
+        "GET /internal/field-tasks/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:342",
+        "GET /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:361",
+        "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:426",
         "GET /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-context @ services/field-management-service/fm_verification.py:83",
         "GET /internal/field-tasks/fields/{field_id}/verification-assessments/{assessment_id} @ services/field-management-service/fm_verification.py:215",
         "GET /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id} @ services/field-management-service/fm_verification.py:193",
-        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:281",
+        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:315",
         "GET /internal/field-tasks/tasks/{task_id}/cost-trace @ services/field-management-service/fm_task_costs.py:147",
         "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:106",
         "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2769",
         "POST /internal/field-tasks/farm-book/entries/{entry_id}/task @ services/field-management-service/fm_task_costs.py:88",
-        "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:318",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:459",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:607",
-        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:474",
+        "POST /internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:376",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:517",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:668",
+        "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:532",
         "POST /internal/field-tasks/fields/{field_id}/tasks/{task_id}/verification-links @ services/field-management-service/fm_verification.py:128",
         "POST /internal/field-tasks/fields/{field_id}/verification-deliveries/{delivery_id}/deliver @ services/field-management-service/fm_verification.py:525",
         "POST /internal/field-tasks/fields/{field_id}/verification-links/{link_id}/assessments @ services/field-management-service/fm_verification.py:156",
-        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238"
+        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:272"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -4108,6 +4110,7 @@
         "mobile/sahool_app/lib/screens/tasks_screen.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
         "mobile/sahool_app/test/features/tasks/irrigation_observations_test.dart",
         "mobile/sahool_app/test/features/tasks/task_detail_test.dart",
         "mobile/sahool_app/test/features/tasks/task_grouping_test.dart",
@@ -4168,7 +4171,7 @@
           "path": "migrations/v247_farm_operations_task_link.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=20, tests=16, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=20, tests=17, ui=0, mobile=17. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4260,7 +4263,7 @@
         "GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:119",
         "GET /healthz @ services/scout-ingest-service/main.py:227",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:394",
-        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:281",
+        "GET /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:315",
         "GET /internal/scouting-media/admin/fields/{field_id}/grants @ services/scout-ingest-service/grants_admin_api.py:517",
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo @ services/scout-ingest-service/media_api.py:300",
         "GET /internal/scouting-media/fields/{field_id}/pins/{pin_id}/photo/context @ services/scout-ingest-service/media_api.py:674",
@@ -4283,7 +4286,7 @@
         "POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:466",
         "POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278",
         "POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:328",
-        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:238",
+        "POST /internal/field-tasks/scouting @ services/field-management-service/fm_scouting_tasks.py:272",
         "POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:403",
         "POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:394",
         "POST /internal/scouting-media/admin/credential-events @ services/scout-ingest-service/grants_admin_api.py:586",
@@ -4654,7 +4657,9 @@
         "POST /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:40",
         "POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:152"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/e2e/equipment-history-keyboard.spec.ts"
+      ],
       "mobile_consumers": [
         "mobile/sahool_app/lib/features/equipment/data/equipment_api.dart",
         "mobile/sahool_app/lib/features/equipment/data/equipment_models.dart",
@@ -4698,9 +4703,17 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/machinery_export.py"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v292_inspection_equipment_evidence.down.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v292_inspection_equipment_evidence.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=5, ui=0, mobile=8. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=5, ui=1, mobile=8. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4931,7 +4944,7 @@
         "services/decision-service/main.py"
       ],
       "apis": [
-        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:303",
+        "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:307",
         "POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:116",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:889"
       ],
@@ -5022,6 +5035,7 @@
         "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart"
       ],
       "tests": [
+        "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
         "services/decision-service/tests/test_learning_update_review_contract.py",
         "services/decision-service/tests/test_sod_single_operator_self_approval.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -5045,8 +5059,7 @@
         "tests_v9/test_governed_learning_review_contract.py",
         "tests_v9/test_governed_learning_review_live_pg.py",
         "tests_v9/test_lab_water_review_live_pg.py",
-        "tests_v9/test_learning_review_persistence_gap.py",
-        "tests_v9/test_practice_dataset_review.py"
+        "tests_v9/test_learning_review_persistence_gap.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5103,7 +5116,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 5
+        "tests": 6
       }
     },
     {

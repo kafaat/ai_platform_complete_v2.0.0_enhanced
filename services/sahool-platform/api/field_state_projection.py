@@ -205,7 +205,7 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "SELECT EXTRACT(EPOCH FROM (NOW() - c.fetched_at)) / 3600.0 "
         "FROM weather_automation_cache c "
         "JOIN weather_automation_locations l ON l.location_key = c.location_key "
-        "WHERE l.field_id = $1 ORDER BY c.fetched_at DESC LIMIT 1",
+        "WHERE l.field_id = $1 AND c.fetched_at IS NOT NULL ORDER BY c.fetched_at DESC LIMIT 1",
         field_id,
     )
     return {
@@ -793,7 +793,7 @@ async def recompute_field_state(
             wrow = await conn.fetchrow(
                 "SELECT c.data_json FROM weather_automation_cache c "
                 "JOIN weather_automation_locations l ON l.location_key = c.location_key "
-                "WHERE l.field_id = $1 ORDER BY c.fetched_at DESC LIMIT 1",
+                "WHERE l.field_id = $1 AND c.fetched_at IS NOT NULL ORDER BY c.fetched_at DESC LIMIT 1",
                 field_id,
             )
             if wrow is not None:

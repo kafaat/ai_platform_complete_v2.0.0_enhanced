@@ -13,6 +13,7 @@ files=(tests_v9/test_irr_f01_reservation_live_pg.py)
 case "$IRR_F01_SUITE" in
   fresh)
     files+=(tests/integration/irrigation/test_v195_postgres.py
+            tests_v9/test_irr_f01_compensation_live_pg.py
             tests/irrigation/test_irrigation_capacity_reservation.py
             tests/irrigation/test_irrigation_reservation_adapter.py
             tests/irrigation/test_irrigation_v195_capacity_reservation_core.py)

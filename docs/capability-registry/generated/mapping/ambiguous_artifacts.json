@@ -3804,7 +3804,7 @@
       },
       {
         "capability_id": "FM-007",
-        "score": 11,
+        "score": 10,
         "signals": [
           "content:procurement",
           "content:warehouse"

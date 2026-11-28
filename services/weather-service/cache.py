@@ -27,7 +27,8 @@ def _redis():
             REDIS_URL, socket_timeout=0.25, socket_connect_timeout=0.25
         )
         _REDIS_CLIENT.ping()
-        _REDIS_ERROR = None
+        if not _CACHE:
+            _REDIS_ERROR = None
         return _REDIS_CLIENT
     except Exception as exc:  # noqa: BLE001 - cache backend must not break weather runtime
         _REDIS_ERROR = str(exc)
@@ -68,6 +69,19 @@ def _age_from_ttl(client: Any, redis_key: str, ttl_total: float) -> int | None:
 
 
 def get(key: str) -> tuple[dict[str, Any] | None, str, int | None]:
+    # A failed write can leave an older value (or only one half of the pair)
+    # in Redis. The local fallback is authoritative here until expiry or rewrite.
+    expired_age = None
+    local = _CACHE.get(key)
+    if local is not None:
+        ts, value = local
+        age = int(monotonic() - ts)
+        if age <= TTL_S:
+            return value, "fresh", age
+        if age <= STALE_TTL_S:
+            return value, "stale", age
+        _CACHE.pop(key, None)
+        expired_age = age
     client = _redis()
     if client is not None:
         try:
@@ -86,23 +100,16 @@ def get(key: str) -> tuple[dict[str, Any] | None, str, int | None]:
                     "stale",
                     _age_from_ttl(client, _stale_key(key), STALE_TTL_S),
                 )
-            return None, "miss", None
         except Exception as exc:  # noqa: BLE001 - fail open to memory cache
             global _REDIS_ERROR
             _REDIS_ERROR = str(exc)
-    if key not in _CACHE:
-        return None, "miss", None
-    ts, value = _CACHE[key]
-    age = int(monotonic() - ts)
-    if age <= TTL_S:
-        return value, "fresh", age
-    if age <= STALE_TTL_S:
-        return value, "stale", age
-    _CACHE.pop(key, None)
-    return None, "expired", age
+    if expired_age is not None:
+        return None, "expired", expired_age
+    return None, "miss", None
 
 
 def set(key: str, value: dict[str, Any]) -> None:
+    global _REDIS_ERROR
     client = _redis()
     if client is not None:
         # لا ``stored_monotonic`` ولا ``age_hint_s`` بعد اليوم: الأولى ساعةٌ محلّيّة لا
@@ -113,9 +120,11 @@ def set(key: str, value: dict[str, Any]) -> None:
         try:
             client.setex(_fresh_key(key), int(TTL_S), payload)
             client.setex(_stale_key(key), int(STALE_TTL_S), payload)
+            _CACHE.pop(key, None)
+            if not _CACHE:
+                _REDIS_ERROR = None
             return
         except Exception as exc:  # noqa: BLE001
-            global _REDIS_ERROR
             _REDIS_ERROR = str(exc)
     _CACHE[key] = (monotonic(), value)
 
@@ -131,8 +140,8 @@ def stats() -> dict[str, Any]:
     }
     if backend == "memory":
         payload["entries"] = len(_CACHE)
-        if _REDIS_ERROR:
-            payload["redis_error"] = _REDIS_ERROR
     else:
         payload["entries"] = None
+    if _REDIS_ERROR:
+        payload["redis_error"] = _REDIS_ERROR
     return payload

@@ -341,6 +341,89 @@ def _load_compiler():
     return mod
 
 
+@pytest.fixture
+def catalog_cli(tmp_path, monkeypatch):
+    mod = _load_compiler()
+    # Reuse the committed compiler outputs; these tests target CLI admission and
+    # the real write/check/expiry branches, while the existing test runs build().
+    rendered = {rel: (ROOT / rel).read_text(encoding="utf-8") for rel in mod.OUTPUTS}
+    calls = []
+
+    def counted_build():
+        calls.append("build")
+        return None
+
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    monkeypatch.setattr(mod, "build", counted_build)
+    monkeypatch.setattr(mod, "render", lambda _bundle: rendered)
+
+    def invoke(arguments):
+        monkeypatch.setattr(sys, "argv", [str(COMPILER), *arguments])
+        try:
+            return mod.main()
+        except SystemExit as exc:
+            return exc.code
+
+    return mod, rendered, calls, invoke
+
+
+@pytest.mark.parametrize("present", [False, True], ids=["missing", "stale"])
+@pytest.mark.parametrize(
+    ("arguments", "expected"),
+    [(["--help"], 0), (["-h"], 0), (["--chec"], 2), (["--check", "--generate"], 2)],
+    ids=["help", "short-help", "unknown-prefix", "conflicting-mode"],
+)
+def test_catalog_cli_information_and_invalid_args_do_not_build_or_write(
+    catalog_cli, present, arguments, expected, capsys
+):
+    mod, rendered, calls, invoke = catalog_cli
+    before = b"stale catalog output\n" if present else None
+    if present:
+        for rel in rendered:
+            path = mod.ROOT / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(before)
+    result = invoke(arguments)
+    assert [
+        (mod.ROOT / rel).read_bytes() if (mod.ROOT / rel).exists() else None for rel in rendered
+    ] == [before] * len(rendered)
+    assert calls == [], "argument admission must precede catalog input reads"
+    assert result == expected
+    captured = capsys.readouterr()
+    assert "usage:" in (captured.out if expected == 0 else captured.err)
+
+
+def test_catalog_cli_bare_generation_and_readonly_check_are_preserved(catalog_cli):
+    mod, rendered, _calls, invoke = catalog_cli
+    assert invoke([]) == 0
+    assert all(
+        (mod.ROOT / rel).read_text(encoding="utf-8") == text for rel, text in rendered.items()
+    )
+    assert invoke(["--check"]) == 0
+    changed = mod.ROOT / "platform_catalog.generated.json"
+    changed.write_bytes(b"stale catalog\n")
+    assert invoke(["--check"]) == 1
+    assert changed.read_bytes() == b"stale catalog\n"
+    changed.unlink()
+    assert invoke(["--check"]) == 1
+    assert not changed.exists()
+
+
+def test_catalog_cli_check_and_enforce_expiry_remain_compatible(catalog_cli, capsys):
+    mod, rendered, _calls, invoke = catalog_cli
+    catalog = json.loads(rendered["platform_catalog.generated.json"])
+    catalog["cross_service_duplicate_method_paths"].append(
+        {"method": "GET", "path": "/expired-cli-fixture", "expires_on": "2000-01-01"}
+    )
+    rendered["platform_catalog.generated.json"] = json.dumps(catalog)
+    assert invoke([]) == 0  # Bare output stays independent of today's date.
+    assert invoke(["--check"]) == 0
+    before = {rel: (mod.ROOT / rel).read_bytes() for rel in rendered}
+    assert invoke(["--check", "--enforce-expiry"]) == 1
+    assert "expired duplicate decision: GET /expired-cli-fixture" in capsys.readouterr().out
+    assert {rel: (mod.ROOT / rel).read_bytes() for rel in rendered} == before
+
+
 def test_u4_permanent_waiver_survives_the_default_deadline_but_an_undated_one_does_not(
     monkeypatch,
 ) -> None:

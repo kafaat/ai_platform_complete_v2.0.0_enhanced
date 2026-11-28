@@ -45,10 +45,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import signal
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -83,6 +85,7 @@ _STEP = re.compile(
 
 # علم إعادة التوليد لكلّ سكربت يملكه. الغياب = فحص فقط (يُبلَّغ، لا يُتخطّى).
 _GENERATE_FLAG = {
+    "api_versioning_policy_guard.py": "--write",
     "route_mount_contract_guard.py": "",
     "service_dependency_conflict_guard.py": "",
     "generate_service_inventory.py": "--write-registry",
@@ -219,6 +222,10 @@ _GENERATE_FLAG.update({"capability_management_engine.py": "--generate"})
 # مُستعاد بايتاً بايت (`cmp`)، والحذف يُسمّى «مفقود».
 _GENERATE_FLAG.update({"capability_registry_guard.py": "--generate"})
 
+# Traceability reports consume the authoritative registry and mutable linkage.
+# The default writer is deterministic; --check compares all three output bytes.
+_GENERATE_FLAG.update({"capability_traceability_report.py": ""})
+
 # `FAKE-CONNECTION-ENFORCES-NOTHING-01`: أساسٌ **مشتقّ من شجرة الاختبارات** لا مصون
 # بيد، فيلزمه أن يُعاد توليده كلّما تحرّكت الشجرة تحته — وإلّا صار الراتشِت يقيس
 # ماضياً. المكنسة نفسها أمسكت غيابه عند أوّل تشغيل («يملك علم كتابة ولا يذكره
@@ -292,11 +299,92 @@ def _accepted_flags(script: str) -> set[str]:
         timeout=STEP_TIMEOUT_SECONDS,
     )
     if proc.returncode != 0:
-        return set()
+        detail = (proc.stderr or proc.stdout).strip()[:200]
+        raise SystemExit(f"--help probe failed for {script} (exit {proc.returncode}): {detail}")
     return set(re.findall(r"--[a-z][a-z0-9-]*", proc.stdout))
 
 
+def _probe_git(*args: str) -> bytes:
+    proc = subprocess.run(  # noqa: S603 — fixed Git reads against the selected checkout
+        ["git", "--no-optional-locks", *args], cwd=ROOT, capture_output=True
+    )
+    if proc.returncode != 0:
+        raise SystemExit(
+            "--help probe measurement failed before a result could be accepted: "
+            + proc.stderr.decode("utf-8", errors="replace").strip()[:200]
+        )
+    return proc.stdout
+
+
+def _flag_probe_state() -> dict:
+    """Measure tracked/nonignored file state, symlink targets, index and HEAD.
+
+    Porcelain cannot distinguish one dirty version from another (M -> M). Include
+    HEAD paths as well as index paths so a staged deletion cannot hide a file.
+    Nonignored untracked files are also inputs: a probe must not create or rewrite
+    them after the initial unindexed-files check. Gitignored tool caches are excluded.
+    These before/after samples do not detect transient changes restored in between.
+    """
+    head = _probe_git("rev-parse", "--verify", "HEAD").strip()
+    index = _probe_git("ls-files", "--stage", "-z")
+    flags = _probe_git("ls-files", "-v", "-z")
+    paths = set(_probe_git("ls-tree", "-r", "--name-only", "-z", "HEAD").split(b"\0"))
+    paths.update(row.split(b"\t", 1)[1] for row in index.split(b"\0") if row)
+    paths.update(_probe_git("ls-files", "--others", "--exclude-standard", "-z").split(b"\0"))
+    paths.discard(b"")
+    files = {}
+    for raw_path in sorted(paths):
+        relative = os.fsdecode(raw_path)
+        path = ROOT / relative
+        try:
+            metadata = path.lstat()
+        except FileNotFoundError:
+            files[relative] = None
+            continue
+        except OSError as error:
+            raise SystemExit(f"--help probe cannot measure {relative}: {error}") from error
+        mode = (stat.S_IFMT(metadata.st_mode), stat.S_IMODE(metadata.st_mode))
+        try:
+            if stat.S_ISLNK(metadata.st_mode):
+                content = os.readlink(path)
+            elif stat.S_ISREG(metadata.st_mode):
+                with path.open("rb") as stream:
+                    content = hashlib.file_digest(stream, "sha256").hexdigest()
+            else:
+                content = None
+        except OSError as error:
+            raise SystemExit(f"--help probe cannot read {relative}: {error}") from error
+        files[relative] = (mode, content)
+    return {"HEAD": head, "index": index, "index_flags": flags, "source_files": files}
+
+
 def flag_map_problems(steps) -> list[str]:
+    """Interrogating CLI flags must not repair the files that the sweep checks."""
+    before = _flag_probe_state()
+    problems: list[str] = []
+    try:
+        problems = _flag_map_problems(steps)
+    finally:
+        original_error = sys.exc_info()[1]
+        try:
+            after = _flag_probe_state()
+        except BaseException:
+            if original_error is not None:
+                print(f"Original --help probe failure: {original_error}", file=sys.stderr)
+            raise
+        if before != after:
+            changed = ", ".join(key for key in before if before[key] != after[key])
+            diagnostic = (
+                f"--help probe changed measured source state ({changed}); "
+                "refusing to continue after a mutating probe. No files were restored."
+            )
+            problems.append(diagnostic)
+            if original_error is not None:
+                print(diagnostic, file=sys.stderr)
+    return problems
+
+
+def _flag_map_problems(steps) -> list[str]:
     """يستجوب ``_GENERATE_FLAG`` قبل استعماله — وقايةً لا تشخيصاً بعد وقوع الضرر.
 
     ``VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01`` عولج بتصحيح المداخل الخاطئة،
@@ -312,8 +400,6 @@ def flag_map_problems(steps) -> list[str]:
     for script in sorted({s for s, _ in steps}):
         name = Path(script).name
         flags = _accepted_flags(script)
-        if not flags:
-            continue  # لا ``--help`` قابلاً للاستجواب ⇒ لا حكم (لا تخمين)
         seen.add(script)
         if name in _GENERATE_FLAG:
             declared = _GENERATE_FLAG[name]
@@ -325,8 +411,6 @@ def flag_map_problems(steps) -> list[str]:
                 )
             continue
         usable = write_flags_of(flags)
-        if not usable:
-            continue
         if script in baseline:
             if baseline[script] not in usable:
                 problems.append(
@@ -334,6 +418,8 @@ def flag_map_problems(steps) -> list[str]:
                     f"{', '.join(usable)} — حدّث generated_sweep_unmapped_generators.json"
                 )
             continue
+        if not usable:
+            continue  # A successful bare/check-only CLI need not advertise a write flag.
         problems.append(
             f"{script}: يملك علم كتابة ({', '.join(usable)}) ولا يذكره _GENERATE_FLAG "
             "⇒ لا يُعاد توليده أبداً، وانحرافه يبقى بلا إصلاح. صِلْه بالخريطة، أو "
@@ -371,6 +457,7 @@ _ORDER_TIER = {
     # (`g` < `v`) ⇒ في الطبقة صفر كان سيقرأ مدخلاً بائتاً. و`static_governance_closure`
     # يبصم مخرجاته، وهو في `_LATE` فيأتي بعده دائماً.
     "capability_registry_guard.py": 1,
+    "capability_traceability_report.py": 1,
     "platform_route_governance_attestation.py": 1,
     "platform_route_release_binding.py": 2,
 }

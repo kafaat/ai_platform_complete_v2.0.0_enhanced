@@ -1427,3 +1427,100 @@ def test_check_keeps_missing_or_stale_inventory_unchanged(tmp_path: Path):
         assert inventory.name in result.stderr and csv.name in result.stderr
         assert not inventory.exists()
         assert csv.read_text(encoding="utf-8") == "stale\n"
+
+
+@pytest.mark.parametrize(
+    ("arguments", "exit_code"),
+    [(["--help"], 0), (["-h"], 0), (["--unknown-option"], 2), (["--check", "--write"], 2)],
+)
+def test_cli_help_and_invalid_arguments_never_repair_outputs(tmp_path, arguments, exit_code):
+    root = _isolated_policy_root(tmp_path)
+    outputs = [
+        root / "api_versioning_inventory.generated.json",
+        root / "api_versioning_inventory.csv",
+        root / "api_versioning_legacy_allowlist.generated.json",
+    ]
+    outputs[0].unlink()
+    outputs[1].write_text("stale inventory\n", encoding="utf-8")
+    outputs[2].write_text("stale allowlist\n", encoding="utf-8")
+    before = [path.read_bytes() if path.exists() else None for path in outputs]
+
+    result = subprocess.run(
+        [sys.executable, "scripts/ci/api_versioning_policy_guard.py", *arguments],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+    assert result.returncode == exit_code, result.stdout + result.stderr
+    assert [path.read_bytes() if path.exists() else None for path in outputs] == before
+    if exit_code == 0:
+        assert "--check" in result.stdout and "--write" in result.stdout
+
+
+def test_help_preserves_drift_until_explicit_write(tmp_path):
+    root = _isolated_policy_root(tmp_path)
+    inventory = root / "api_versioning_inventory.generated.json"
+    inventory.write_text("stale inventory\n", encoding="utf-8")
+    assert _run_check(root).returncode != 0
+
+    helped = subprocess.run(
+        [sys.executable, "scripts/ci/api_versioning_policy_guard.py", "--help"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert helped.returncode == 0
+    assert inventory.read_bytes() == b"stale inventory\n"
+    assert _run_check(root).returncode != 0
+
+    written = subprocess.run(
+        [sys.executable, "scripts/ci/api_versioning_policy_guard.py", "--write"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert written.returncode == 0, written.stdout + written.stderr
+    assert _run_check(root).returncode == 0
+
+
+def test_two_stage_registration_is_subject_to_legacy_ceiling(tmp_path: Path):
+    root = _isolated_policy_root(tmp_path)
+    _write_probe(
+        root,
+        '\nasync def forecast():\n    return {}\n\nrouter.post("/forecast")(forecast)\n',
+    )
+    subprocess.run(
+        [sys.executable, "scripts/ci/api_versioning_policy_guard.py"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+    )
+    checked = _run_check(root)
+    assert checked.returncode != 0
+    assert "0 ⇒ 1" in checked.stderr
+
+
+def test_two_stage_registration_retains_prefix_and_handler(tmp_path: Path, monkeypatch):
+    root = _isolated_policy_root(tmp_path)
+    _write_probe(
+        root,
+        '\nweather = APIRouter(prefix="/v1/weather")\n'
+        'weather.get("/forecast")(handlers.forecast)\n'
+        'weather.get("/incomplete")\n'
+        'handlers.get("/unrelated")(callback)\n'
+        "weather.get(dynamic_path)(callback)\n"
+        'weather.websocket("/updates")(callback)\n'
+        '@weather.get("/decorated")\n'
+        "def decorated(): pass\n",
+    )
+    monkeypatch.setattr(guard, "ROOT", root)
+    rows = guard._routes(_probe_path(root))
+    actual = [(r["method"], r["path"], r["handler"], r["line"]) for r in rows]
+    assert sorted(actual) == [
+        ("GET", "/v1/weather/decorated", "decorated", 14),
+        ("GET", "/v1/weather/forecast", "handlers.forecast", 8),
+    ]

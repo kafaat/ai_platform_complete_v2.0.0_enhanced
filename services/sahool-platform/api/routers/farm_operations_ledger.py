@@ -12,6 +12,7 @@ import json
 import os
 import uuid
 from datetime import date
+from typing import Annotated
 
 from core import farm_operations_ledger as ledger_core
 from core.erp_projection_contract import build_projection_envelope
@@ -23,10 +24,8 @@ from core.farm_closed_loop import (
     operation_event_to_ledger_payload,
 )
 from core.farm_costing import (
-    SeasonBudgetLine,
     compute_profitability,
     generate_cost_recommendations,
-    normalize_budget_line,
     project_to_erp_lines,
 )
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -41,6 +40,7 @@ from api.api_models import (
     WaterRecordIn,
     _non_negative_or_none,
 )
+from api.farm_ledger_amounts import LedgerNumber, checked_ledger_amount, finance_request_errors
 from api.feature_registry import is_enabled
 from api.main import (
     CommandStore,
@@ -427,19 +427,21 @@ class BudgetLineIn(BaseModel):
     season_id: str
     stage: str = "whole_season"
     category: str
-    planned_quantity: float | None = None
+    planned_quantity: LedgerNumber | None = None
     unit: str | None = None
-    planned_unit_cost: float | None = None
-    planned_cost: float = 0.0
+    planned_unit_cost: LedgerNumber | None = None
+    planned_cost: LedgerNumber = 0.0
     currency: str = "YER"
     source: str = "manual"
     editable: bool = True
     notes: str | None = None
 
-    @field_validator("planned_quantity", "planned_unit_cost", "planned_cost")
-    @classmethod
-    def _positive(cls, v, info):
-        return _non_negative_or_none(v, info.field_name)
+    @model_validator(mode="after")
+    def _resolve_cost(self):
+        self.planned_cost = checked_ledger_amount(
+            self.planned_cost, self.planned_quantity, self.planned_unit_cost, "planned_cost"
+        )
+        return self
 
 
 class BudgetLinesIn(BaseModel):
@@ -453,23 +455,23 @@ class RevenueRecordIn(BaseModel):
     field_id: str | None = None
     revenue_date: date
     product_name: str | None = None
-    quantity: float | None = None
+    quantity: LedgerNumber | None = None
     unit: str | None = None
-    unit_price: float | None = None
-    amount: float = 0.0
+    unit_price: LedgerNumber | None = None
+    amount: LedgerNumber = 0.0
     currency: str = "YER"
     source: str = "manual"
     notes: str | None = None
 
-    @field_validator("quantity", "unit_price", "amount")
-    @classmethod
-    def _positive(cls, v, info):
-        return _non_negative_or_none(v, info.field_name)
+    @model_validator(mode="after")
+    def _resolve_amount(self):
+        self.amount = checked_ledger_amount(self.amount, self.quantity, self.unit_price, "amount")
+        return self
 
 
 @router.post("/api/v1/farm-ledger/budgets", status_code=201)
 async def upsert_season_budget_lines(
-    req: BudgetLinesIn,
+    req: Annotated[BudgetLinesIn, finance_request_errors],
     user: UserSchema = Depends(require_permission(Permission.FINANCE_MANAGE)),
 ):
     """يحفظ بنود موازنة الموسم حسب المرحلة والتصنيف. كل القيم قابلة للتعديل ولا تُطبق كقرار تلقائي."""
@@ -486,21 +488,6 @@ async def upsert_season_budget_lines(
                 for item in req.lines:
                     await _assert_season_in_tenant(conn, tenant_id, item.season_id)
                     line_id = item.budget_line_id or "bud_" + uuid.uuid4().hex[:12]
-                    normalized = normalize_budget_line(
-                        SeasonBudgetLine(
-                            line_id=line_id,
-                            season_id=item.season_id,
-                            category=item.category,
-                            stage=item.stage,
-                            planned_quantity=item.planned_quantity,
-                            unit=item.unit,
-                            planned_unit_cost=item.planned_unit_cost,
-                            planned_cost=item.planned_cost,
-                            currency=item.currency,
-                            source=item.source,
-                            editable=item.editable,
-                        )
-                    )
                     row = await conn.fetchrow(
                         """INSERT INTO farm_season_budget_lines
                            (budget_line_id, tenant_id, season_id, stage, category, planned_quantity,
@@ -524,15 +511,15 @@ async def upsert_season_budget_lines(
                         line_id,
                         str(user.tenant_id),
                         item.season_id,
-                        normalized.stage,
-                        normalized.category,
-                        normalized.planned_quantity,
-                        normalized.unit,
-                        normalized.planned_unit_cost,
-                        normalized.planned_cost,
-                        normalized.currency,
-                        normalized.source,
-                        normalized.editable,
+                        item.stage,
+                        item.category,
+                        item.planned_quantity,
+                        item.unit,
+                        item.planned_unit_cost,
+                        item.planned_cost,
+                        item.currency,
+                        item.source,
+                        item.editable,
                         item.notes,
                         user.user_id,
                     )
@@ -540,9 +527,7 @@ async def upsert_season_budget_lines(
                         raise HTTPException(
                             status_code=403, detail="budget_line_not_owned_by_tenant"
                         )
-                    saved.append(
-                        {"budget_line_id": line_id, "planned_cost": normalized.planned_cost}
-                    )
+                    saved.append({"budget_line_id": line_id, "planned_cost": item.planned_cost})
     except HTTPException:  # 404 season / 403 ownership are answers, not an outage
         raise
     except Exception as e:  # noqa: BLE001
@@ -583,14 +568,13 @@ async def get_season_budget(
 
 @router.post("/api/v1/farm-ledger/revenues", status_code=201)
 async def create_revenue_record(
-    req: RevenueRecordIn,
+    req: Annotated[RevenueRecordIn, finance_request_errors],
     user: UserSchema = Depends(require_permission(Permission.FINANCE_MANAGE)),
 ):
     _require_enabled()
     if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
     revenue_id = req.revenue_id or "rev_" + uuid.uuid4().hex[:12]
-    amount = req.amount or ((req.quantity or 0.0) * (req.unit_price or 0.0))
     try:
         async with tenant_connection(user) as conn:
             tenant_id = str(user.tenant_id)
@@ -613,7 +597,7 @@ async def create_revenue_record(
                 req.quantity,
                 req.unit,
                 req.unit_price,
-                amount,
+                req.amount,
                 req.currency,
                 req.source,
                 req.notes,
@@ -623,7 +607,7 @@ async def create_revenue_record(
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("حفظ إيراد الموسم", e) from e
-    return {"revenue_id": revenue_id, "amount": amount, "message_ar": "حُفظ سجل الإيراد"}
+    return {"revenue_id": revenue_id, "amount": req.amount, "message_ar": "حُفظ سجل الإيراد"}
 
 
 @router.get("/api/v1/farm-ledger/variance/{season_id}")

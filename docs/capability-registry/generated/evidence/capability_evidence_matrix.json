@@ -2608,6 +2608,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "unit",
+          "path": "tests_v9/test_p2_georag_decision.py",
+          "signal": "pytest.mark.unit"
         }
       ],
       "title": "Field registry and boundaries",
@@ -2626,7 +2631,8 @@
         "tests_v9/test_field_boundary_ai_v59.py",
         "tests_v9/test_field_boundary_backends_v59_5.py",
         "tests_v9/test_field_geometry_save_guard_20260703.py",
-        "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py"
+        "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py",
+        "tests_v9/test_p2_georag_decision.py"
       ]
     },
     {
@@ -3517,6 +3523,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "frontend/e2e/inventory-units.spec.ts",
         "tests_v9/test_inventory_equipment.py"
       ],
       "learning_linked": false,
@@ -3526,6 +3533,11 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "frontend/e2e/inventory-units.spec.ts",
+          "signal": "filename:e2e"
+        },
         {
           "evidence_type": "unit",
           "path": "mobile/sahool_app/test/features/inventory/inventory_api_test.dart",
@@ -3552,6 +3564,11 @@
           "signal": "filename:test_"
         },
         {
+          "evidence_type": "unit",
+          "path": "tests_v9/test_erp_sync_schema_honesty.py",
+          "signal": "pytest.mark.unit"
+        },
+        {
           "evidence_type": "integration",
           "path": "tests_v9/test_inventory_equipment.py",
           "signal": "pytest.mark.integration"
@@ -3569,6 +3586,7 @@
         "mobile/sahool_app/test/features/inventory/inventory_screen_test.dart",
         "mobile/sahool_app/test/features/inventory/inventory_sheets_test.dart",
         "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
+        "tests_v9/test_erp_sync_schema_honesty.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py"
       ]
     },
@@ -7974,6 +7992,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "frontend/e2e/equipment-history-keyboard.spec.ts",
         "tests_v9/test_equipment_schedule_wiring.py"
       ],
       "learning_linked": false,
@@ -7983,6 +8002,11 @@
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "test_evidence_attribution": [
+        {
+          "evidence_type": "integration",
+          "path": "frontend/e2e/equipment-history-keyboard.spec.ts",
+          "signal": "filename:e2e"
+        },
         {
           "evidence_type": "integration",
           "path": "tests_v9/test_equipment_schedule_wiring.py",
@@ -9575,6 +9599,7 @@
       "integration_test_paths": [
         "tests_v9/test_canonical_observations_live_pg.py",
         "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
+        "tests_v9/test_freshness_page_live_pg.py",
         "tests_v9/test_ndvi_seed_purge_live_pg.py",
         "tests_v9/test_vegetation.py"
       ],
@@ -9819,6 +9844,11 @@
           "evidence_type": "unit",
           "path": "tests_v9/test_field_state_unification.py",
           "signal": "pytest.mark.unit"
+        },
+        {
+          "evidence_type": "integration",
+          "path": "tests_v9/test_freshness_page_live_pg.py",
+          "signal": "pytest.mark.integration"
         },
         {
           "evidence_type": "unit",
@@ -14038,6 +14068,11 @@
         },
         {
           "evidence_type": "unit",
+          "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "signal": "filename:test_"
+        },
+        {
+          "evidence_type": "unit",
           "path": "services/sahool-platform/tests/test_season_state_weather_inputs.py",
           "signal": "pytest.mark.unit"
         },
@@ -14099,6 +14134,7 @@
         "services/sahool-platform/tests/test_canonical_state_observed_at.py",
         "services/sahool-platform/tests/test_field_bound_decision_playbook_w1_17.py",
         "services/sahool-platform/tests/test_irrigation_recent_rain_and_soil_input_g8_g9.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_season_state_weather_inputs.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",

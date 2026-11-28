@@ -295,3 +295,81 @@ def test_the_task_routes_are_registered_under_the_gateway_prefix():
         ("POST", f"{prefix}/farm-book/entries/{{entry_id}}/task"),
     }
     assert expected <= routes
+
+
+def test_equipment_identity_is_part_of_evidence_digest():
+    digest = fm_task_inspection.evidence_digest
+    assert digest(None, None, "notes|x") == hashlib.sha256(b"||notes|x").hexdigest()
+    assert (
+        digest(None, None, "notes|x", "eqp_A")
+        == hashlib.sha256(b"equipment:eqp_A|||notes|x").hexdigest()
+    )
+    assert digest(None, None, "notes|x", "eqp_A") != digest(None, None, "notes|x", "eqp_B")
+
+
+def test_submit_carries_equipment_identity():
+    request = fm_task_inspection.InspectionFinding(
+        action="submit", expected_revision=1, reason="finding", equipment_id="eqp_A"
+    )
+    assert request.equipment_id == "eqp_A"
+
+
+@pytest.mark.parametrize("action", ["approve", "return"])
+def test_reviewer_cannot_replace_the_equipment_identity(action):
+    with pytest.raises(ValueError):
+        fm_task_inspection.InspectionFinding(
+            action=action,
+            expected_revision=2,
+            reason="review",
+            evidence_version=1,
+            equipment_id="eqp_B",
+        )
+
+
+@pytest.mark.parametrize("equipment_id", ["", "a|b", " x ", "a" * 51])
+def test_invalid_equipment_reference_refused(equipment_id):
+    with pytest.raises(ValueError):
+        fm_task_inspection.InspectionFinding(
+            action="submit", expected_revision=1, reason="finding", equipment_id=equipment_id
+        )
+
+
+# ── pre-v292 store (Devin review on #1666) ─────────────────────────────────
+# Applying v292 needs a separate approval, so a rebuilt field-management can run against a store
+# without inspection_evidence_versions.equipment_id. Legacy evidence must keep reading and
+# writing; only an explicit equipment declaration is refused, never silently dropped.
+
+
+@pytest.mark.parametrize("has_equipment", [False, True])
+def test_inspection_read_names_the_v292_column_only_when_present(has_equipment):
+    columns = fm_task_inspection._evidence_read_columns(has_equipment)
+    assert columns == ("equipment_id" if has_equipment else "NULL AS equipment_id")
+
+
+def test_pre_v292_legacy_write_omits_the_column():
+    sql, binds = fm_task_inspection._evidence_insert_sql(False, None)
+    assert binds is False and "equipment_id" not in sql and "$10)" in sql and "$11" not in sql
+
+
+def test_pre_v292_equipment_declaration_is_refused_not_dropped():
+    status, detail = _status(fm_task_inspection._evidence_insert_sql, False, "eqp_A")
+    assert status == 409 and "v292" in detail
+
+
+@pytest.mark.parametrize("equipment_id", [None, "eqp_A"])
+def test_v292_write_binds_the_column(equipment_id):
+    sql, binds = fm_task_inspection._evidence_insert_sql(True, equipment_id)
+    assert binds is True and "equipment_id)" in sql and "$11)" in sql
+
+
+def test_load_and_record_use_the_probe_not_a_fixed_column():
+    import inspect
+
+    load = inspect.getsource(fm_task_inspection._load)
+    record = inspect.getsource(fm_task_inspection._record_version)
+    assert "_evidence_read_columns(await _has_equipment_column(conn))" in load
+    assert "_evidence_insert_sql(await _has_equipment_column(conn), equipment_id)" in record
+    assert "recorded_at, equipment_id" not in load, (
+        "naming the v292 column unconditionally makes every evidence read fail with "
+        "UndefinedColumn (503) on a pre-v292 store (Devin review on #1666)"
+    )

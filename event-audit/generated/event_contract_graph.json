@@ -55,7 +55,7 @@
       "dynamic_expr": "payload",
       "file": "services/raster-service/raster_asset_persistence.py",
       "kind": "producer",
-      "line": 345,
+      "line": 361,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -366,7 +366,7 @@
     "consumer_only_subjects": 4,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 17,
-    "files_scanned": 1339,
+    "files_scanned": 1345,
     "matched_subjects": 0,
     "producer_only_subjects": 3,
     "production_certified": false,

@@ -24,6 +24,8 @@ PostgreSQL integration gate, not here.
 
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
@@ -34,6 +36,7 @@ from uuid import UUID
 
 from api.irrigation_capacity_reservation import (
     CapacityAdmission,
+    PeriodVolumeBudget,
     ReservationWindow,
     ResourcePolicy,
     ResourceRef,
@@ -116,6 +119,7 @@ class ResourceRequest:
     policy: ResourcePolicy
     reserved_flow_m3h: Decimal
     derated_capacity_m3h: Decimal | None
+    requires_period_volume_budget: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -179,6 +183,9 @@ async def reserve_and_request_dispatch_db(
     idempotency_key: str | None = None,
     activation_guard: Callable[[], Awaitable[None]] | None = None,
     after_locks_acquired: Callable[[], Awaitable[None]] | None = None,
+    resolve_period_volume_budget: (
+        Callable[[Any, ResourceRequest], Awaitable[PeriodVolumeBudget | None]] | None
+    ) = None,
 ) -> ReservationOutcome:
     """Lock-before-evaluate reserve + dispatch-REQUEST inside the caller's tx.
 
@@ -193,6 +200,15 @@ async def reserve_and_request_dispatch_db(
     ``None``; production callers never pass it): it is awaited once, with every
     advisory lock held but BEFORE the fresh overlap read, so a concurrency test can
     interleave a second transaction and certify end-to-end serialization without sleeps.
+
+    The caller must use a PostgreSQL READ COMMITTED transaction (READ UNCOMMITTED
+    has equivalent statement snapshots). After a lock wait, admission must see
+    the preceding holder's committed reservations, including legacy peak-capacity rows.
+
+    Period volume is opt-in, not an authority grant. Only an owner-side resolver may
+    mark a resource as requiring a budget and supply the current approved quota net of
+    settled use. Resolution and settlement must share the same lock and transaction
+    contract. No existing groundwater eligibility gate is changed by this seam.
     """
 
     if not resources:
@@ -205,10 +221,29 @@ async def reserve_and_request_dispatch_db(
     if len(resource_ids) != len(set(resource_ids)):
         raise ValueError("DUPLICATE_HYDRAULIC_RESOURCE")
 
+    needs_period_budget = any(r.requires_period_volume_budget for r in resources)
+    if needs_period_budget and resolve_period_volume_budget is None:
+        raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
+
     # Activation enforcement AT THE SOURCE: gate the reservation before any side effect.
     # A disabled/revoked gate raises here, so no lock is taken and no row is written.
     if activation_guard is not None:
         await activation_guard()
+
+    if not conn.is_in_transaction():
+        raise ValueError(
+            "PERIOD_VOLUME_TRANSACTION_REQUIRED"
+            if needs_period_budget
+            else "RESERVATION_TRANSACTION_REQUIRED"
+        )
+    # The lock covers a fresh admission read and all writes through the caller's commit.
+    isolation = await conn.fetchval("SELECT current_setting('transaction_isolation')")
+    if isolation not in ("read committed", "read uncommitted"):
+        raise ValueError(
+            "PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED"
+            if needs_period_budget
+            else "RESERVATION_FRESH_SNAPSHOT_REQUIRED"
+        )
 
     tenant = str(tenant_id)
     await conn.execute(SET_TENANT_SQL, tenant)
@@ -229,9 +264,27 @@ async def reserve_and_request_dispatch_db(
     peak_over_all = Decimal("0")
 
     # After locks are held, evaluate every resource against a FRESH overlap read.
+    period_evidence: dict[str, dict[str, str]] = {}
     for req in resources:
+        budget = None
+        read_start, read_end = requested_start, requested_end
+        if req.requires_period_volume_budget:
+            if resolve_period_volume_budget is None:
+                raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
+            budget = await resolve_period_volume_budget(conn, req)
+            if budget is None:
+                raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
+            # Include sequential reservations anywhere in the quota period, not
+            # just reservations concurrent with this request.
+            read_start, read_end = budget.starts_at, budget.ends_at
+            period_evidence[str(req.resource_node_id)] = {
+                "starts_at": budget.starts_at.isoformat(),
+                "ends_at": budget.ends_at.isoformat(),
+                "available_m3": str(budget.available_m3),
+                "evidence_ref": budget.evidence_ref,
+            }
         rows = await conn.fetch(
-            OVERLAP_WINDOWS_SQL, tenant, req.resource_node_id, requested_start, requested_end
+            OVERLAP_WINDOWS_SQL, tenant, req.resource_node_id, read_start, read_end
         )
         existing = [
             ReservationWindow(r["starts_at"], r["ends_at"], Decimal(str(r["reserved_flow_m3h"])))
@@ -244,6 +297,7 @@ async def reserve_and_request_dispatch_db(
             requested_end=requested_end,
             requested_flow_m3h=req.reserved_flow_m3h,
             derated_capacity_m3h=req.derated_capacity_m3h,
+            period_volume_budget=budget,
         )
         if not admission.eligible:
             raise CapacityNotAdmissible(str(req.resource_node_id), admission)
@@ -280,7 +334,7 @@ async def reserve_and_request_dispatch_db(
         True,
         json.dumps([]),
         json.dumps([]),
-        json.dumps({}),
+        json.dumps({"period_volume_budgets": period_evidence} if period_evidence else {}),
         capability_digest,
         telemetry_snapshot_version,
         calculation_model_version,
@@ -340,42 +394,105 @@ async def compensate_dispatch_failure(
     execution_port: ExecutionRequestPort,
     reason: str,
 ) -> None:
-    """Forward compensation for an actuator failure after commit — no rollback."""
+    """Record a failed dispatch atomically within the caller's transaction."""
 
-    tenant = str(tenant_id)
-    await conn.execute(SET_TENANT_SQL, tenant)
-    for reservation_id in reservation_ids:
-        rid = UUID(reservation_id)
-        # The reservation event's correlation_id is NOT NULL — reuse the reservation's
-        # own correlation thread (reserve always sets it); fall back to the reservation
-        # id (a valid UUID) so compensation can never fail on a missing correlation.
-        correlation_id = await conn.fetchval(
-            "SELECT correlation_id FROM irrigation_resource_reservations "
-            "WHERE tenant_id = $1 AND reservation_id = $2",
+    if not conn.is_in_transaction():
+        raise ValueError("COMPENSATION_TRANSACTION_REQUIRED")
+    ids = sorted(UUID(value) for value in reservation_ids)
+    if not ids:
+        raise ValueError("COMPENSATION_RESERVATIONS_REQUIRED")
+    if len(set(ids)) != len(ids):
+        raise ValueError("COMPENSATION_DUPLICATE_RESERVATION")
+
+    # The request reference identifies this operation. The tenant predicate on the
+    # locked rows determines which reservations the operation may change.
+    payload = json.dumps(
+        {
+            "reason": reason,
+            "execution_request_ref": execution_request_ref,
+            "reservation_scope_sha256": hashlib.sha256(
+                b"".join(rid.bytes for rid in ids)
+            ).hexdigest(),
+        }
+    )
+    async with conn.transaction():
+        await conn.execute(SET_TENANT_SQL, str(tenant_id))
+        requested = await conn.fetch(
+            """SELECT evaluation_id FROM irrigation_resource_reservations
+               WHERE tenant_id = $1 AND reservation_id = ANY($2::uuid[])""",
             tenant_id,
-            rid,
+            ids,
         )
-        await conn.execute(CANCEL_RESERVATION_SQL, tenant_id, rid, reason)
-        await conn.execute(
-            INSERT_RESERVATION_EVENT_SQL,
+        if len(requested) != len(ids):
+            raise ValueError("COMPENSATION_RESERVATION_NOT_FOUND")
+        evaluations = {row["evaluation_id"] for row in requested}
+        if len(evaluations) != 1:
+            raise ValueError("COMPENSATION_GROUP_MISMATCH")
+        evaluation_id = evaluations.pop()
+        # One dispatch is emitted for the complete evaluation. Acquire locks in the
+        # same order even when callers supply different subsets or ordering.
+        rows = await conn.fetch(
+            """SELECT reservation_id, evaluation_id, execution_ref_type, execution_ref_id,
+                      correlation_id, state
+               FROM irrigation_resource_reservations
+               WHERE tenant_id = $1 AND evaluation_id = $2
+               ORDER BY reservation_id FOR UPDATE""",
             tenant_id,
-            rid,
-            "cancelled",
-            None,
-            correlation_id or rid,
-            json.dumps({"reason": reason}),
+            evaluation_id,
         )
-    try:
-        await execution_port.mark_dispatch_failed(
-            conn,
-            execution_request_ref=execution_request_ref,
-            reason=reason,
-            correlation_id=str(correlation_id) if correlation_id else None,
-        )
-    except TypeError as exc:
-        # Backward compatibility for existing ports that implement the pre-trace signature.
-        if "correlation_id" not in str(exc):
-            raise
-        await execution_port.mark_dispatch_failed(
-            conn, execution_request_ref=execution_request_ref, reason=reason
-        )
+        if [row["reservation_id"] for row in rows] != ids:
+            raise ValueError("COMPENSATION_CONFLICT")
+        groups = {
+            (
+                row["evaluation_id"],
+                row["execution_ref_type"],
+                row["execution_ref_id"],
+                row["correlation_id"],
+            )
+            for row in rows
+        }
+        if len(groups) != 1:
+            raise ValueError("COMPENSATION_GROUP_MISMATCH")
+
+        states = {row["state"] for row in rows}
+        if states == {"cancelled"}:
+            matching = await conn.fetchval(
+                """SELECT count(*) FROM irrigation_resource_reservation_events
+                   WHERE tenant_id = $1 AND reservation_id = ANY($2::uuid[])
+                     AND event_type = 'cancelled' AND causation_id IS NULL AND payload = $3::jsonb""",
+                tenant_id,
+                ids,
+                payload,
+            )
+            if matching == len(ids):
+                return
+        if not states <= {"reserved", "active"}:
+            raise ValueError("COMPENSATION_CONFLICT")
+
+        correlation_id = rows[0]["correlation_id"]
+        mark_failed = execution_port.mark_dispatch_failed
+        kwargs = {
+            "execution_request_ref": execution_request_ref,
+            "reason": reason,
+            "correlation_id": str(correlation_id) if correlation_id else None,
+        }
+        signature = inspect.signature(mark_failed)
+        try:
+            signature.bind(conn, **kwargs)
+        except TypeError:
+            # Legacy ports predate correlation_id. Select the signature before any writes.
+            del kwargs["correlation_id"]
+            signature.bind(conn, **kwargs)
+
+        for rid in ids:
+            await conn.execute(CANCEL_RESERVATION_SQL, tenant_id, rid, reason)
+            await conn.execute(
+                INSERT_RESERVATION_EVENT_SQL,
+                tenant_id,
+                rid,
+                "cancelled",
+                None,
+                correlation_id or rid,
+                payload,
+            )
+        await mark_failed(conn, **kwargs)

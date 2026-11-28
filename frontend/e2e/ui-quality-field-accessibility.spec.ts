@@ -30,6 +30,9 @@ for (const { path, name } of ROUTES) {
     await control.press('Home');
     await control.press('ArrowDown');
     await expect.poll(() => control.inputValue()).not.toBe('');
+    // Choosing a field must not re-create the control: it stays focused, and only then
+    // does Tab move on (a re-created select loses focus and Tab lands back on it).
+    await expect(control).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(control).not.toBeFocused();
     expect(exceptions).toEqual([]);

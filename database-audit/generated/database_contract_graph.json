@@ -278,6 +278,8 @@
       "v288_model_promotion_terminal_state.sql",
       "v289_scouting_verification_bridge.sql",
       "v290_scouting_verification_initial_state.sql",
+      "v291_scouting_task_page_index.sql",
+      "v292_inspection_equipment_evidence.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -1996,14 +1998,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 279,
+    "manifest_entries": 281,
     "manifest_missing_count": 0,
     "policies": 244,
     "production_certified": false,
     "rls_enabled": 237,
     "rls_forced": 218,
     "runtime_verified": false,
-    "sql_files": 300,
+    "sql_files": 304,
     "tables": 367,
     "tenant_rls_gaps": 139,
     "tenant_tables": 348,
@@ -2572,7 +2574,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/irrigation_runtime_orchestrator.py"
+        "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+        "services/sahool-platform/api/irrigation_source_binding.py"
       ],
       "code_writers": [],
       "created_in": "v175_unified_irrigation_capability_graph.sql",
@@ -4159,6 +4162,7 @@
         "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/field_models.py",
         "services/sahool-platform/api/field_state_projection.py",
+        "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/api/lab_store.py",
@@ -4167,6 +4171,7 @@
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/automation.py",
         "services/sahool-platform/api/routers/break_glass.py",
+        "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/drawing_features.py",
         "services/sahool-platform/api/routers/etc_dual.py",
         "services/sahool-platform/api/routers/evidence_map.py",
@@ -4209,6 +4214,7 @@
         "services/sahool-platform/tests/test_field_geometry_area_import_crs_conservation.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_idempotency_server_contract.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_irrigation_schedule_create_contract.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_nl_sql_policy.py",
@@ -4227,6 +4233,7 @@
         "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/tests/test_crop_georag_point_pg.py",
         "services/sahool-platform/tests/test_field_delete_protected_reference.py",
         "services/sahool-platform/tests/test_field_geometry_revert_overlap.py",
         "services/sahool-platform/tests/test_field_overlap_postgis.py",
@@ -4462,6 +4469,7 @@
     {
       "code_readers": [
         "services/sahool-platform/api/field_state_projection.py",
+        "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/imagery_automation.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/field_completeness.py",
@@ -5124,7 +5132,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/irrigation_reservation_adapter.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/irrigation_reservation_adapter.py"
       ],
@@ -7118,6 +7128,7 @@
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_field_twin_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_ledger_currency_governance_context.py",
         "services/sahool-platform/tests/test_season_spatial_provenance.py",
         "services/sahool-platform/tests/test_v26_water_twin_season_context.py",
@@ -7358,6 +7369,7 @@
     {
       "code_readers": [
         "services/sahool-platform/api/field_context.py",
+        "services/sahool-platform/api/freshness_store.py",
         "services/soil-service/soil_store.py"
       ],
       "code_writers": [
@@ -7920,6 +7932,7 @@
         "services/sahool-platform/api/water_ledger_compute.py",
         "services/sahool-platform/core/farm_operations_ledger.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
       ],
       "code_writers": [
@@ -7955,7 +7968,7 @@
     {
       "code_readers": [
         "services/sahool-platform/api/field_state_projection.py",
-        "services/sahool-platform/api/main.py",
+        "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/weather_automation.py"
       ],
       "code_writers": [
@@ -7974,7 +7987,7 @@
     {
       "code_readers": [
         "services/sahool-platform/api/field_state_projection.py",
-        "services/sahool-platform/api/main.py",
+        "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/weather_automation.py"
       ],
       "code_writers": [

@@ -315,3 +315,51 @@ def test_request_digest_unchanged_for_inputs_without_a_batch():
         update={"inputs": [req.inputs[0].model_copy(update={"inventory_batch_id": "b-1"})]}
     )
     assert router._request_digest(named) != expected
+
+
+def test_one_unconvertible_item_does_not_hide_the_catalogue_from_older_clients():
+    """Devin review on #1666: a sack added to a kg item made the legacy list answer 409 for every
+    item. The uncertainty now stays on that item; the others keep their numeric totals."""
+    from api.routers.inventory import inventory_catalogue
+
+    def row(item, level, batch_unit, quantity):
+        return {
+            "item_id": item,
+            "category": item,
+            "name": item,
+            "unit": "kg",
+            "reorder_level": Decimal(level),
+            "batch_unit": batch_unit,
+            "quantity": Decimal(quantity),
+        }
+
+    rows = [
+        row("fert", "5", "kg", "10"),
+        row("fert", "5", "كيس", "1"),
+        row("seed", "50", "g", "20000"),
+    ]
+    legacy = {item["item_id"]: item for item in inventory_catalogue(rows, False)}
+    assert legacy["fert"]["total_quantity"] is None and legacy["fert"]["low_stock"] is None
+    assert legacy["fert"]["unit_conversion_unavailable"] is True
+    assert legacy["seed"]["total_quantity"] == 20.0 and legacy["seed"]["low_stock"] is True
+    assert "unit_conversion_unavailable" not in legacy["seed"]
+    assert all("quantities_by_unit" not in item for item in legacy.values())
+
+    detailed = {item["item_id"]: item for item in inventory_catalogue(rows, True)}
+    assert {q["unit"]: q["quantity"] for q in detailed["fert"]["quantities_by_unit"]} == {
+        "kg": 10.0,
+        "كيس": 1.0,
+    }
+
+
+def test_the_list_route_builds_its_answer_with_the_pure_catalogue():
+    import inspect
+
+    from api.routers import inventory
+
+    source = inspect.getsource(inventory.list_inventory_items)
+    assert "return inventory_catalogue(rows, unit_breakdown)" in source
+    assert "409" not in source, (
+        "one item's unit uncertainty must not refuse the whole catalogue: deployed clients "
+        "call without unit_breakdown and would lose every item (Devin review on #1666)"
+    )

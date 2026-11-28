@@ -4,18 +4,17 @@
 
 ## Summary
 
-- Python files parsed: **2290**
+- Python files parsed: **2299**
 - FastAPI-style route handlers: **1100**
-- Static function-call edges: **125329**
-- Dead-code candidates: **694**
-- Duplicate function groups: **67**
+- Static function-call edges: **126272**
+- Dead-code candidates: **693**
+- Duplicate function groups: **66**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
 
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
-| `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 60 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 172 |
 | `decision-service` | `_require_live_when_certifying` | function | `services/decision-service/tests/test_eligibility_assessment_live_pg.py` | 119 |
@@ -33,8 +32,8 @@
 | `sahool-platform` | `_extract_ec` | function | `services/sahool-platform/api/field_state_projection.py` | 281 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 71 |
 | `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1146 |
-| `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 190 |
-| `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 208 |
+| `sahool-platform` | `_facts_snapshot_hash` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 194 |
+| `sahool-platform` | `_source_current_state` | function | `services/sahool-platform/api/routers/irrigation_mpc.py` | 212 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 435 |
 | `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1120 |
 | `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1134 |
@@ -65,6 +64,7 @@
 | `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_client_routing_w1_22.py` | 26 |
 | `sahool-platform` | `_unobserved_weather_service` | function | `services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py` | 12 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 43 |
+| `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 121 |
 
 ## Duplicate implementation groups
 
@@ -102,7 +102,6 @@
 | `62a08c439a5d8220` | 2 |
 | `69e415224b4d3b71` | 4 |
 | `6dcb6ad9fc0cd5a9` | 2 |
-| `6f642e211a717584` | 2 |
 | `732840534ed80cbd` | 5 |
 | `734027586cb4dbe9` | 2 |
 | `7644d918a15bde1e` | 4 |
@@ -120,6 +119,7 @@
 | `9e9d6bb7f5f44b29` | 2 |
 | `9fcb13bf88a96d6a` | 2 |
 | `aa517cd1f9c74cf4` | 3 |
+| `abea79905276671b` | 2 |
 
 ## Interpretation
 

@@ -21,6 +21,8 @@ import ast
 import importlib.util
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -246,6 +248,226 @@ def test_regeneration_flags_match_the_generator_clis():
     assert MOD._GENERATE_FLAG["capability_runtime_evidence.py"] == "--apply"
     assert MOD._GENERATE_FLAG["generate_indicator_artifacts.py"] == ""
     assert MOD._GENERATE_FLAG["generate_indicators_frontend_manifest.py"] == ""
+
+
+def _isolated_flag_probe_repo(tmp_path, monkeypatch, probe_body=""):
+    root = tmp_path / "flag-probe-repo"
+    script = root / "scripts" / "ci" / "probe.py"
+    script.parent.mkdir(parents=True)
+    script.write_text(
+        "from pathlib import Path\nimport subprocess\n"
+        + probe_body
+        + '\nprint("usage: probe.py --check")\n',
+        encoding="utf-8",
+    )
+    (root / "artifact.txt").write_text("committed\n", encoding="utf-8")
+    (root / "artifact-link").symlink_to("artifact.txt")
+    baseline = root / "unmapped.json"
+    baseline.write_text('{"unmapped": {}}\n', encoding="utf-8")
+    for arguments in [
+        ["init", "-q"],
+        ["add", "."],
+        [
+            "-c",
+            "user.name=Probe",
+            "-c",
+            "user.email=probe@example.invalid",
+            "commit",
+            "-qm",
+            "fixture",
+        ],
+    ]:
+        subprocess.run(["git", *arguments], cwd=root, check=True, capture_output=True)
+    monkeypatch.setattr(MOD, "ROOT", root)
+    monkeypatch.setattr(MOD, "UNMAPPED_BASELINE", baseline)
+    return root, [("scripts/ci/probe.py", ["--check"])]
+
+
+@pytest.mark.parametrize(
+    ("mutation", "probe_body"),
+    [
+        ("dirty-bytes", 'Path("artifact.txt").write_text("changed by help\\n")'),
+        ("missing-created", 'Path("artifact.txt").write_text("created by help\\n")'),
+        ("deleted", 'Path("artifact.txt").unlink()'),
+        ("mode", 'p = Path("artifact.txt"); p.chmod(p.stat().st_mode | 0o100)'),
+        (
+            "symlink",
+            'p = Path("artifact-link"); p.unlink(); p.symlink_to("different-target")',
+        ),
+        (
+            "index-only",
+            'subprocess.run(["git", "add", "artifact.txt"], check=True, capture_output=True)',
+        ),
+        (
+            "head-only",
+            'subprocess.run(["git", "-c", "user.name=Probe", "-c", '
+            '"user.email=probe@example.invalid", "commit", "--allow-empty", "-qm", "help"], '
+            "check=True, capture_output=True)",
+        ),
+    ],
+)
+def test_flag_probe_rejects_mutation_without_restoring(tmp_path, monkeypatch, mutation, probe_body):
+    root, steps = _isolated_flag_probe_repo(tmp_path, monkeypatch, probe_body)
+    artifact = root / "artifact.txt"
+    if mutation in {"dirty-bytes", "index-only"}:
+        artifact.write_text("already dirty\n", encoding="utf-8")
+    elif mutation == "missing-created":
+        artifact.unlink()
+    before_porcelain = MOD.tree_state()
+
+    problems = MOD.flag_map_problems(steps)
+
+    assert any("--help" in problem and "changed" in problem for problem in problems), problems
+    if mutation == "dirty-bytes":
+        assert MOD.tree_state() == before_porcelain, "the witness must stay M before and after"
+        assert artifact.read_bytes() == b"changed by help\n", (
+            "do not hide the mutation by restoring"
+        )
+    elif mutation == "missing-created":
+        assert artifact.read_bytes() == b"created by help\n"
+    elif mutation == "deleted":
+        assert not artifact.exists()
+    elif mutation == "mode":
+        assert artifact.stat().st_mode & 0o100
+    elif mutation == "symlink":
+        assert (root / "artifact-link").readlink() == Path("different-target")
+
+
+def test_flag_probe_accepts_unchanged_dirty_tree(tmp_path, monkeypatch):
+    root, steps = _isolated_flag_probe_repo(tmp_path, monkeypatch)
+    artifact = root / "artifact.txt"
+    artifact.write_text("already dirty\n", encoding="utf-8")
+    assert MOD.flag_map_problems(steps) == []
+    assert artifact.read_bytes() == b"already dirty\n"
+
+
+@pytest.mark.parametrize("change", ["created", "modified", "deleted"])
+def test_flag_probe_rejects_nonignored_untracked_writes(tmp_path, monkeypatch, change):
+    body = (
+        'Path("new-output.py").unlink()'
+        if change == "deleted"
+        else 'Path("new-output.py").write_text("changed by help\\n")'
+    )
+    root, steps = _isolated_flag_probe_repo(tmp_path, monkeypatch, body)
+    output = root / "new-output.py"
+    if change != "created":
+        output.write_text("previous untracked bytes\n", encoding="utf-8")
+    problems = MOD.flag_map_problems(steps)
+    assert any("--help" in problem and "changed" in problem for problem in problems), problems
+    if change == "deleted":
+        assert not output.exists()
+    else:
+        assert output.read_bytes() == b"changed by help\n"
+
+
+def test_flag_probe_allows_gitignored_tool_cache(tmp_path, monkeypatch):
+    root, steps = _isolated_flag_probe_repo(
+        tmp_path,
+        monkeypatch,
+        'Path("tool-cache").mkdir(); Path("tool-cache/value").write_text("cache bytes")',
+    )
+    (root / ".gitignore").write_text("tool-cache/\n", encoding="utf-8")
+    subprocess.run(["git", "add", ".gitignore"], cwd=root, check=True, capture_output=True)
+    assert MOD.flag_map_problems(steps) == []
+    assert (root / "tool-cache/value").read_text(encoding="utf-8") == "cache bytes"
+    ignored = subprocess.run(
+        ["git", "check-ignore", "-q", "tool-cache/value"], cwd=root, capture_output=True
+    )
+    assert ignored.returncode == 0
+
+
+def test_registered_writer_nonzero_help_is_not_skipped(tmp_path, monkeypatch):
+    root, steps = _isolated_flag_probe_repo(
+        tmp_path,
+        monkeypatch,
+        'import sys\nif "--help" in sys.argv:\n'
+        '    print("usage: probe.py --check --write")\n    raise SystemExit(2)\n',
+    )
+    monkeypatch.setitem(MOD._GENERATE_FLAG, "probe.py", "--write")
+    check = subprocess.run(
+        [sys.executable, "scripts/ci/probe.py", "--check"], cwd=root, capture_output=True
+    )
+    assert check.returncode == 0, "a passing check must not excuse a failed help probe"
+    with pytest.raises(SystemExit, match=r"probe.py.*2"):
+        MOD.flag_map_problems(steps)
+
+
+def test_registered_writer_requires_its_declared_flag_even_with_empty_help(tmp_path, monkeypatch):
+    _root, steps = _isolated_flag_probe_repo(
+        tmp_path, monkeypatch, 'import sys\nif "--help" in sys.argv:\n    raise SystemExit(0)\n'
+    )
+    monkeypatch.setitem(MOD._GENERATE_FLAG, "probe.py", "--write")
+    problems = MOD.flag_map_problems(steps)
+    assert any("probe.py" in problem and "--write" in problem for problem in problems), problems
+
+
+def test_successful_bare_writer_help_without_options_remains_supported(tmp_path, monkeypatch):
+    _root, steps = _isolated_flag_probe_repo(
+        tmp_path, monkeypatch, 'import sys\nif "--help" in sys.argv:\n    raise SystemExit(0)\n'
+    )
+    monkeypatch.setitem(MOD._GENERATE_FLAG, "probe.py", "")
+    assert MOD.flag_map_problems(steps) == []
+
+
+def test_flag_probe_reports_mutation_even_when_discovery_raises(tmp_path, monkeypatch, capsys):
+    root, steps = _isolated_flag_probe_repo(tmp_path, monkeypatch)
+    output = root / "interrupted-output.py"
+
+    def failed_probe(_script):
+        output.write_text("preserved diagnostic bytes\n", encoding="utf-8")
+        raise RuntimeError("original probe failure")
+
+    monkeypatch.setattr(MOD, "_accepted_flags", failed_probe)
+    with pytest.raises(RuntimeError, match="original probe failure"):
+        MOD.flag_map_problems(steps)
+    assert output.read_bytes() == b"preserved diagnostic bytes\n"
+    diagnostic = capsys.readouterr().err
+    assert "--help" in diagnostic and "changed" in diagnostic
+
+
+def test_flag_probe_requires_git_measurement_before_invocation(tmp_path, monkeypatch):
+    baseline = tmp_path / "unmapped.json"
+    baseline.write_text('{"unmapped": {}}\n', encoding="utf-8")
+    monkeypatch.setattr(MOD, "ROOT", tmp_path)
+    monkeypatch.setattr(MOD, "UNMAPPED_BASELINE", baseline)
+    called = []
+    monkeypatch.setattr(MOD, "_accepted_flags", lambda script: called.append(script) or {"--check"})
+    with pytest.raises(SystemExit, match="probe"):
+        MOD.flag_map_problems([("scripts/ci/probe.py", ["--check"])])
+    assert called == []
+
+
+def test_flag_probe_exception_is_not_success(tmp_path, monkeypatch):
+    _root, steps = _isolated_flag_probe_repo(tmp_path, monkeypatch)
+
+    def failed_probe(_script):
+        raise RuntimeError("probe interrupted")
+
+    monkeypatch.setattr(MOD, "_accepted_flags", failed_probe)
+    with pytest.raises(RuntimeError, match="probe interrupted"):
+        MOD.flag_map_problems(steps)
+
+
+def test_api_writer_flag_is_explicitly_registered_and_interrogated(tmp_path, monkeypatch):
+    root, _steps = _isolated_flag_probe_repo(tmp_path, monkeypatch)
+    relative = "scripts/ci/api_versioning_policy_guard.py"
+    (root / relative).write_bytes((ROOT / relative).read_bytes())
+    subprocess.run(["git", "add", relative], cwd=root, check=True, capture_output=True)
+    steps = [(relative, ["--check"])]
+    assert MOD._GENERATE_FLAG.get("api_versioning_policy_guard.py") == "--write"
+    assert {"--check", "--write"} <= MOD._accepted_flags(relative)
+    assert MOD.flag_map_problems(steps) == []
+    monkeypatch.setattr(
+        MOD,
+        "_GENERATE_FLAG",
+        {
+            key: value
+            for key, value in MOD._GENERATE_FLAG.items()
+            if key != "api_versioning_policy_guard.py"
+        },
+    )
+    problems = MOD.flag_map_problems(steps)
+    assert any(relative in problem and "--write" in problem for problem in problems), problems
 
 
 def test_each_step_has_a_diagnosable_timeout(monkeypatch, tmp_path):
@@ -580,6 +802,17 @@ def test_the_registry_guard_is_wired_and_ordered_after_its_input() -> None:
     guard = MOD._sort_key(("scripts/ci/capability_registry_guard.py", []))
     fingerprint = MOD._sort_key(("scripts/ci/static_governance_closure.py", []))
     assert producer < guard < fingerprint
+
+
+def test_traceability_report_is_checked_and_regenerated_after_its_inputs() -> None:
+    """A report may drift after linkage changes even when the sweep was green."""
+    script = "scripts/ci/capability_traceability_report.py"
+    assert (script, ["--check"]) in MOD.discover()
+    assert MOD._GENERATE_FLAG["capability_traceability_report.py"] == ""
+    report = MOD._sort_key((script, []))
+    for producer in ("capability_linker.py", "capability_registry_v1.py"):
+        assert MOD._sort_key((f"scripts/ci/{producer}", [])) < report
+    assert report < MOD._sort_key(("scripts/ci/static_governance_closure.py", []))
 
 
 def test_regenerate_orchestrator_delegates_to_the_fixed_point_engine() -> None:

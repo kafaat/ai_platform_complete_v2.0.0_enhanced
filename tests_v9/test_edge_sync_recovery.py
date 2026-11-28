@@ -22,10 +22,15 @@ def load(name, path):
     return mod
 
 
-@pytest.fixture
-def sync(tmp_path, monkeypatch):
+@pytest.fixture(autouse=True)
+def no_environment_proxy(monkeypatch):
+    """RESPX owns transport; host proxy setup must not decide tenant/replay outcomes."""
     for key in ("ALL_PROXY", "HTTPS_PROXY", "HTTP_PROXY", "all_proxy", "https_proxy", "http_proxy"):
         monkeypatch.delenv(key, raising=False)
+
+
+@pytest.fixture
+def sync(tmp_path, monkeypatch):
     mod = load("edge_transport_recovery", "services/edge-inference/sync_service.py")
     monkeypatch.setenv("EDGE_DEVICE_ID", "edge-device-1")
     return mod.CloudSyncService("https://edge.example.test", "synthetic", str(tmp_path))

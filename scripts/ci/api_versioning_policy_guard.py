@@ -8,12 +8,12 @@ allowlist. This avoids breaking existing clients while preventing drift.
 
 from __future__ import annotations
 
+import argparse
 import ast
 import csv
 import io
 import json
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -67,6 +67,43 @@ def _router_prefixes(tree: ast.AST) -> dict[str, str]:
     return prefixes
 
 
+def _route_declarations(tree: ast.Module):
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for decorator in node.decorator_list:
+                yield decorator, node.name, node.lineno
+
+    # Weather binds imported handlers at module scope: app.get("/path")(rt.handler).
+    # Restrict the receiver to a locally constructed app/router: ordinary lookups
+    # such as callbacks.get("/path")(value) do not declare an HTTP endpoint.
+    routers = {
+        target.id
+        for statement in tree.body
+        if isinstance(statement, ast.Assign)
+        and isinstance(statement.value, ast.Call)
+        and isinstance(statement.value.func, ast.Name)
+        and statement.value.func.id in {"FastAPI", "APIRouter"}
+        for target in statement.targets
+        if isinstance(target, ast.Name)
+    }
+    for statement in tree.body:
+        if not isinstance(statement, (ast.Expr, ast.Assign, ast.AnnAssign)):
+            continue
+        call = statement.value
+        if not (
+            isinstance(call, ast.Call)
+            and len(call.args) == 1
+            and not call.keywords
+            and isinstance(call.args[0], (ast.Name, ast.Attribute))
+            and isinstance(call.func, ast.Call)
+            and isinstance(call.func.func, ast.Attribute)
+            and isinstance(call.func.func.value, ast.Name)
+            and call.func.func.value.id in routers
+        ):
+            continue
+        yield call.func, ast.unparse(call.args[0]), call.lineno
+
+
 def _routes(path: Path):
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -74,35 +111,31 @@ def _routes(path: Path):
         return []
     prefixes = _router_prefixes(tree)
     rows = []
-    for node in ast.walk(tree):
-        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+    for dec, handler, line in _route_declarations(tree):
+        if not (
+            isinstance(dec, ast.Call)
+            and isinstance(dec.func, ast.Attribute)
+            and dec.func.attr in METHODS
+            and dec.args
+            and isinstance(dec.args[0], ast.Constant)
+            and isinstance(dec.args[0].value, str)
+        ):
             continue
-        for dec in node.decorator_list:
-            if (
-                isinstance(dec, ast.Call)
-                and isinstance(dec.func, ast.Attribute)
-                and dec.func.attr in METHODS
-            ):
-                if (
-                    dec.args
-                    and isinstance(dec.args[0], ast.Constant)
-                    and isinstance(dec.args[0].value, str)
-                ):
-                    route_path = dec.args[0].value
-                    if isinstance(dec.func.value, ast.Name):
-                        prefix = prefixes.get(dec.func.value.id)
-                        if prefix:
-                            route_path = prefix.rstrip("/") + route_path
-                    rows.append(
-                        {
-                            "service": _service_for(path),
-                            "file": path.relative_to(ROOT).as_posix(),
-                            "line": getattr(node, "lineno", 0),
-                            "method": dec.func.attr.upper(),
-                            "path": route_path,
-                            "handler": node.name,
-                        }
-                    )
+        route_path = dec.args[0].value
+        if isinstance(dec.func.value, ast.Name):
+            prefix = prefixes.get(dec.func.value.id)
+            if prefix:
+                route_path = prefix.rstrip("/") + route_path
+        rows.append(
+            {
+                "service": _service_for(path),
+                "file": path.relative_to(ROOT).as_posix(),
+                "line": line,
+                "method": dec.func.attr.upper(),
+                "path": route_path,
+                "handler": handler,
+            }
+        )
     return rows
 
 
@@ -261,9 +294,15 @@ def write(rows):
 
 
 def main():
-    check = "--check" in sys.argv
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--check", action="store_true", help="Check generated outputs without writing"
+    )
+    mode.add_argument("--write", action="store_true", help="Regenerate outputs (also the default)")
+    args = parser.parse_args()
     rows = collect()
-    if check:
+    if args.check:
         drift = [
             output.name
             for output, text in render(rows).items()
@@ -272,7 +311,7 @@ def main():
         if drift:
             raise SystemExit(
                 f"api versioning inventory drift ({', '.join(drift)}); "
-                "rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
+                "rerun scripts/ci/api_versioning_policy_guard.py --write and review unversioned allowlist"
             )
         # API-VERSIONING-GUARD-IS-A-MIRROR-01: المقارنة أعلاه تكشف الانحراف، لكنّ
         # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد

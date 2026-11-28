@@ -9,27 +9,34 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from scripts.irr_f01.required_cases import FRESH, LIVE, UPGRADE, validate
+from scripts.irr_f01.required_cases import COMPENSATION, FRESH, LIVE, UPGRADE, validate
 
 pytestmark = pytest.mark.unit
 
 
 @pytest.mark.parametrize(
-    ("suite", "extra", "module"),
+    ("suite", "extras"),
     [
-        ("fresh", FRESH, "test_v195_postgres"),
-        ("upgrade", UPGRADE, "test_irr_f01_upgrade_gate_u1_pg"),
+        (
+            "fresh",
+            [
+                ("test_irr_f01_compensation_live_pg", COMPENSATION),
+                ("test_v195_postgres", FRESH),
+            ],
+        ),
+        ("upgrade", [("test_irr_f01_upgrade_gate_u1_pg", UPGRADE)]),
     ],
 )
-def test_required_evidence(tmp_path, suite, extra, module):
+def test_required_evidence(tmp_path, suite, extras):
     report = tmp_path / "report.xml"
     root = ET.Element("testsuite")
     for name in LIVE:
         ET.SubElement(
             root, "testcase", classname="tests_v9.test_irr_f01_reservation_live_pg", name=name
         )
-    for name in extra:
-        case = ET.SubElement(root, "testcase", classname=module, name=name)
+    for module, names in extras:
+        for name in sorted(names):
+            case = ET.SubElement(root, "testcase", classname=module, name=name)
     tree = ET.ElementTree(root)
     tree.write(report)
     validate(report, suite)
@@ -54,3 +61,24 @@ def test_certification_report_writes_utf8_under_c_locale(tmp_path, status, filen
     report = (tmp_path / f"IRR_F01_{filename}_REPORT.md").read_text(encoding="utf-8")
     assert f"IRR-F01 LOCAL GATE — {status.upper()}" in report
     assert json.loads((tmp_path / "evidence.json").read_text(encoding="utf-8"))["status"] == status
+
+
+def test_compensation_cases_are_required_in_the_fresh_suite_and_listed_in_run_suite():
+    """A compensation case that skips or goes missing must fail the certifying run."""
+    import inspect
+    import re
+
+    import tests_v9.test_irr_f01_compensation_live_pg as compensation
+
+    defined = {
+        name
+        for name, fn in inspect.getmembers(compensation, inspect.isfunction)
+        if name.startswith("test_")
+    }
+    required = {name.split("[", 1)[0] for name in COMPENSATION}
+    assert required == defined
+    run_suite = (Path(__file__).resolve().parents[1] / "scripts/irr_f01/run_suite.sh").read_text(
+        encoding="utf-8"
+    )
+    fresh = re.search(r"fresh\)(.*?);;", run_suite, re.S).group(1)
+    assert "tests_v9/test_irr_f01_compensation_live_pg.py" in fresh

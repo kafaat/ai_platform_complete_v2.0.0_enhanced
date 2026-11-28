@@ -208,3 +208,27 @@ def test_the_digest_binds_the_request_not_its_spelling():
 def test_severity_maps_to_the_platforms_ascending_priority():
     order = [fst.SEVERITY_PRIORITY[s] for s in ("critical", "high", "medium", "low", "info")]
     assert order == [1, 2, 3, 4, 5], "1 is the most urgent (the platform sorts priority ASC)"
+
+
+@pytest.mark.parametrize(
+    "cursor",
+    [
+        "",
+        "missing-separator",
+        "|bad-uuid",
+        f"|{TENANT}|extra",
+        f"2026-01-01T12:00:00|{TENANT}",
+        f"0001-01-01T00:00:00+12:00|{TENANT}",
+    ],
+)
+def test_invalid_page_cursors_are_client_errors_before_db_access(client, cursor):
+    response = client.get(
+        PATH, params={"field_id": "fld_demo", "cursor": cursor}, headers=_headers()
+    )
+    assert response.status_code == 400, response.text
+
+
+@pytest.mark.parametrize("limit", [0, 201])
+def test_scouting_page_limit_is_bounded(client, limit):
+    response = client.get(PATH, params={"field_id": "fld_demo", "limit": limit}, headers=_headers())
+    assert response.status_code == 422
