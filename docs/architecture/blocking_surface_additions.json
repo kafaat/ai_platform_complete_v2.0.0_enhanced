@@ -12,6 +12,14 @@
     "impact": "merge | release | publish | advisory. و`advisory` ليست موضعَ حجبٍ بل إعلانُ أنّ الفحصَ لا يحجب."
   },
   "additions": {
+    "scripts/ci/capability_traceability_report.py::capability-governance.yml::capability-registry": {
+      "counterexample": "Measured traceability drift corrected by c3343288773429dc74c7a4c154fecf2b11151f10 from parent 65358aa365379bea9ec3d6b70a5174e7c559b8a0: committed Markdown and JSON still reported 14 UI-linked and 8 fully traceable capabilities while authoritative regeneration produced 16 and 9; CSV rows were stale as well. That commit intentionally added the three-artifact --check step to capability-governance.yml::capability-registry. On frozen 3f180a3b53aad503485c7211545900adadab182d the blocking-surface tests exposed its missing declaration; this entry records that actual invocation.",
+      "mutation": "test_traceability_check_detects_each_artifact_without_repair",
+      "$mutation_ar": "The registered behavioural mutation bypasses the non-empty drift branch in capability_traceability_report.py. The named test must reject that mutant for corrupt and missing versions of each of the three reports, with the intended check result and artifact-specific diagnostic.",
+      "positive_witness": "test_traceability_check_detects_each_artifact_without_repair — after each corrupt or missing artifact is rejected without modifying the report directory, report.main() regenerates the original bytes and report.main(check=True) returns 0. test_committed_traceability_reports_match_authoritative_view separately binds committed reports to the authoritative renderer.",
+      "impact": "merge",
+      "$scope_limit_ar": "Checks byte drift of the Markdown, CSV and JSON traceability projections at PR merge. It neither certifies capability runtime maturity nor changes field authority, production readiness, release permission or deployment authorization."
+    },
     "scripts/ci/export_explorer_routes.py::service-inventory-drift.yml::drift": {
       "counterexample": "Measured on PR #1525 @ 98ee770e and its unit run: enabling the new R13 exporter in service-inventory-drift.yml introduced the unadjudicated blocking triple. Its own test supplies an empty or missing inventory; without fail-closed validation the CI artifact could be falsely labeled as source-backed. The exporter must require the exact Git HEAD and inventory digests, and explicitly say runtime NOT_RUN.",
       "mutation": "test_missing_inventory_and_unbound_commit_fails",
