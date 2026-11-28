@@ -41,17 +41,22 @@ jobs:
           entries = re.findall(r"^\\i migrations/(\S+)$", old, re.M)
           added = [s for s in manifest if s not in entries]
           assert added == ["v292_inspection_equipment_evidence.sql"], added
-          assert [s for s in manifest if s not in added] == entries
-          # Preserve existing whitespace and header; reconstruct the missing pair from the manifest
-          # and derive every echo ordinal from its authoritative position, not a hand-entered count.
+          assert len(entries) == len(set(entries)) and len(manifest) == len(set(manifest))
+          assert set(entries) == set(manifest) - set(added)
+          # Existing legacy order differs from MANIFEST. Preserve all pre-existing relative order.
+          # Insert only the new migration at the shared tail anchor; renumber actual execution order.
           insertion = manifest[manifest.index(added[0]) + 1]
+          expected = entries.copy()
+          expected.insert(expected.index(insertion), added[0])
           anchor = next(x for x in old.splitlines() if x.startswith("\\echo ") and x.endswith(insertion + " ═══'"))
           assert old.count(anchor) == 1
           added_pair = "\\echo '═══ 0. " + added[0] + " ═══'\n\\i migrations/" + added[0] + "\n"
           candidate = old.replace(anchor, added_pair + anchor, 1)
-          candidate = re.sub(r"(?m)^\\echo '═══ \d+\. (\S+) ═══'$", lambda m: "\\echo '═══ " + str(manifest.index(m[1]) + 1) + ". " + m[1] + " ═══'", candidate)
-          assert re.findall(r"^\\i migrations/(\S+)$", candidate, re.M) == manifest
-          assert [(int(i), name) for i, name in re.findall(r"(?m)^\\echo '═══ (\d+)\. (\S+) ═══'$", candidate)] == list(enumerate(manifest, 1))
+          candidate = re.sub(r"(?m)^\\echo '═══ \d+\. (\S+) ═══'$", lambda m: "\\echo '═══ " + str(expected.index(m[1]) + 1) + ". " + m[1] + " ═══'", candidate)
+          assert re.findall(r"^\\i migrations/(\S+)$", candidate, re.M) == expected
+          assert [(int(i), name) for i, name in re.findall(r"(?m)^\\echo '═══ (\d+)\. (\S+) ═══'$", candidate)] == list(enumerate(expected, 1))
+          assert set(expected) == set(manifest)
+          assert [s for s in expected if s not in added] == entries
           runner.write_text(candidate)
           extract = runpy.run_path("tests_v9/test_apply_in_compose_fail_closed.py")["_extracted"]
           sha, tables, columns = extract(p("migrations"))
