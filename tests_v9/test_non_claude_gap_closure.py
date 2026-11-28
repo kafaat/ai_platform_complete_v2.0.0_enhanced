@@ -157,3 +157,50 @@ assert would_reject_counts()['mcp.oauth']['missing_exp'] == 1
         timeout=30,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_landsat_scene_without_catalogue_contract_cannot_take_backfill_slot():
+    run_service(
+        "services/raster-service",
+        """
+from scene_policy import select_backfill_scenes_by_policy
+
+clear_unusable = {
+    'item_id': 'clear-no-contract',
+    'datetime': '2026-10-15T10:00:00Z',
+    'cloud_cover_pct': 0,
+    'data_type': 'thermal_unique',
+    'thermal_urls': {'lst': 'https://example.invalid/missing-metadata.tif'},
+    'thermal_contract': None,
+}
+usable = {
+    **clear_unusable,
+    'item_id': 'usable',
+    'cloud_cover_pct': 25,
+    'thermal_urls': {'lst': 'https://example.invalid/usable.tif'},
+    'thermal_contract': {
+        'collection': 'landsat-c2-l2', 'scene': 'usable',
+        'acquired': '2026-10-15T10:00:00Z',
+        'key': 'lwir11', 'href': 'https://example.invalid/usable.tif',
+        'band': {'data_type': 'uint16', 'scale': 0.00341802, 'offset': 149.0},
+    },
+}
+for malformed in (None, {}, 'not-a-contract'):
+    bad = {**clear_unusable, 'thermal_contract': malformed}
+    chosen = select_backfill_scenes_by_policy(
+        [bad, usable], indices=['lst'], max_cloud_pct=50, limit=1
+    )
+    assert [item['item_id'] for item in chosen] == ['usable']
+    assert chosen[0]['thermal_contract'] == usable['thermal_contract']
+    assert select_backfill_scenes_by_policy(
+        [bad], indices=['lst'], max_cloud_pct=50, limit=1
+    ) == []
+
+# Optical discovery has no thermal contract requirement.
+optical = {k: v for k, v in clear_unusable.items()
+           if k not in ('thermal_contract', 'thermal_urls', 'data_type')}
+assert select_backfill_scenes_by_policy(
+    [optical], indices=['ndvi'], max_cloud_pct=50, limit=1
+)[0]['item_id'] == 'clear-no-contract'
+""",
+    )
