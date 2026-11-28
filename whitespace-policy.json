@@ -1,0 +1,28 @@
+{
+  "status": "APPLIED",
+  "repository_policy_commit": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+  "repository_policy_path": ".gitattributes",
+  "repository_policy_sha256": "461047972019b933d3b9b293686d6ae2703e2dc9d19e18d13ede354c19098505",
+  "repository_policy_reason": "CRLF-PHANTOM-ARTIFACT-DRIFT-01: CSV bytes retain their generator's LF or CRLF.",
+  "scope": "Fresh owned SOURCE clone .git/info/attributes; *.csv only.",
+  "attributes_relative_path": ".git/info/attributes",
+  "original_attributes_existed": false,
+  "original_attributes_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "applied_rule": "*.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol",
+  "applied_attributes_sha256": "aa6a80b1bfe2ec1e8f8272e8616a454c5818c307cd5fcccfcacb44dab5a1402e",
+  "retained_checks": [
+    "blank-at-eol",
+    "blank-at-eof",
+    "space-before-tab"
+  ],
+  "csv_line_ending_recognition": "cr-at-eol",
+  "non_csv_check_attr": "__inspection_policy_probe.py: whitespace: unspecified",
+  "git_diff_check_command": [
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "source_or_generated_bytes_modified": false,
+  "production_accepted": false
+}

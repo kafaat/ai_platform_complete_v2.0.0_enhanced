@@ -1,0 +1,940 @@
+{
+  "schema_version": "2.0.0",
+  "changed_paths": [
+    ".env.example",
+    ".github/workflows/ci.yml",
+    "SERVICE_REGISTRY.md",
+    "api_versioning_inventory.csv",
+    "api_versioning_inventory.generated.json",
+    "architecture/generated/ARCHITECTURE_GRAPH_REPORT.md",
+    "architecture/generated/architecture_edges.csv",
+    "architecture/generated/architecture_graph.json",
+    "architecture/generated/architecture_nodes.csv",
+    "capabilities/generated/capability_link_candidates.csv",
+    "capabilities/registry/capabilities.json",
+    "capability_inventory.generated.csv",
+    "certification/evidence/field_inspection_execution_20261127.json",
+    "component_inventory.generated.csv",
+    "database-audit/generated/DATABASE_CONTRACT_REPORT.md",
+    "database-audit/generated/database_contract_graph.json",
+    "database-audit/generated/database_contract_summary.json",
+    "database-audit/generated/database_tables.csv",
+    "decision-lineage/generated/DECISION_LINEAGE_REPORT.md",
+    "decision-lineage/generated/decision_lineage_edges.csv",
+    "decision-lineage/generated/decision_lineage_graph.json",
+    "decision-lineage/generated/decision_lineage_nodes.csv",
+    "dependency_graph.generated.json",
+    "docker-compose.v9.yml",
+    "docs/architecture/PLATFORM_CATALOG.generated.md",
+    "docs/architecture/db_ownership.yml",
+    "docs/architecture/fake_connection_debt.json",
+    "docs/architecture/generated/platform_route_budget_inventory.json",
+    "docs/architecture/generated/platform_route_governance_attestation.json",
+    "docs/architecture/generated/platform_route_ownership_inventory.json",
+    "docs/architecture/platform_extraction_map.json",
+    "docs/architecture/platform_python_module_baseline.json",
+    "docs/architecture/tenant_guc_scope_baseline.json",
+    "docs/capability-registry/generated/evidence/capability_evidence_matrix.csv",
+    "docs/capability-registry/generated/evidence/capability_evidence_matrix.json",
+    "docs/capability-registry/generated/evidence/evidence_manifest.json",
+    "docs/capability-registry/generated/impact/impact_index_summary.json",
+    "docs/capability-registry/generated/management/capability_management_matrix.json",
+    "docs/capability-registry/generated/management/management_manifest.json",
+    "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    "docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+    "docs/capability-registry/generated/mapping/capability_mapping.csv",
+    "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "docs/capability-registry/generated/mapping/mapping_manifest.json",
+    "docs/capability-registry/generated/mapping/unmapped_artifacts.json",
+    "docs/runbooks/FIELD_INSPECTION_EXECUTION_DELIVERY.md",
+    "docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md",
+    "event-audit/generated/EVENT_CONTRACT_REPORT.md",
+    "event-audit/generated/event_contract_graph.json",
+    "event-audit/generated/event_contract_summary.json",
+    "execution-audit/generated/.audit.sha256",
+    "execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+    "execution-audit/generated/dead_code_candidates.csv",
+    "execution-audit/generated/duplicate_definitions.json",
+    "execution-audit/generated/execution_audit_summary.json",
+    "execution-audit/generated/execution_dependency_audit.json",
+    "execution-audit/generated/route_conflicts.json",
+    "execution-audit/generated/route_handlers.csv",
+    "execution-audit/generated/router_reachability.json",
+    "frontend/src/lib/platformCatalog.generated.ts",
+    "frontend/src/sections/FieldWorkspaceTasksPanel.tsx",
+    "frontend/src/sections/InspectionExecutionInbox.test.tsx",
+    "frontend/src/sections/InspectionExecutionInbox.tsx",
+    "frontend/src/services/api/inspectionExecutions.test.ts",
+    "frontend/src/services/api/inspectionExecutions.ts",
+    "governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+    "governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_ARTIFACTS.sha256",
+    "health_readiness_inventory.csv",
+    "health_readiness_inventory.generated.json",
+    "migrations/MANIFEST.txt",
+    "migrations/schema_probe_contract.env",
+    "migrations/v291_field_task_execution_delivery.sql",
+    "platform_catalog.generated.json",
+    "release/FILE_CHECKSUMS.sha256",
+    "release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json",
+    "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+    "release/SBOM_MINIMAL.json",
+    "route_inventory.csv",
+    "route_inventory.generated.json",
+    "route_mount_inventory.csv",
+    "route_mount_inventory.generated.json",
+    "route_residual_classification.csv",
+    "route_residual_classification.generated.json",
+    "runtime-contracts/generated/runtime_contracts.json",
+    "runtime-verification/generated/compose_runtime_targets.json",
+    "runtime-verification/generated/runtime_evidence_ledger.json",
+    "runtime-verification/generated/runtime_probe_plan.json",
+    "runtime_capability_manifest.generated.json",
+    "sahool-brain/decisions/ledger.md",
+    "sahool-brain/gaps/registry.md",
+    "sahool-brain/hot.md",
+    "sahool-brain/log.md",
+    "scripts/ci/cross_service_path_contract_guard.py",
+    "scripts/lab/README.md",
+    "scripts_v9/run_migrations.sql",
+    "service_inventory.csv",
+    "service_inventory.generated.json",
+    "services/decision-service/field_inspection_evidence.py",
+    "services/decision-service/persistence.py",
+    "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
+    "services/field-management-service/fm_execution_routes.py",
+    "services/field-management-service/fm_execution_task_store.py",
+    "services/field-management-service/fm_execution_tasks.py",
+    "services/field-management-service/main.py",
+    "services/field-management-service/tests/test_execution_routes_unit.py",
+    "services/field-management-service/tests/test_execution_tasks_unit.py",
+    "services/sahool-platform/api/inspection_execution_adapter.py",
+    "services/sahool-platform/api/phase10_continuous_learning.py",
+    "services/sahool-platform/api/phase11_federated_agents.py",
+    "services/sahool-platform/api/routers/inspection_executions.py",
+    "services/sahool-platform/tests/test_inspection_execution_owner_client.py",
+    "services/sahool-platform/tests/test_inspection_execution_routes.py",
+    "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+    "shared/field_inspection_execution.py",
+    "tests/phase6/test_phase6_static_contracts.py",
+    "tests_v9/test_cross_service_path_contract_guard.py",
+    "tests_v9/test_field_task_execution_delivery_live_pg.py",
+    "tests_v9/test_helm_network_policy_egress.py",
+    "tests_v9/test_platform_catalog_gate.py",
+    "tests_v9/test_pool_single_owner_audit.py",
+    "tests_v9/test_pool_single_owner_live_pg.py"
+  ],
+  "direct": [
+    "DEC-004",
+    "DEC-005",
+    "DEC-010",
+    "FM-001",
+    "FM-002",
+    "FM-003",
+    "FM-004",
+    "FM-008",
+    "GIS-001",
+    "GIS-003",
+    "INT-001",
+    "INT-002",
+    "IRR-001",
+    "IRR-002",
+    "IRR-003",
+    "IRR-004",
+    "IRR-005",
+    "IRR-006",
+    "IRR-007",
+    "IRR-008",
+    "IRR-009",
+    "IRR-010",
+    "OPS-001",
+    "OPS-002",
+    "OPS-003",
+    "OPS-004",
+    "OPS-005",
+    "OPS-006",
+    "OPS-007",
+    "PA-001",
+    "PA-003",
+    "SAT-009",
+    "SEC-001",
+    "SEC-002",
+    "SEC-003",
+    "SEC-004",
+    "SEC-006",
+    "SOIL-002"
+  ],
+  "transitive": [
+    "DEC-006",
+    "DEC-007",
+    "DEC-008",
+    "DEC-009",
+    "FM-006",
+    "GIS-002",
+    "GIS-004",
+    "INT-004",
+    "PA-002",
+    "PA-004",
+    "PA-005",
+    "SAT-006",
+    "SAT-007",
+    "SEC-007",
+    "SOIL-003",
+    "SOIL-004",
+    "SOIL-005"
+  ],
+  "affected": [
+    "DEC-004",
+    "DEC-005",
+    "DEC-006",
+    "DEC-007",
+    "DEC-008",
+    "DEC-009",
+    "DEC-010",
+    "FM-001",
+    "FM-002",
+    "FM-003",
+    "FM-004",
+    "FM-006",
+    "FM-008",
+    "GIS-001",
+    "GIS-002",
+    "GIS-003",
+    "GIS-004",
+    "INT-001",
+    "INT-002",
+    "INT-004",
+    "IRR-001",
+    "IRR-002",
+    "IRR-003",
+    "IRR-004",
+    "IRR-005",
+    "IRR-006",
+    "IRR-007",
+    "IRR-008",
+    "IRR-009",
+    "IRR-010",
+    "OPS-001",
+    "OPS-002",
+    "OPS-003",
+    "OPS-004",
+    "OPS-005",
+    "OPS-006",
+    "OPS-007",
+    "PA-001",
+    "PA-002",
+    "PA-003",
+    "PA-004",
+    "PA-005",
+    "SAT-006",
+    "SAT-007",
+    "SAT-009",
+    "SEC-001",
+    "SEC-002",
+    "SEC-003",
+    "SEC-004",
+    "SEC-006",
+    "SEC-007",
+    "SOIL-002",
+    "SOIL-003",
+    "SOIL-004",
+    "SOIL-005"
+  ],
+  "matched_paths": {
+    "DEC-004": [
+      "docs/runbooks/FIELD_INSPECTION_EXECUTION_DELIVERY.md",
+      "frontend/src/services/api/inspectionExecutions.test.ts",
+      "frontend/src/services/api/inspectionExecutions.ts",
+      "services/decision-service/field_inspection_evidence.py",
+      "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
+      "services/field-management-service/fm_execution_routes.py",
+      "services/field-management-service/fm_execution_task_store.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py",
+      "services/field-management-service/tests/test_execution_tasks_unit.py",
+      "services/sahool-platform/api/inspection_execution_adapter.py",
+      "services/sahool-platform/tests/test_inspection_execution_owner_client.py"
+    ],
+    "DEC-005": [
+      "shared/field_inspection_execution.py"
+    ],
+    "DEC-010": [
+      ".github/workflows/ci.yml",
+      "docs/architecture/db_ownership.yml",
+      "services/decision-service/persistence.py",
+      "services/sahool-platform/api/phase10_continuous_learning.py"
+    ],
+    "FM-001": [
+      "docs/architecture/tenant_guc_scope_baseline.json",
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "FM-002": [
+      "scripts_v9/run_migrations.sql",
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py",
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "FM-003": [
+      "docs/architecture/platform_extraction_map.json",
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "FM-004": [
+      "docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md",
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "FM-008": [
+      "docs/architecture/db_ownership.yml"
+    ],
+    "GIS-001": [
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "GIS-003": [
+      "capabilities/registry/capabilities.json"
+    ],
+    "INT-001": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "INT-002": [
+      "scripts/lab/README.md",
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-001": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-002": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-003": [
+      ".github/workflows/ci.yml",
+      "sahool-brain/gaps/registry.md",
+      "sahool-brain/hot.md",
+      "sahool-brain/log.md",
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-004": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-005": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-006": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-007": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-008": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-009": [
+      "sahool-brain/gaps/registry.md",
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "IRR-010": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "OPS-001": [
+      "migrations/v291_field_task_execution_delivery.sql",
+      "services/sahool-platform/tests/test_inspection_execution_routes.py",
+      "tests_v9/test_field_task_execution_delivery_live_pg.py"
+    ],
+    "OPS-002": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "OPS-003": [
+      "services/field-management-service/fm_execution_task_store.py",
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "OPS-004": [
+      ".github/workflows/ci.yml",
+      "docs/architecture/db_ownership.yml",
+      "docs/architecture/fake_connection_debt.json",
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "OPS-005": [
+      "services/sahool-platform/api/phase10_continuous_learning.py"
+    ],
+    "OPS-006": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "OPS-007": [
+      "services/sahool-platform/tests/test_inspection_execution_routes.py"
+    ],
+    "PA-001": [
+      "docs/architecture/platform_extraction_map.json"
+    ],
+    "PA-003": [
+      "docs/architecture/platform_python_module_baseline.json",
+      "tests_v9/test_platform_catalog_gate.py"
+    ],
+    "SAT-009": [
+      "docs/architecture/platform_extraction_map.json"
+    ],
+    "SEC-001": [
+      "docs/architecture/fake_connection_debt.json",
+      "scripts/lab/README.md",
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "SEC-002": [
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "SEC-003": [
+      "sahool-brain/hot.md"
+    ],
+    "SEC-004": [
+      "scripts_v9/run_migrations.sql"
+    ],
+    "SEC-006": [
+      "services/field-management-service/main.py",
+      "services/field-management-service/tests/test_execution_routes_unit.py"
+    ],
+    "SOIL-002": [
+      ".github/workflows/ci.yml",
+      "docs/architecture/db_ownership.yml",
+      "scripts_v9/run_migrations.sql"
+    ]
+  },
+  "matched_sources": {
+    "DEC-004": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:loader:services/sahool-platform/api/inspection_execution_adapter.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/sahool-platform/api/inspection_execution_adapter.py",
+      "mapping:other_evidence",
+      "mapping:routes",
+      "mapping:tests",
+      "mapping:web"
+    ],
+    "DEC-005": [
+      "mapping:other_evidence"
+    ],
+    "DEC-010": [
+      "mapping:backend",
+      "mapping:events",
+      "mapping:governance",
+      "mapping:other_evidence",
+      "registry:apis"
+    ],
+    "FM-001": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:other_evidence",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "FM-002": [
+      "mapping:backend",
+      "mapping:database",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "FM-003": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:other_evidence",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "FM-004": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:other_evidence",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "FM-008": [
+      "mapping:other_evidence"
+    ],
+    "GIS-001": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "GIS-003": [
+      "mapping:other_evidence"
+    ],
+    "INT-001": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "INT-002": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py",
+      "mapping:other_evidence"
+    ],
+    "IRR-001": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "IRR-002": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "IRR-003": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py",
+      "mapping:governance",
+      "registry:evidence"
+    ],
+    "IRR-004": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "IRR-005": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "IRR-006": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "IRR-007": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "IRR-008": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "IRR-009": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py",
+      "registry:evidence"
+    ],
+    "IRR-010": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "OPS-001": [
+      "mapping:database",
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py",
+      "mapping:tests"
+    ],
+    "OPS-002": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "OPS-003": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "OPS-004": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:governance",
+      "mapping:other_evidence",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "OPS-005": [
+      "registry:apis"
+    ],
+    "OPS-006": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "OPS-007": [
+      "mapping:dependency:import:services/sahool-platform/api/main.py",
+      "mapping:dependency:import:services/sahool-platform/core/authorization.py",
+      "mapping:dependency:import:services/sahool-platform/core/canonical_schemas.py"
+    ],
+    "PA-001": [
+      "mapping:other_evidence"
+    ],
+    "PA-003": [
+      "mapping:other_evidence",
+      "mapping:tests"
+    ],
+    "SAT-009": [
+      "mapping:other_evidence"
+    ],
+    "SEC-001": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:other_evidence",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "SEC-002": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "SEC-003": [
+      "registry:evidence"
+    ],
+    "SEC-004": [
+      "mapping:database"
+    ],
+    "SEC-006": [
+      "mapping:backend",
+      "mapping:dependency:import:services/field-management-service/fm_execution_routes.py",
+      "mapping:dependency:loader:services/field-management-service/main.py",
+      "mapping:dependency:source_read:services/field-management-service/main.py",
+      "mapping:routes",
+      "registry:apis",
+      "registry:evidence",
+      "registry:services"
+    ],
+    "SOIL-002": [
+      "mapping:database",
+      "mapping:governance",
+      "mapping:other_evidence"
+    ]
+  },
+  "governance_wide": false,
+  "dependent_tests": {
+    "services/decision-service/tests/test_ac1_agronomic_context.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_ac1_boundary_finiteness_timezone.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_context_source_binding.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_decision_evidence_read.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_decision_provenance_integrity.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_execution_outcome_receipt_gate.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_execution_plan_boundary_normalisation.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_execution_request_feed.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_execution_request_plan_binding.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py": [
+      "dependency:import:services/decision-service/field_inspection_evidence.py",
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_loop_tables_and_ws_guard.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_manual_irrigation_source_binding.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_migration_033_pg16.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_migration_034_pg16.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_migration_036_correlation_pg16.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_migration_037_force_rls_pg16.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_model_promotion_guardrail_direction.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_no_leakage_certification.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_outbox_backlog_live_pg.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_outbox_backlog_truthfulness.py": [
+      "dependency:import:services/decision-service/persistence.py",
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_outcome_reconcile_order_live_pg.py": [
+      "dependency:import:services/decision-service/persistence.py",
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_runtime_worker_tenants.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_s5_exec_01_decision_record_immutable.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_snapshot_id_validation.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_sod_single_operator_self_approval.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_tenant_binding_force_rls.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_w4_05_model_lifecycle_flag.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_10_dispatch_authorization.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_11_execution_request.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_12_execution_outcome.py": [
+      "dependency:import:services/decision-service/persistence.py",
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_13_learning_attribution.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_7_decision_review.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_8_review_queue.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx10_9_execution_plan.py": [
+      "dependency:import:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx11_1_calibration_dataset.py": [
+      "dependency:import:services/decision-service/persistence.py",
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx11_3_model_promotion_decision.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx11_4_model_activation_request.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx11_5_model_activation_approval.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "services/field-management-service/tests/test_execution_routes_unit.py": [
+      "dependency:import:services/field-management-service/fm_execution_routes.py",
+      "dependency:import:services/field-management-service/fm_execution_tasks.py",
+      "dependency:loader:services/field-management-service/main.py",
+      "dependency:source_read:services/field-management-service/main.py"
+    ],
+    "services/field-management-service/tests/test_execution_tasks_unit.py": [
+      "dependency:import:services/field-management-service/fm_execution_task_store.py",
+      "dependency:import:services/field-management-service/fm_execution_tasks.py",
+      "dependency:loader:services/sahool-platform/api/inspection_execution_adapter.py",
+      "dependency:source_read:services/sahool-platform/api/inspection_execution_adapter.py"
+    ],
+    "services/field-management-service/tests/test_field_management_pg_isolation_integration.py": [
+      "dependency:loader:services/field-management-service/main.py",
+      "dependency:source_read:services/field-management-service/main.py"
+    ],
+    "services/field-management-service/tests/test_field_management_service_contract.py": [
+      "dependency:loader:services/field-management-service/main.py",
+      "dependency:source_read:services/field-management-service/main.py"
+    ],
+    "services/field-management-service/tests/test_field_task_routes_unit.py": [
+      "dependency:loader:services/field-management-service/main.py",
+      "dependency:source_read:services/field-management-service/main.py"
+    ],
+    "services/field-management-service/tests/test_scouting_tasks_unit.py": [
+      "dependency:loader:services/field-management-service/main.py",
+      "dependency:source_read:services/field-management-service/main.py"
+    ],
+    "services/sahool-platform/tests/test_inspection_execution_owner_client.py": [
+      "dependency:loader:services/sahool-platform/api/inspection_execution_adapter.py",
+      "dependency:source_read:services/sahool-platform/api/inspection_execution_adapter.py"
+    ],
+    "services/sahool-platform/tests/test_inspection_execution_routes.py": [
+      "dependency:import:services/sahool-platform/api/routers/inspection_executions.py"
+    ],
+    "services/sahool-platform/tests/test_phase10_continuous_learning_api.py": [
+      "dependency:import:services/sahool-platform/api/phase10_continuous_learning.py"
+    ],
+    "services/sahool-platform/tests/test_phase10_offline_dataset_as_of.py": [
+      "dependency:import:services/sahool-platform/api/phase10_continuous_learning.py"
+    ],
+    "services/sahool-platform/tests/test_phase10_point_in_time_as_of_422.py": [
+      "dependency:import:services/sahool-platform/api/phase10_continuous_learning.py"
+    ],
+    "services/sahool-platform/tests/test_phase11_federated_agents_api.py": [
+      "dependency:import:services/sahool-platform/api/phase11_federated_agents.py"
+    ],
+    "services/sahool-platform/tests/test_phase11_runtime_api.py": [
+      "dependency:import:services/sahool-platform/api/phase11_federated_agents.py"
+    ],
+    "services/sahool-platform/tests/test_water_decision_bridge.py": [
+      "dependency:loader:services/decision-service/persistence.py",
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "tests_v9/test_api_versioning_policy_guard.py": [
+      "dependency:source_read:services/sahool-platform/api/phase10_continuous_learning.py",
+      "dependency:source_read:services/sahool-platform/api/phase11_federated_agents.py"
+    ],
+    "tests_v9/test_crop_twin_verified_learning_c2.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "tests_v9/test_decision_correlation_projection.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "tests_v9/test_field_task_execution_delivery_live_pg.py": [
+      "dependency:import:services/field-management-service/fm_execution_task_store.py",
+      "dependency:import:services/field-management-service/fm_execution_tasks.py"
+    ],
+    "tests_v9/test_field_task_inspection_live_pg.py": [
+      "dependency:loader:services/field-management-service/main.py",
+      "dependency:source_read:services/field-management-service/main.py"
+    ],
+    "tests_v9/test_field_task_scouting_anomaly_live_pg.py": [
+      "dependency:source_read:services/field-management-service/main.py"
+    ],
+    "tests_v9/test_irrx1_authoritative_provenance_lock.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "tests_v9/test_w1_01_soil_raster_tenant_contract.py": [
+      "dependency:loader:scripts/ci/cross_service_path_contract_guard.py",
+      "dependency:source_read:scripts/ci/cross_service_path_contract_guard.py"
+    ],
+    "tests_v9/test_wx10_10_dispatch_authorization_contract.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "tests_v9/test_wx10_11_execution_request_contract.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ],
+    "tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py": [
+      "dependency:source_read:services/decision-service/persistence.py"
+    ]
+  },
+  "runtime_claims": false,
+  "production_certification": false,
+  "git": {
+    "base": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+    "head": "ff379915ba973fae2bc5f66d46adfab507b52729",
+    "merge_base": "db79cf6d33fb8adb900f049d742de229f8616d4b"
+  },
+  "declaration": {
+    "mode": "missing",
+    "declared": [],
+    "missing_direct": [
+      "DEC-004",
+      "DEC-005",
+      "DEC-010",
+      "FM-001",
+      "FM-002",
+      "FM-003",
+      "FM-004",
+      "FM-008",
+      "GIS-001",
+      "GIS-003",
+      "INT-001",
+      "INT-002",
+      "IRR-001",
+      "IRR-002",
+      "IRR-003",
+      "IRR-004",
+      "IRR-005",
+      "IRR-006",
+      "IRR-007",
+      "IRR-008",
+      "IRR-009",
+      "IRR-010",
+      "OPS-001",
+      "OPS-002",
+      "OPS-003",
+      "OPS-004",
+      "OPS-005",
+      "OPS-006",
+      "OPS-007",
+      "PA-001",
+      "PA-003",
+      "SAT-009",
+      "SEC-001",
+      "SEC-002",
+      "SEC-003",
+      "SEC-004",
+      "SEC-006",
+      "SOIL-002"
+    ],
+    "unknown_capabilities": [],
+    "unaffected_declared": [],
+    "errors": [],
+    "required": true
+  },
+  "decision": "BLOCK"
+}

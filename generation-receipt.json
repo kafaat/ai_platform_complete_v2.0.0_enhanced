@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "bash",
+    "scripts/ci/regenerate_all_generated.sh"
+  ],
+  "cwd": "/home/runner/work/_temp/inspection-source",
+  "started_at_utc": "2026-11-27T23:37:39.455942+00:00",
+  "status": "PASS",
+  "returncode": 0,
+  "finished_at_utc": "2026-11-27T23:58:00.758146+00:00",
+  "log_sha256": "c9805ffc1f1772dcd6ef199653762415bb6c94f912cd63265cd65c3a6471b27a"
+}

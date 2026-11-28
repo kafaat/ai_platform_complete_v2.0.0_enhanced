@@ -1,0 +1,30 @@
+{
+  "status": "APPLIED_PENDING_GATES",
+  "gap_open": "FIELD-INSPECTION-FINAL-SOURCE-REQUALIFICATION-01",
+  "files": {
+    "sahool-brain/hot.md": {
+      "mode": "prepend",
+      "before_sha256": "7d0c259169c4602fbc419c1efd9201e3d361dd0f33df1bd4457dbcfb062d6a0e",
+      "after_sha256": "d65ef76cb02ce69f606a3094bdbf4855604acef579d49c95a401791a0d765b08",
+      "added_bytes": 1049
+    },
+    "sahool-brain/log.md": {
+      "mode": "append",
+      "before_sha256": "0171e1f6c3e9f7042b5273989fb4ee6d18e3cf1960f293edfc2cddb26a323f9e",
+      "after_sha256": "12ae07e3933eb8900e053ddcc4e71c44f9ea006c16332d4586bfb4b55dae9c23",
+      "added_bytes": 5641
+    },
+    "sahool-brain/decisions/ledger.md": {
+      "mode": "append",
+      "before_sha256": "568c5c48399fdad97628124760759aa133650bf1da68ec2d7dd784bf5974564e",
+      "after_sha256": "2a00222ce156d8e3529fc86748768998ba87ad3438e92263d5d6a22f1ebfe444",
+      "added_bytes": 2141
+    },
+    "sahool-brain/gaps/registry.md": {
+      "mode": "append",
+      "before_sha256": "fba8b6eda879661885d556bae45a57a721c343a81a0d7522cd18dc1c6af2151c",
+      "after_sha256": "f2f7169b13ffd40e03db387a6d2b0dadb3ef954f618ccddeb0f4d214f22f6447",
+      "added_bytes": 2795
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "path": "scripts/ci/cross_service_path_contract_guard.py",
+      "sha256": "2d3ebde9dedf02c34dfe2d697811acf5294156794b7577a43902fd0e6f3f4d78",
+      "original_sha256": "2d3ebde9dedf02c34dfe2d697811acf5294156794b7577a43902fd0e6f3f4d78",
+      "original_reference_tree": "6a4e52a40ede91b469572feb687712532e21b0a7",
+      "reviewed_correction_applied": false,
+      "status": "PASS"
+    },
+    {
+      "path": "tests_v9/test_cross_service_path_contract_guard.py",
+      "sha256": "833d63ba80199e900932f72e302b7a21da2da3958a2c71f48fea39292ba1aebd",
+      "original_sha256": "6b109c1290ad453964f847f698cca5ccc234fb531d225a41d47c526edacca31b",
+      "original_reference_tree": "6a4e52a40ede91b469572feb687712532e21b0a7",
+      "reviewed_correction_applied": true,
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/canonical_well_capability.py",
+      "sha256": "44839f654439e33a783d4a46612505f2c51a3b9b4e90295e38c9bcef577eccc8",
+      "reference_commit": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/api/routers/irrigation_mpc.py",
+      "sha256": "3b255a49b6d9f4a447648db341f35d5f97a021238f2dadceafbe51a25edb9b34",
+      "reference_commit": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "status": "PASS"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+      "sha256": "230bb0ba0cda7ec5bf26798a324d618a65ac5a323aec1783095436436aabc4e7",
+      "reference_commit": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "status": "PASS"
+    },
+    {
+      "path": "tests_v9/test_lexicographic_mpc_bridge.py",
+      "sha256": "a700e321e1467ecedfc5c1da65e67d47e4560d562ca5d8a31c3e20c1948289cf",
+      "reference_commit": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+      "status": "PASS"
+    }
+  ],
+  "control_sha256": {
+    "scripts/ci/resolve_merge_conflicts.py": "882bc90f6e56d543605940d6a26e27c4261e59f0fdbde4426264b903fdf8bd0f",
+    "docs/architecture/generated_write_targets.json": "f95efb212340032a0379bf22a7120ebe30019a8dda0474330f8e18e8eb5d9a1d",
+    "docs/architecture/brain_hot_budget.json": "80d17f1ac6d2b86fa91fe797c9f0cdb1ffacc24281f4f389eb2c91a5a3988388",
+    "scripts/ci/regenerate_all_generated.sh": "5eb58fd766802efa3ea06c3d037c5023884fd816f93f51072a9b237aef809976",
+    "scripts/ci/verify_all_generated.py": "a1c877b5ed36b8b7e778a44200a6f7acdb4a098f1af3ed49811e1f9c27c81906",
+    "scripts/ci/preflight.sh": "73e0c66a77cc8d1142c7912beef3c87a795b442cf9dd3da4d12ed32207d6ee07",
+    "scripts/ci/pr_capability_impact_gate.py": "a0314a835b0a5d50ac6ecab6618b431caed10c3284d4fbad7a1a5388ed685c53",
+    "scripts/ci/pr_finding_gap_id_guard.py": "72fb0cfaf2506e882a71e79d0bd6984c8c39c540b59ca84d0419d7bf44e5f0d8",
+    "scripts/ci/integration_runtime_governance_closure.py": "24660a350650c57eaf52ea7391e31f21cc326c958b7d6f78fc448542151b4497",
+    "scripts/release/platform_route_release_binding.py": "5482afa7de18188eecab0a9eca9fbdb2f1e4221d3fc4aa426293561e71443e1d",
+    "scripts/ci/route_mount_contract_guard.py": "b0012760b987735fb6d6f9b0fc68e4dac8acaf6acc7c6b0d9b03e7071165be32"
+  },
+  "historical_browser_tree": "a94d33e84005ade34c2616396bd877c9786fb269",
+  "final_browser_measured": false,
+  "production_accepted": false
+}

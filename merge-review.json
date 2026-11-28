@@ -1,0 +1,227 @@
+{
+  "status": "PASS",
+  "main": "db79cf6d33fb8adb900f049d742de229f8616d4b",
+  "upstream_paths": [
+    "SERVICE_REGISTRY.md",
+    "docs/capability-registry/generated/impact/impact_index_summary.json",
+    "docs/capability-registry/generated/management/management_manifest.json",
+    "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "docs/capability-registry/generated/mapping/mapping_manifest.json",
+    "execution-audit/generated/.audit.sha256",
+    "execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+    "execution-audit/generated/execution_audit_summary.json",
+    "execution-audit/generated/execution_dependency_audit.json",
+    "governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+    "release/FILE_CHECKSUMS.sha256",
+    "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+    "release/SBOM_MINIMAL.json",
+    "service_inventory.csv",
+    "service_inventory.generated.json",
+    "services/sahool-platform/api/canonical_well_capability.py",
+    "services/sahool-platform/api/routers/irrigation_mpc.py",
+    "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+    "tests_v9/test_lexicographic_mpc_bridge.py"
+  ],
+  "original_merge_returncode": 1,
+  "resolved_generated_seeds": {
+    "SERVICE_REGISTRY.md": {
+      "stages": {
+        "1": "a1699d78ed7d216a323c86684028ff38a2e19174",
+        "2": "57ceec2f44a08757f47a48c856b3ad9be8ba0813",
+        "3": "585a230e40565c4695a16e9e3ea578a49ae699da"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "60be1f0e73594ffb555fea52749feb3ec422d44a25edf003608aec2f2ef6f146"
+    },
+    "docs/capability-registry/generated/impact/impact_index_summary.json": {
+      "stages": {
+        "1": "afc2c614f1ce2ab13e100a36e1c592196d91ba7f",
+        "2": "d74554f61312fe64f86d01739a8940c4e756b982",
+        "3": "e8e5f20c31170eddfe7891328c3b4833c79c035a"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "77ddc45bc464c35236ccf65f78dfacba668fa62bef4304fe16be66f18976da7a"
+    },
+    "docs/capability-registry/generated/management/management_manifest.json": {
+      "stages": {
+        "1": "f82435a48fe55827c89c869a45602f1a29dd220a",
+        "2": "7685669f7ee9ea392be9f5cddbd3d003573e3eb3",
+        "3": "09396ad4a129d3ba6bd63a6bfa68a0ea4bcbb36b"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "a152e9dd7d50387fae38ac0f7a238b98c8236b524802c9e571c6bc1921b4495c"
+    },
+    "docs/capability-registry/generated/mapping/mapping_manifest.json": {
+      "stages": {
+        "1": "85962be2260f7de7ade530abf1949c0bf52d79fc",
+        "2": "c5bac2b1624349ba36cb3c1bdcb748f6db3b0ab3",
+        "3": "9a44b71eb191d47813faf43ff9c1abf2e0962b13"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "973ad9669db59c9c20935d532fb0cc540e2ba5ddfa932cf25f5fde684c4df1db"
+    },
+    "execution-audit/generated/.audit.sha256": {
+      "stages": {
+        "1": "634f1b5e6815faf6667089f44a5c3306fe612838",
+        "2": "0f3d102524cc6b7f3fb69c0ba5382f623d9156d9",
+        "3": "4a0ab945e10518877067fbe3ff5de86201713b35"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "7d4850afec66abd60ceab9495f44c304032e720822bc45fe3b4bd0e95af8a4ae"
+    },
+    "execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md": {
+      "stages": {
+        "1": "44824a3927dba5fec4ad1eabb74de28882c6000c",
+        "2": "964c7230a0fefee4f34428ce160e08ffc9f6fc92",
+        "3": "28f62d99aadcc9db0a5ea5a2d8a17cbbfbb94695"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "6dc29237b6b1945c385f0b80b2b101f0284b58120b45c53e229c90825b7ec92c"
+    },
+    "execution-audit/generated/execution_audit_summary.json": {
+      "stages": {
+        "1": "8d7f91f24047e32bf5a2ed893875ef502312a02e",
+        "2": "7492746c3c53ffacc91ed0d403598d10f2a3a293",
+        "3": "138e9f469714729f0243a7cc20c9c67bb1707987"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "ef659e74f6b2f91fe0a719ccdee8b63ef2d3d4a3e055f2cd2765c114da472090"
+    },
+    "execution-audit/generated/execution_dependency_audit.json": {
+      "stages": {
+        "1": "33e6d74fd92d2f8d57c10a37861379d540cb826c",
+        "2": "c7f0074879cfd5a62bbeee1336a0bba4e0ceaab6",
+        "3": "53814b8cc380baf1989cb72c03b932e047d5088f"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "8b33aba37e54813680e863d894f9f214861627eebd0ad84ab6d54e0d1f5f085f"
+    },
+    "governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256": {
+      "stages": {
+        "1": "9b54e65d33ec3a9cfb7b4b327a24f636a8571957",
+        "2": "4d8e515e38368c297233e0523b18b32c7b4d3e03",
+        "3": "621f1d4a70b38fd2b55083879fab8804befb651e"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "b9e4e7be13edb6022aa535905e8a740f8bb0ba0b680b9eb3579fe39f401497aa"
+    },
+    "release/FILE_CHECKSUMS.sha256": {
+      "stages": {
+        "1": "9749fc5f550fff4356110c9bdf839d9f0a814b0a",
+        "2": "2d0ddbff97e876b3a60999b0d94fa45947038a9c",
+        "3": "a1d32a6d14224338b226a218acc204bc6fbc6502"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "aebbdf8326ffd0f798d1ca814f7498967f9fa87762e6139c4970fa91cfb937c1"
+    },
+    "release/SAHOOL_RELEASE_MANIFEST_20260626.json": {
+      "stages": {
+        "1": "fa4e689faf67c427e524e1da1e80cb93c1939059",
+        "2": "be3f3926a7be6838aa3989ba519743694978d897",
+        "3": "3b267d4d33ba3d4a2596d8447833d5e8de22507b"
+      },
+      "selected": "exact db79 bytes; seed only",
+      "sha256": "21e0319050317d733db3a9328a8b8da012f2d9f913d7298d3f03818e49508950"
+    }
+  },
+  "nonoverlap_unchanged_paths": [
+    ".env.example",
+    ".github/workflows/ci.yml",
+    "api_versioning_inventory.csv",
+    "api_versioning_inventory.generated.json",
+    "architecture/generated/ARCHITECTURE_GRAPH_REPORT.md",
+    "architecture/generated/architecture_edges.csv",
+    "architecture/generated/architecture_graph.json",
+    "architecture/generated/architecture_nodes.csv",
+    "capabilities/generated/capability_link_candidates.csv",
+    "capabilities/registry/capabilities.json",
+    "capability_inventory.generated.csv",
+    "certification/evidence/field_inspection_execution_20261127.json",
+    "component_inventory.generated.csv",
+    "database-audit/generated/DATABASE_CONTRACT_REPORT.md",
+    "database-audit/generated/database_contract_graph.json",
+    "database-audit/generated/database_contract_summary.json",
+    "database-audit/generated/database_tables.csv",
+    "decision-lineage/generated/DECISION_LINEAGE_REPORT.md",
+    "decision-lineage/generated/decision_lineage_edges.csv",
+    "decision-lineage/generated/decision_lineage_graph.json",
+    "decision-lineage/generated/decision_lineage_nodes.csv",
+    "dependency_graph.generated.json",
+    "docker-compose.v9.yml",
+    "docs/architecture/PLATFORM_CATALOG.generated.md",
+    "docs/architecture/db_ownership.yml",
+    "docs/architecture/fake_connection_debt.json",
+    "docs/architecture/platform_extraction_map.json",
+    "docs/architecture/platform_python_module_baseline.json",
+    "docs/architecture/tenant_guc_scope_baseline.json",
+    "docs/capability-registry/generated/evidence/capability_evidence_matrix.csv",
+    "docs/capability-registry/generated/evidence/capability_evidence_matrix.json",
+    "docs/capability-registry/generated/evidence/evidence_manifest.json",
+    "docs/capability-registry/generated/management/capability_management_matrix.json",
+    "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    "docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+    "docs/capability-registry/generated/mapping/capability_mapping.csv",
+    "docs/capability-registry/generated/mapping/unmapped_artifacts.json",
+    "docs/runbooks/FIELD_INSPECTION_EXECUTION_DELIVERY.md",
+    "event-audit/generated/EVENT_CONTRACT_REPORT.md",
+    "event-audit/generated/event_contract_graph.json",
+    "event-audit/generated/event_contract_summary.json",
+    "execution-audit/generated/dead_code_candidates.csv",
+    "execution-audit/generated/duplicate_definitions.json",
+    "execution-audit/generated/route_conflicts.json",
+    "execution-audit/generated/route_handlers.csv",
+    "execution-audit/generated/router_reachability.json",
+    "frontend/src/lib/platformCatalog.generated.ts",
+    "frontend/src/sections/FieldWorkspaceTasksPanel.tsx",
+    "frontend/src/sections/InspectionExecutionInbox.test.tsx",
+    "frontend/src/sections/InspectionExecutionInbox.tsx",
+    "frontend/src/services/api/inspectionExecutions.test.ts",
+    "frontend/src/services/api/inspectionExecutions.ts",
+    "governance/generated/STATIC_GOVERNANCE_CLOSURE.json",
+    "governance/generated/STATIC_GOVERNANCE_CLOSURE.md",
+    "governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_ARTIFACTS.sha256",
+    "governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_CLOSURE.json",
+    "governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_CLOSURE.md",
+    "health_readiness_inventory.csv",
+    "health_readiness_inventory.generated.json",
+    "migrations/MANIFEST.txt",
+    "migrations/v291_field_task_execution_delivery.sql",
+    "platform_catalog.generated.json",
+    "route_inventory.csv",
+    "route_inventory.generated.json",
+    "route_residual_classification.csv",
+    "route_residual_classification.generated.json",
+    "runtime-contracts/generated/runtime_contracts.json",
+    "runtime-verification/generated/compose_runtime_targets.json",
+    "runtime-verification/generated/runtime_evidence_ledger.json",
+    "runtime-verification/generated/runtime_probe_plan.json",
+    "runtime_capability_manifest.generated.json",
+    "sahool-brain/decisions/ledger.md",
+    "sahool-brain/gaps/registry.md",
+    "sahool-brain/hot.md",
+    "sahool-brain/log.md",
+    "scripts/ci/cross_service_path_contract_guard.py",
+    "services/decision-service/field_inspection_evidence.py",
+    "services/decision-service/persistence.py",
+    "services/decision-service/tests/test_field_inspection_outcome_owner_gate.py",
+    "services/field-management-service/fm_execution_routes.py",
+    "services/field-management-service/fm_execution_task_store.py",
+    "services/field-management-service/fm_execution_tasks.py",
+    "services/field-management-service/main.py",
+    "services/field-management-service/tests/test_execution_routes_unit.py",
+    "services/field-management-service/tests/test_execution_tasks_unit.py",
+    "services/sahool-platform/api/inspection_execution_adapter.py",
+    "services/sahool-platform/api/phase10_continuous_learning.py",
+    "services/sahool-platform/api/phase11_federated_agents.py",
+    "services/sahool-platform/api/routers/inspection_executions.py",
+    "services/sahool-platform/tests/test_inspection_execution_owner_client.py",
+    "services/sahool-platform/tests/test_inspection_execution_routes.py",
+    "services/sahool-platform/tests/test_w4_09_retired_dead_routes.py",
+    "shared/field_inspection_execution.py",
+    "tests/phase6/test_phase6_static_contracts.py",
+    "tests_v9/test_cross_service_path_contract_guard.py",
+    "tests_v9/test_field_task_execution_delivery_live_pg.py"
+  ],
+  "generation_completed": false,
+  "production_accepted": false
+}
