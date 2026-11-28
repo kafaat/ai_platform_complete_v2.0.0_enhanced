@@ -1,0 +1,94 @@
+name: Publish measured Farmland 1665 draft artifacts
+on:
+  push:
+    branches: [ci/publish-farmland-1665-379badce]
+permissions:
+  contents: write
+  actions: read
+env:
+  SEED: 970f52780be9804ebcfb3d1ed4516588afb8460f
+  CANDIDATE: 379badce42c3efa6320305659f9a5611e3818773
+  TREE: 6c6d93d03b2606685911d43fb8797d3f7c906c60
+  TARGET: refs/heads/codex/farmland-inspection-equipment-evidence-20261128
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 970f52780be9804ebcfb3d1ed4516588afb8460f
+          fetch-depth: 0
+      - name: Verify measured artifact and advance unchanged draft only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SEED"
+          test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$SEED"
+          gh api repos/"$GITHUB_REPOSITORY"/actions/runs/46148652418 --jq '.conclusion + " " + .head_sha' | grep -Fx 'success bb99cb094f43e516417d04bfe29bc3221edb83a3'
+          gh api repos/"$GITHUB_REPOSITORY"/actions/artifacts/15265402075/zip > "$RUNNER_TEMP/measured.zip"
+          echo "03ec84b34d80bd4704e403d23acc73588019b80d68c7ddc6a7e23a7d71244c87  $RUNNER_TEMP/measured.zip" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/measured"
+          unzip -q "$RUNNER_TEMP/measured.zip" -d "$RUNNER_TEMP/measured"
+          git bundle verify "$RUNNER_TEMP/measured/carrier.bundle"
+          git fetch "$RUNNER_TEMP/measured/carrier.bundle" refs/heads/measured
+          test "$(git rev-parse FETCH_HEAD)" = "$CANDIDATE"
+          test "$(git rev-parse "$CANDIDATE^{tree}")" = "$TREE"
+          test "$(git show -s --format=%P "$CANDIDATE")" = "$SEED"
+          git rev-parse "$CANDIDATE" "$CANDIDATE^{tree}" | diff - "$RUNNER_TEMP/measured/identity"
+          git diff --binary "$SEED" "$CANDIDATE" | diff - "$RUNNER_TEMP/measured/generated.patch"
+          python - <<'PY'
+          import ast, os, subprocess
+          seed, candidate = os.environ["SEED"], os.environ["CANDIDATE"]
+          def git(*args): return subprocess.check_output(["git", *args])
+          paths = git("diff", "--name-only", seed, candidate).decode().splitlines()
+          fixed = set("""SERVICE_REGISTRY.md
+          api_versioning_inventory.csv
+          api_versioning_inventory.generated.json
+          capabilities/generated/capability_link_candidates.csv
+          capabilities/generated/capability_traceability.csv
+          capabilities/registry/capabilities.json
+          database-audit/generated/DATABASE_CONTRACT_REPORT.md
+          database-audit/generated/database_contract_graph.json
+          database-audit/generated/database_contract_summary.json
+          decision-lineage/generated/DECISION_LINEAGE_REPORT.md
+          decision-lineage/generated/decision_lineage_graph.json
+          decision-lineage/generated/decision_lineage_nodes.csv
+          docs/capability-registry/generated/impact/impact_index_summary.json
+          docs/capability-registry/generated/management/management_manifest.json
+          docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md
+          docs/capability-registry/generated/mapping/capability_mapping.json
+          docs/capability-registry/generated/mapping/mapping_manifest.json
+          docs/capability-registry/generated/mapping/unmapped_artifacts.json
+          execution-audit/generated/.audit.sha256
+          execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md
+          execution-audit/generated/execution_audit_summary.json
+          execution-audit/generated/execution_dependency_audit.json
+          execution-audit/generated/route_conflicts.json
+          execution-audit/generated/route_handlers.csv
+          governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256
+          governance/path2-generated/INTEGRATION_RUNTIME_GOVERNANCE_ARTIFACTS.sha256
+          migrations/schema_probe_contract.env
+          release/FILE_CHECKSUMS.sha256
+          release/SAHOOL_RELEASE_MANIFEST_20260626.json
+          release/SBOM_MINIMAL.json
+          route_inventory.csv
+          route_inventory.generated.json
+          scripts_v9/run_migrations.sql
+          service_inventory.csv
+          service_inventory.generated.json
+          services/field-management-service/fm_task_inspection.py
+          services/field-management-service/tests/test_field_task_routes_unit.py
+          tests_v9/test_field_task_inspection_live_pg.py""".split())
+          assert set(paths) == fixed, (set(paths)-fixed, fixed-set(paths))
+          for path in paths:
+              if path.endswith(".py"):
+                  assert ast.dump(ast.parse(git("show", f"{seed}:{path}"))) == ast.dump(ast.parse(git("show", f"{candidate}:{path}"))), path
+          print("Exact 38-path scope and Python AST equivalence verified")
+          PY
+          git diff --check "$SEED" "$CANDIDATE" -- . ':(exclude)capabilities/generated/capability_traceability.csv'
+          git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --check "$SEED" "$CANDIDATE" -- capabilities/generated/capability_traceability.csv
+          test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$SEED"
+          git push origin "$CANDIDATE:$TARGET"
+          test "$(git ls-remote origin "$TARGET" | cut -f1)" = "$CANDIDATE"
