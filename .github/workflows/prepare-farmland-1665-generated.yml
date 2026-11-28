@@ -1,0 +1,108 @@
+name: Prepare Farmland 1665 generated artifacts (read-only)
+on:
+  push:
+    branches: [ci/prepare-farmland-1665-970f5278]
+permissions:
+  contents: read
+env:
+  SEED: 970f52780be9804ebcfb3d1ed4516588afb8460f
+jobs:
+  regenerate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 970f52780be9804ebcfb3d1ed4516588afb8460f
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Derive migration artifacts, format and run official regeneration
+        env:
+          PYTHONUNBUFFERED: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SEED"
+          git rev-parse 'HEAD^{tree}'
+          git switch -c measured
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python -m pip install -c constraints-ci-tools.txt ruff
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+          python - <<'PY'
+          import pathlib, re, runpy
+          p = pathlib.Path
+          manifest = [s.strip() for s in p("migrations/MANIFEST.txt").read_text().splitlines() if s.strip() and not s.lstrip().startswith("#")]
+          runner = p("scripts_v9/run_migrations.sql")
+          old = runner.read_text()
+          entries = re.findall(r"^\\i migrations/(\S+)$", old, re.M)
+          added = [s for s in manifest if s not in entries]
+          assert added == ["v292_inspection_equipment_evidence.sql"], added
+          assert [s for s in manifest if s not in added] == entries
+          # Preserve existing whitespace and header; reconstruct the missing pair from the manifest
+          # and derive every echo ordinal from its authoritative position, not a hand-entered count.
+          insertion = manifest[manifest.index(added[0]) + 1]
+          anchor = next(x for x in old.splitlines() if x.startswith("\\echo ") and x.endswith(insertion + " ═══'"))
+          assert old.count(anchor) == 1
+          added_pair = "\\echo '═══ 0. " + added[0] + " ═══'\n\\i migrations/" + added[0] + "\n"
+          candidate = old.replace(anchor, added_pair + anchor, 1)
+          candidate = re.sub(r"(?m)^\\echo '═══ \d+\. (\S+) ═══'$", lambda m: "\\echo '═══ " + str(manifest.index(m[1]) + 1) + ". " + m[1] + " ═══'", candidate)
+          assert re.findall(r"^\\i migrations/(\S+)$", candidate, re.M) == manifest
+          assert [(int(i), name) for i, name in re.findall(r"(?m)^\\echo '═══ (\d+)\. (\S+) ═══'$", candidate)] == list(enumerate(manifest, 1))
+          runner.write_text(candidate)
+          extract = runpy.run_path("tests_v9/test_apply_in_compose_fail_closed.py")["_extracted"]
+          sha, tables, columns = extract(p("migrations"))
+          assert tables > 0 and columns > 0
+          contract = p("migrations/schema_probe_contract.env")
+          header = [s for s in contract.read_text().splitlines() if s.startswith("#")]
+          contract.write_text("\n".join(header + [f"MANIFEST_SHA256={sha}", f"MIN_TABLES={tables}", f"MIN_COLUMNS={columns}"]) + "\n")
+          print(f"Manifest {sha}: {len(manifest)} migrations, {tables} tables, {columns} columns")
+          PY
+          python - <<'PY'
+          import ast, pathlib, subprocess, os
+          files = [
+              "services/field-management-service/fm_task_inspection.py",
+              "services/field-management-service/tests/test_field_task_routes_unit.py",
+              "tests_v9/test_field_task_inspection_live_pg.py",
+              "tests_v9/test_apply_in_compose_live_pg.py",
+          ]
+          before = {f: ast.dump(ast.parse(pathlib.Path(f).read_text()), include_attributes=False) for f in files}
+          subprocess.run(["ruff", "format", *files], check=True)
+          for f in files:
+              assert ast.dump(ast.parse(pathlib.Path(f).read_text()), include_attributes=False) == before[f], f
+          PY
+          git add -u
+          python -m pytest -q -o addopts= -p no:cacheprovider tests_v9/test_apply_in_compose_fail_closed.py::test_the_schema_probe_contract_matches_the_manifest tests_v9/test_migration_runners_in_sync_20260705.py::test_every_manifest_migration_is_in_run_migrations_sql tests_v9/test_mobile_backend_contract.py::test_no_dart_file_is_lexically_unreadable
+          python scripts/migrations/validate_migration_manifest.py
+          ruff check .
+          ruff format --check .
+          python scripts/ci/capability_traceability_report.py
+          git add -u
+          bash scripts/ci/regenerate_all_generated.sh
+          git add -u
+          python scripts/ci/capability_traceability_report.py
+          if ! git diff --quiet -- capabilities/generated; then
+            git add -- capabilities/generated
+            bash scripts/ci/regenerate_all_generated.sh
+          fi
+          python -m pytest -q -o addopts= -p no:cacheprovider tests/architecture/test_capability_traceability.py
+          test -z "$(git ls-files --others --exclude-standard)"
+          git add -u
+          git diff --cached --check
+          git diff --cached --exit-code -- .github/workflows services shared tests tests_v9 mobile frontend/src frontend/e2e migrations ':(exclude)services/field-management-service/fm_task_inspection.py' ':(exclude)services/field-management-service/tests/test_field_task_routes_unit.py' ':(exclude)tests_v9/test_field_task_inspection_live_pg.py' ':(exclude)tests_v9/test_apply_in_compose_live_pg.py' ':(exclude)migrations/schema_probe_contract.env'
+          git diff --cached --stat
+          git diff --cached --quiet && { echo "No generated changes"; exit 1; }
+          git commit -m "Prepare verified Farmland 1665 generated artifacts"
+          mkdir "$RUNNER_TEMP/verified"
+          git bundle create "$RUNNER_TEMP/verified/carrier.bundle" refs/heads/measured "^$SEED"
+          git rev-parse HEAD 'HEAD^{tree}' > "$RUNNER_TEMP/verified/identity"
+          git diff --binary "$SEED" HEAD > "$RUNNER_TEMP/verified/generated.patch"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: verified-farmland-1665
+          path: ${{ runner.temp }}/verified/
+          if-no-files-found: error
+          retention-days: 7
