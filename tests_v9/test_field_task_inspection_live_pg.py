@@ -2254,5 +2254,8 @@ def test_equipment_declaration_survives_review_and_conflicting_replay():
                 await live.admin.execute(statement, "eqp_pump_b", task)
             assert blocked.value.sqlstate == "55000"
             assert await live.state(task, "inspector") == saved
+            stored = await live.state(task, "reviewer")
+            assert stored["approved_evidence"]["equipment_id"] == "eqp_pump_a"
+            assert stored["approved_evidence"]["digest"] == evidence["digest"]
 
     run(target())
