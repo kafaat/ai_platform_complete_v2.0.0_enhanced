@@ -24,6 +24,8 @@ PostgreSQL integration gate, not here.
 
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
@@ -392,42 +394,91 @@ async def compensate_dispatch_failure(
     execution_port: ExecutionRequestPort,
     reason: str,
 ) -> None:
-    """Forward compensation for an actuator failure after commit — no rollback."""
+    """Record a failed dispatch atomically within the caller's transaction."""
 
-    tenant = str(tenant_id)
-    await conn.execute(SET_TENANT_SQL, tenant)
-    for reservation_id in reservation_ids:
-        rid = UUID(reservation_id)
-        # The reservation event's correlation_id is NOT NULL — reuse the reservation's
-        # own correlation thread (reserve always sets it); fall back to the reservation
-        # id (a valid UUID) so compensation can never fail on a missing correlation.
-        correlation_id = await conn.fetchval(
-            "SELECT correlation_id FROM irrigation_resource_reservations "
-            "WHERE tenant_id = $1 AND reservation_id = $2",
+    if not conn.is_in_transaction():
+        raise ValueError("COMPENSATION_TRANSACTION_REQUIRED")
+    ids = sorted(UUID(value) for value in reservation_ids)
+    if not ids:
+        raise ValueError("COMPENSATION_RESERVATIONS_REQUIRED")
+    if len(set(ids)) != len(ids):
+        raise ValueError("COMPENSATION_DUPLICATE_RESERVATION")
+
+    # The request reference identifies this operation. The tenant predicate on the
+    # locked rows determines which reservations the operation may change.
+    payload = json.dumps(
+        {
+            "reason": reason,
+            "execution_request_ref": execution_request_ref,
+            "reservation_scope_sha256": hashlib.sha256(
+                b"".join(rid.bytes for rid in ids)
+            ).hexdigest(),
+        }
+    )
+    async with conn.transaction():
+        await conn.execute(SET_TENANT_SQL, str(tenant_id))
+        rows = await conn.fetch(
+            """SELECT reservation_id, evaluation_id, execution_ref_type, execution_ref_id,
+                      correlation_id, state
+               FROM irrigation_resource_reservations
+               WHERE tenant_id = $1 AND reservation_id = ANY($2::uuid[])
+               ORDER BY reservation_id FOR UPDATE""",
             tenant_id,
-            rid,
+            ids,
         )
-        await conn.execute(CANCEL_RESERVATION_SQL, tenant_id, rid, reason)
-        await conn.execute(
-            INSERT_RESERVATION_EVENT_SQL,
-            tenant_id,
-            rid,
-            "cancelled",
-            None,
-            correlation_id or rid,
-            json.dumps({"reason": reason}),
-        )
-    try:
-        await execution_port.mark_dispatch_failed(
-            conn,
-            execution_request_ref=execution_request_ref,
-            reason=reason,
-            correlation_id=str(correlation_id) if correlation_id else None,
-        )
-    except TypeError as exc:
-        # Backward compatibility for existing ports that implement the pre-trace signature.
-        if "correlation_id" not in str(exc):
-            raise
-        await execution_port.mark_dispatch_failed(
-            conn, execution_request_ref=execution_request_ref, reason=reason
-        )
+        if len(rows) != len(ids):
+            raise ValueError("COMPENSATION_RESERVATION_NOT_FOUND")
+        groups = {
+            (
+                row["evaluation_id"],
+                row["execution_ref_type"],
+                row["execution_ref_id"],
+                row["correlation_id"],
+            )
+            for row in rows
+        }
+        if len(groups) != 1:
+            raise ValueError("COMPENSATION_GROUP_MISMATCH")
+
+        states = {row["state"] for row in rows}
+        if states == {"cancelled"}:
+            matching = await conn.fetchval(
+                """SELECT count(*) FROM irrigation_resource_reservation_events
+                   WHERE tenant_id = $1 AND reservation_id = ANY($2::uuid[])
+                     AND event_type = 'cancelled' AND causation_id IS NULL AND payload = $3::jsonb""",
+                tenant_id,
+                ids,
+                payload,
+            )
+            if matching == len(ids):
+                return
+        if not states <= {"reserved", "active"}:
+            raise ValueError("COMPENSATION_CONFLICT")
+
+        correlation_id = rows[0]["correlation_id"]
+        mark_failed = execution_port.mark_dispatch_failed
+        kwargs = {
+            "execution_request_ref": execution_request_ref,
+            "reason": reason,
+            "correlation_id": str(correlation_id) if correlation_id else None,
+        }
+        signature = inspect.signature(mark_failed)
+        try:
+            signature.bind(conn, **kwargs)
+        except TypeError:
+            # Legacy ports predate correlation_id. Select the signature before any writes.
+            del kwargs["correlation_id"]
+            signature.bind(conn, **kwargs)
+
+        for rid in ids:
+            await conn.execute(CANCEL_RESERVATION_SQL, tenant_id, rid, reason)
+            await conn.execute(
+                INSERT_RESERVATION_EVENT_SQL,
+                tenant_id,
+                rid,
+                "cancelled",
+                None,
+                correlation_id or rid,
+                payload,
+            )
+        await mark_failed(conn, **kwargs)
