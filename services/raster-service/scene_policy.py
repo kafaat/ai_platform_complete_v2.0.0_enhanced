@@ -369,7 +369,17 @@ def select_backfill_scenes_by_policy(
         if max_cloud_pct is not None
         else effective_max_cloud
     )
-    ranked = rank_scenes(scenes, max_cloud_pct=effective_max_cloud)
+    # Discovery may expose Landsat scenes without the catalogue contract required
+    # by the thermal reader. They cannot consume a monthly processing slot.
+    candidates = []
+    for scene in scenes:
+        item = scene_to_dict(scene)
+        if item.get("data_type") == "thermal_unique":
+            contract = item.get("thermal_contract")
+            if not isinstance(contract, dict) or not contract:
+                continue
+        candidates.append(scene)
+    ranked = rank_scenes(candidates, max_cloud_pct=effective_max_cloud)
 
     eligible: list[dict] = []
     for item in ranked:
