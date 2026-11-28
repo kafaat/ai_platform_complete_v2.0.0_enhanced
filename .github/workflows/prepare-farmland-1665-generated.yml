@@ -96,7 +96,10 @@ jobs:
           python -m pytest -q -o addopts= -p no:cacheprovider tests/architecture/test_capability_traceability.py
           test -z "$(git ls-files --others --exclude-standard)"
           git add -u
-          git diff --cached --check
+          # This one generated CSV intentionally uses CRLF (.gitattributes: *.csv -text).
+          # Keep the normal whitespace gate for every other path; retain space/tab checks on this CSV.
+          git diff --cached --check -- . ':(exclude)capabilities/generated/capability_traceability.csv'
+          git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --cached --check -- capabilities/generated/capability_traceability.csv
           git diff --cached --exit-code -- .github/workflows services shared tests tests_v9 mobile frontend/src frontend/e2e migrations ':(exclude)services/field-management-service/fm_task_inspection.py' ':(exclude)services/field-management-service/tests/test_field_task_routes_unit.py' ':(exclude)tests_v9/test_field_task_inspection_live_pg.py' ':(exclude)tests_v9/test_apply_in_compose_live_pg.py' ':(exclude)migrations/schema_probe_contract.env'
           git diff --cached --stat
           git diff --cached --quiet && { echo "No generated changes"; exit 1; }
