@@ -42,11 +42,13 @@ INSPECTOR_ROLES = ("worker", "farmer", "agronomist", "expert", "manager", "owner
 REVIEWER_ROLES = ("agronomist", "expert", "manager", "owner", "admin")
 
 
-def evidence_digest(photo_evidence_id, photo_content_sha256, notes) -> str:
-    """The digest v274's guard recomputes: sha256('<id>|<sha>|<notes>'), '' for a NULL."""
+def evidence_digest(photo_evidence_id, photo_content_sha256, notes, equipment_id=None) -> str:
+    """Preserve v274 digests; v292 binds an optional declared equipment reference."""
     raw = "|".join(
         ["" if v is None else str(v) for v in (photo_evidence_id, photo_content_sha256, notes)]
     )
+    if equipment_id is not None:
+        raw = f"equipment:{equipment_id}|{raw}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
@@ -91,6 +93,8 @@ class InspectionFinding(InspectionRevision):
     # pin's current one). approve/return: the evidence version the reviewer saw (required).
     notes: str | None = Field(default=None, max_length=4000)
     photo_evidence_id: UUID | None = None
+    # A declaration by the inspector, not an assertion of equipment ownership.
+    equipment_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_-]{1,50}$")
     evidence_version: int | None = Field(default=None, gt=0, le=2147483647)
 
     @field_validator("reason", mode="before")
@@ -104,8 +108,12 @@ class InspectionFinding(InspectionRevision):
             if self.evidence_version is not None:
                 raise ValueError("a submit records a new evidence version; do not name one")
         else:
-            if self.notes is not None or self.photo_evidence_id is not None:
-                raise ValueError("notes and photo are attached by the inspector's submit")
+            if (
+                self.notes is not None
+                or self.photo_evidence_id is not None
+                or self.equipment_id is not None
+            ):
+                raise ValueError("notes, photo and equipment are attached by the inspector's submit")
             if self.evidence_version is None:
                 raise ValueError("a review names the evidence_version it reviewed")
         return self
@@ -186,7 +194,7 @@ async def _load(conn, caller: Caller, field_id: str, task_id: UUID, *, write: bo
     )
     versions = await conn.fetch(
         """SELECT version, photo_evidence_id, photo_content_sha256, notes, digest, recorded_by,
-                  recorded_at
+                  recorded_at, equipment_id
              FROM inspection_evidence_versions WHERE tenant_id=$1::uuid AND field_id=$2
               AND task_id=$3 ORDER BY version""",
         caller.tenant_id,
@@ -485,11 +493,13 @@ async def reassign_inspection(
         raise _db_error(exc) from exc
 
 
-async def _record_version(conn, caller, field_id, task_id, pin_id, photo, notes) -> int:
-    """Append (photo, notes) as the next evidence version unless it already is the latest."""
+async def _record_version(
+    conn, caller, field_id, task_id, pin_id, photo, notes, equipment_id=None
+) -> int:
+    """Append the version unless its complete evidence digest is already the latest."""
     photo_id = str(photo["evidence_id"]) if photo else None
     photo_sha = str(photo["content_sha256"]).strip() if photo else None
-    digest = evidence_digest(photo_id, photo_sha, notes)
+    digest = evidence_digest(photo_id, photo_sha, notes, equipment_id)
     latest = await conn.fetchrow(
         """SELECT version, digest FROM inspection_evidence_versions
             WHERE tenant_id=$1::uuid AND task_id=$2 ORDER BY version DESC LIMIT 1""",
@@ -502,8 +512,8 @@ async def _record_version(conn, caller, field_id, task_id, pin_id, photo, notes)
     await conn.execute(
         """INSERT INTO inspection_evidence_versions
             (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
-             photo_content_sha256, notes, digest, recorded_by)
-           VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10)""",
+             photo_content_sha256, notes, digest, recorded_by, equipment_id)
+           VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10,$11)""",
         caller.tenant_id,
         field_id,
         task_id,
@@ -514,6 +524,7 @@ async def _record_version(conn, caller, field_id, task_id, pin_id, photo, notes)
         notes,
         digest,
         caller.user_id,
+        equipment_id,
     )
     return version
 
@@ -541,6 +552,7 @@ async def _finding(field_id: str, task_id: UUID, req: InspectionFinding, caller:
             same_evidence = (
                 (
                     seen.get("notes") == req.notes
+                    and seen.get("equipment_id") == req.equipment_id
                     # Older clients may omit the photo id; that historical
                     # request shape was not stored. An explicit id, however,
                     # must name the photo in the version being acknowledged.
@@ -568,7 +580,7 @@ async def _finding(field_id: str, task_id: UUID, req: InspectionFinding, caller:
             ):
                 raise HTTPException(409, "تغيرت صورة الدبوس. حدّث البيانات قبل رفع النتيجة")
             version = await _record_version(
-                conn, caller, field_id, task_id, task["pin_id"], photo, req.notes
+                conn, caller, field_id, task_id, task["pin_id"], photo, req.notes, req.equipment_id
             )
             approved = current["approved_evidence"]
             if (
@@ -577,7 +589,7 @@ async def _finding(field_id: str, task_id: UUID, req: InspectionFinding, caller:
                 and approved["version"] == version
                 and current["evidence_approved"]
             ):
-                raise HTTPException(409, "لم تتغير الصورة أو الملاحظات منذ اعتماد النتيجة")
+                raise HTTPException(409, "لم تتغير الصورة أو الملاحظات أو المعدّة منذ اعتماد النتيجة")
         else:
             # The review binds to the version that was submitted, which must be the one the
             # reviewer names and still match the pin's photo evidence.
