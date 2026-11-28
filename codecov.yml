@@ -1,7 +1,0 @@
-# Five explicit uploads per commit; do not emit early Codecov statuses.
-# No project/patch thresholds and no global path rewrites.
-codecov:
-  notify:
-    after_n_builds: 5
-comment:
-  after_n_builds: 5
