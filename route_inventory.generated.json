@@ -1146,7 +1146,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 294,
+    "line": 342,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/inspection-assignees",
     "function": "list_inspection_assignees"
@@ -1154,7 +1154,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 313,
+    "line": 361,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "function": "get_pin_inspection_task"
@@ -1162,7 +1162,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 328,
+    "line": 376,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "function": "assign_pin_inspection"
@@ -1170,7 +1170,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 378,
+    "line": 426,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff",
     "function": "inspect_handoff"
@@ -1178,7 +1178,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 469,
+    "line": 517,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept",
     "function": "accept_inspection"
@@ -1186,7 +1186,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 484,
+    "line": 532,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign",
     "function": "reassign_inspection"
@@ -1194,7 +1194,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 623,
+    "line": 668,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
     "function": "record_inspection_finding"
@@ -5930,7 +5930,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 139,
+    "line": 113,
     "method": "POST",
     "path": "/api/v1/inventory/items/{item_id}/batches",
     "function": "add_inventory_batch"
@@ -5938,7 +5938,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/inventory.py",
-    "line": 203,
+    "line": 177,
     "method": "GET",
     "path": "/api/v1/inventory/expiring",
     "function": "list_expiring_batches"

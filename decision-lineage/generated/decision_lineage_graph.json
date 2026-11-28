@@ -1773,7 +1773,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 421,
+      "evidence_count": 422,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2011,6 +2011,7 @@
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/gis_cloud_native.py",
         "services/sahool-platform/api/routers/internal_service.py",
+        "services/sahool-platform/api/routers/inventory.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
         "services/sahool-platform/api/routers/irrigation_mpc.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -3559,7 +3560,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 216,
-      "target_evidence_count": 421,
+      "target_evidence_count": 422,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3606,7 +3607,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 421,
+      "source_evidence_count": 422,
       "target_evidence_count": 52,
       "static_supported": true,
       "runtime_verified": false
@@ -3817,5 +3818,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "f9dad327cd4c165446bef94a7cd93a76214503e8f575dac3f4b225ff232536ce"
+  "content_sha256": "9df681ff16454f214dca3618de093e73d24ed574760b44a928a92836f457a002"
 }

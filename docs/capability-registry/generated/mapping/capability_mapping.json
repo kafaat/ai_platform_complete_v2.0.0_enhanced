@@ -32,7 +32,7 @@
       "raw": 3557
     },
     "test_dependency_files": 2085,
-    "test_dependency_edges": 5663,
+    "test_dependency_edges": 5666,
     "test_dependency_bounded_files": 1199,
     "test_dependency_unresolved_relations": 540
   },
@@ -9055,7 +9055,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:202",
+          "value": "/api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:176",
           "score": 14
         },
         {
@@ -9067,7 +9067,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:138",
+          "value": "/api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:112",
           "score": 14
         },
         {
@@ -15436,31 +15436,31 @@
           "score": 16
         },
         {
-          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:293",
+          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:341",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:312",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:360",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:327",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:375",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:377",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:425",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:468",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:516",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:622",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:667",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:483",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:531",
           "score": 8
         },
         {
@@ -65032,6 +65032,11 @@
           "line": 30
         },
         {
+          "source": "services/sahool-platform/api/routers/inventory.py",
+          "kind": "import",
+          "line": 323
+        },
+        {
           "source": "services/sahool-platform/core/canonical_schemas.py",
           "kind": "import",
           "line": 43
@@ -85849,7 +85854,7 @@
         {
           "source": "services/sahool-platform/api/routers/inventory.py",
           "kind": "import",
-          "line": 473
+          "line": 478
         },
         {
           "source": "services/sahool-platform/core/canonical_schemas.py",
@@ -89340,18 +89345,29 @@
       "test": "tests_v9/test_irr_f01_junit_gate.py",
       "bounded": false,
       "unbounded_reasons": [
+        "reads_repository_data_file",
         "subprocess"
       ],
       "edges": [
         {
           "source": "scripts/irr_f01/build_report.py",
           "kind": "source_read",
-          "line": 48
+          "line": 55
         },
         {
           "source": "scripts/irr_f01/required_cases.py",
           "kind": "import",
           "line": 12
+        },
+        {
+          "source": "tests_v9/test_irr_f01_compensation_live_pg.py",
+          "kind": "import",
+          "line": 71
+        },
+        {
+          "source": "tests_v9/test_irr_f01_compensation_live_pg.py",
+          "kind": "source_read",
+          "line": 82
         }
       ],
       "unresolved": []
@@ -89364,7 +89380,7 @@
         {
           "source": "services/actuator-service/cmd_signing_v2.py",
           "kind": "import",
-          "line": 591
+          "line": 600
         },
         {
           "source": "services/sahool-platform/api/__init__.py",
@@ -89379,12 +89395,12 @@
         {
           "source": "services/sahool-platform/api/irrigation_dispatch_relay.py",
           "kind": "import",
-          "line": 620
+          "line": 629
         },
         {
           "source": "services/sahool-platform/api/irrigation_execution_request_port.py",
           "kind": "import",
-          "line": 492
+          "line": 501
         },
         {
           "source": "services/sahool-platform/api/irrigation_reservation_adapter.py",
@@ -89394,7 +89410,7 @@
         {
           "source": "tests/integration/irrigation/decision_receipt.py",
           "kind": "source_read",
-          "line": 632
+          "line": 641
         }
       ],
       "unresolved": []
