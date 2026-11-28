@@ -113,7 +113,9 @@ class InspectionFinding(InspectionRevision):
                 or self.photo_evidence_id is not None
                 or self.equipment_id is not None
             ):
-                raise ValueError("notes, photo and equipment are attached by the inspector's submit")
+                raise ValueError(
+                    "notes, photo and equipment are attached by the inspector's submit"
+                )
             if self.evidence_version is None:
                 raise ValueError("a review names the evidence_version it reviewed")
         return self
@@ -589,7 +591,9 @@ async def _finding(field_id: str, task_id: UUID, req: InspectionFinding, caller:
                 and approved["version"] == version
                 and current["evidence_approved"]
             ):
-                raise HTTPException(409, "لم تتغير الصورة أو الملاحظات أو المعدّة منذ اعتماد النتيجة")
+                raise HTTPException(
+                    409, "لم تتغير الصورة أو الملاحظات أو المعدّة منذ اعتماد النتيجة"
+                )
         else:
             # The review binds to the version that was submitted, which must be the one the
             # reviewer names and still match the pin's photo evidence.
