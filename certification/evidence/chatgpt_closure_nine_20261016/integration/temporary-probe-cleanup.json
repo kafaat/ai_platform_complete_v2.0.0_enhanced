@@ -1,9 +1,0 @@
-{
-  "service": {
-    "id": "ee1935c1-9a99-42d5-8c68-c559ca855b1c",
-    "name": "sahool-closure-nine-readonly-20261016"
-  },
-  "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
-  "detachedVolumes": [],
-  "staged": null
-}
