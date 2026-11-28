@@ -546,19 +546,20 @@ async def test_gate_b1_dispatch_intent_emitted_to_outbox_atomically(live):
     assert await app.fetchval("select count(*) from events where tenant_id = $1", tenant) == before
 
     # Compensation emits dispatch_failed and cancels the reservation (no correlation crash).
-    await adapter.compensate_dispatch_failure(
-        app,
-        tenant_id=tenant,
-        reservation_ids=out.reservation_ids,
-        execution_request_ref=out.dispatch_intent_id,
-        execution_port=port,
-        reason="actuator_nak",
-    )
+    async with app.transaction():
+        await adapter.compensate_dispatch_failure(
+            app,
+            tenant_id=tenant,
+            reservation_ids=out.reservation_ids,
+            execution_request_ref=out.dispatch_intent_id,
+            execution_port=port,
+            reason="actuator_nak",
+        )
     assert (
         await app.fetchval(
             "select count(*) from events where event_type='irrigation.reservation.dispatch_failed'"
         )
-        >= 1
+        == 1
     )
     assert (
         await app.fetchval(

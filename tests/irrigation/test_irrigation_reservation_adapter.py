@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 import sys
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -270,8 +271,29 @@ def test_activation_guard_pass_through_leaves_happy_path_unchanged():
 
 
 def test_compensation_cancels_reservations_and_marks_request_failed():
-    conn, port = FakeConn(), FakePort()
     res_ids = ["dddddddd-0000-0000-0000-000000000001", "dddddddd-0000-0000-0000-000000000002"]
+    evaluation = UUID("eeeeeeee-0000-0000-0000-000000000001")
+
+    class CompensationConn(FakeConn):
+        @asynccontextmanager
+        async def transaction(self):
+            yield
+
+        async def fetch(self, sql, *args):
+            self.calls.append(("fetch", "COMPENSATION_GROUP", args))
+            return [
+                {
+                    "reservation_id": UUID(rid),
+                    "evaluation_id": evaluation,
+                    "execution_ref_type": "manual_execution",
+                    "execution_ref_id": "mx-compensation",
+                    "correlation_id": CORR,
+                    "state": "reserved",
+                }
+                for rid in res_ids
+            ]
+
+    conn, port = CompensationConn(), FakePort()
     _run(
         compensate_dispatch_failure(
             conn,
