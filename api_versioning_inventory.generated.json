@@ -1289,7 +1289,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 284,
+    "line": 294,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/inspection-assignees",
     "handler": "list_inspection_assignees",
@@ -1298,7 +1298,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 303,
+    "line": 313,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "handler": "get_pin_inspection_task",
@@ -1307,7 +1307,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 318,
+    "line": 328,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/pins/{pin_id}/inspection-task",
     "handler": "assign_pin_inspection",
@@ -1316,7 +1316,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 368,
+    "line": 378,
     "method": "GET",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff",
     "handler": "inspect_handoff",
@@ -1325,7 +1325,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 459,
+    "line": 469,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/accept",
     "handler": "accept_inspection",
@@ -1334,7 +1334,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 474,
+    "line": 484,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/reassign",
     "handler": "reassign_inspection",
@@ -1343,7 +1343,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/fm_task_inspection.py",
-    "line": 607,
+    "line": 623,
     "method": "POST",
     "path": "/internal/field-tasks/fields/{field_id}/tasks/{task_id}/handoff/finding",
     "handler": "record_inspection_finding",

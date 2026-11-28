@@ -2928,6 +2928,14 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v292_inspection_equipment_evidence.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v292_inspection_equipment_evidence.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v31_fields_manager.sql",
     "kind": "database"
   },
