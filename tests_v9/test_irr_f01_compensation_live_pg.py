@@ -116,7 +116,11 @@ async def test_terminal_or_historical_cancellation_is_preserved(live, terminal):
     compensate = _adapter()[0].compensate_dispatch_failure
     args = await reserve(live, ("n1",))
     conn = live["app"]
-    await conn.execute(
+    # Seed the existing terminal history through the owner connection: it is fixture state, not
+    # the behaviour under test, and the certifying writer (irr_f01_writer) holds column UPDATE on
+    # state/released_at/release_reason only, while the SECURITY INVOKER transition also writes
+    # activated_at. Granting the writer more to make setup pass would widen production rights.
+    await live["admin"].execute(
         "SELECT transition_irrigation_reservation($1,$2,$3,$4)",
         live["tenant"],
         UUID(args["reservation_ids"][0]),

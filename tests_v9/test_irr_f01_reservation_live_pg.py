@@ -142,7 +142,16 @@ async def live():
             kind,
             0,
         )
-    ctx = {"app": app, "tenant": tenant, "project": project, "n1": node1, "n2": node2}
+    # "admin" seeds pre-existing history that the request role may not write itself (the
+    # certifying writer has column UPDATE on state/released_at/release_reason only).
+    ctx = {
+        "app": app,
+        "admin": admin,
+        "tenant": tenant,
+        "project": project,
+        "n1": node1,
+        "n2": node2,
+    }
     try:
         yield ctx
     finally:
