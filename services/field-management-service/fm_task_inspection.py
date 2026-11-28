@@ -195,9 +195,11 @@ async def _load(conn, caller: Caller, field_id: str, task_id: UUID, *, write: bo
         task_id,
     )
     versions = await conn.fetch(
+        # Whole-row JSON lookup returns NULL before v292 without referencing a missing
+        # column. Tenant predicates and row-level security remain unchanged.
         """SELECT version, photo_evidence_id, photo_content_sha256, notes, digest, recorded_by,
-                  recorded_at, equipment_id
-             FROM inspection_evidence_versions WHERE tenant_id=$1::uuid AND field_id=$2
+                  recorded_at, to_jsonb(e)->>'equipment_id' AS equipment_id
+             FROM inspection_evidence_versions AS e WHERE tenant_id=$1::uuid AND field_id=$2
               AND task_id=$3 ORDER BY version""",
         caller.tenant_id,
         field_id,
@@ -511,11 +513,7 @@ async def _record_version(
     if latest is not None and str(latest["digest"]).strip() == digest:
         return latest["version"]
     version = (latest["version"] if latest else 0) + 1
-    await conn.execute(
-        """INSERT INTO inspection_evidence_versions
-            (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
-             photo_content_sha256, notes, digest, recorded_by, equipment_id)
-           VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10,$11)""",
+    args = (
         caller.tenant_id,
         field_id,
         task_id,
@@ -526,8 +524,29 @@ async def _record_version(
         notes,
         digest,
         caller.user_id,
-        equipment_id,
     )
+    if equipment_id is None:
+        # Keep the existing notes/photo workflow available before the separately
+        # authorized v292 migration. The old digest and default NULL are unchanged.
+        await conn.execute(
+            """INSERT INTO inspection_evidence_versions
+                (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
+                 photo_content_sha256, notes, digest, recorded_by)
+               VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10)""",
+            *args,
+        )
+    else:
+        # Never downgrade an explicit equipment declaration to legacy evidence.
+        # On a pre-v292 schema the undefined column aborts the transaction and the
+        # existing error boundary returns 503; no version or handoff is committed.
+        await conn.execute(
+            """INSERT INTO inspection_evidence_versions
+                (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
+                 photo_content_sha256, notes, digest, recorded_by, equipment_id)
+               VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10,$11)""",
+            *args,
+            equipment_id,
+        )
     return version
 
 

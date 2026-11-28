@@ -2259,3 +2259,66 @@ def test_equipment_declaration_survives_review_and_conflicting_replay():
             assert stored["approved_evidence"]["digest"] == evidence["digest"]
 
     run(target())
+
+
+def test_inspection_legacy_handoff_survives_v292_rollout():
+    """Same HTTP journey on either schema; require the old schema in the RED/GREEN lane."""
+
+    async def target():
+        async with Live() as live:
+            has_equipment = await live.admin.fetchval(
+                """SELECT EXISTS (
+                       SELECT 1 FROM pg_attribute
+                        WHERE attrelid = 'public.inspection_evidence_versions'::regclass
+                          AND attname = 'equipment_id' AND NOT attisdropped
+                   )"""
+            )
+            if os.getenv("FIELD_TASK_PRE_V292_REQUIRED") == "1":
+                assert not has_equipment, "old-schema certification requires pre-v292 PostgreSQL"
+            task = await live.assign()
+            assert (await live.state(task))["revision"] == 0
+            accepted = await live.handoff(task, "accept", "inspector", {"expected_revision": 0})
+            assert accepted.status_code == 200, accepted.text
+            body = {
+                "expected_revision": 1,
+                "action": "submit",
+                "reason": "synthetic inspection",
+                "notes": "legacy finding",
+            }
+            if not has_equipment:
+                before = await live.state(task, "inspector")
+                blocked = await live.handoff(
+                    task, "finding", "inspector", body | {"equipment_id": "eqp_pump_a"}
+                )
+                assert blocked.status_code == 503, blocked.text
+                assert await live.state(task, "inspector") == before
+            submitted = await live.handoff(task, "finding", "inspector", body)
+            assert submitted.status_code == 200, submitted.text
+            current = submitted.json()["current_evidence"]
+            assert current["equipment_id"] is None
+            assert current["digest"] == hashlib.sha256(b"||legacy finding").hexdigest()
+            replay = await live.handoff(task, "finding", "inspector", body)
+            assert replay.status_code == 200, replay.text
+            assert replay.json() == submitted.json()
+            approved = await live.handoff(
+                task,
+                "finding",
+                "reviewer",
+                {
+                    "expected_revision": 2,
+                    "action": "approve",
+                    "reason": "synthetic review",
+                    "evidence_version": current["version"],
+                },
+            )
+            assert approved.status_code == 200, approved.text
+            assert approved.json()["evidence_approved"] is True
+            assert approved.json()["approved_evidence"]["digest"] == current["digest"]
+            assert len(approved.json()["evidence"]) == 1
+            foreign = await live.fm.get(
+                f"/internal/field-tasks/fields/{live.field}/tasks/{task}/handoff",
+                headers=live.headers("manager", tenant=live.other_tenant),
+            )
+            assert foreign.status_code == 404, foreign.text
+
+    run(target())
