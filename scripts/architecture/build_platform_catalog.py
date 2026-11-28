@@ -49,6 +49,7 @@ members). UI waivers get governed owner/expiry/tracking from policy defaults.
 
 from __future__ import annotations
 
+import argparse
 import ast
 import csv
 import hashlib
@@ -1722,8 +1723,17 @@ def _expiry_failures(catalog: dict) -> list[str]:
 
 
 def main() -> int:
-    check = "--check" in sys.argv
-    enforce_expiry = "--enforce-expiry" in sys.argv
+    parser = argparse.ArgumentParser(
+        description="Build the deterministic platform catalog (write outputs by default).",
+        allow_abbrev=False,
+    )
+    parser.add_argument("--check", action="store_true", help="Check output drift without writing.")
+    parser.add_argument(
+        "--enforce-expiry", action="store_true", help="Also reject expired decisions and waivers."
+    )
+    args = parser.parse_args()
+    check = args.check
+    enforce_expiry = args.enforce_expiry
     rendered = render(build())
 
     catalog = json.loads(rendered["platform_catalog.generated.json"])

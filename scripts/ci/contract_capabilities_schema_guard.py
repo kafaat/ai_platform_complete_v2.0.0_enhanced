@@ -9,6 +9,7 @@ and capability status without special-casing every service.
 
 from __future__ import annotations
 
+import argparse
 import ast
 import csv
 import json
@@ -166,7 +167,14 @@ def write_inventory(records: list[dict[str, object]]) -> None:
 
 
 def main(argv: list[str]) -> int:
-    check = "--check" in argv
+    parser = argparse.ArgumentParser(
+        description="Guard contract and capabilities schemas (write inventory by default).",
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="Check inventory drift without writing."
+    )
+    check = parser.parse_args(argv).check
     records = build_inventory()
     failures = [r for r in records if r.get("status") != "ok"]
     if not check:
