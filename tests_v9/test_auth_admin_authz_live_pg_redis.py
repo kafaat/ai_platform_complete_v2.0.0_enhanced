@@ -376,23 +376,54 @@ def _redis_unreachable(world, mp):
     )
 
 
-def _redis_refuses_writes(world, mp):
-    """Reads succeed (the caller's token checks pass) and the revocation writes fail."""
+def _redis_acl_client(url: str, *, username: str, password: str):
+    """Override only the fixture identity after redis-py's URL/query parsing."""
     import redis.asyncio as aioredis
 
+    # AUTH-REDIS-ACL-FIXTURE-CREDENTIAL-PRECEDENCE-01: from_url applies parsed
+    # URL credentials after kwargs. Override the new, still-disconnected pool
+    # instead, retaining its DB, transport and query options without sharing it.
+    pool = aioredis.ConnectionPool.from_url(url, encoding="utf-8", decode_responses=True)
+    pool.connection_kwargs.update(username=username, password=password)
+    return aioredis.Redis.from_pool(pool)
+
+
+def _redis_refuses_writes(world, mp):
+    """Reads succeed (the caller's token checks pass) and the revocation writes fail."""
     user, secret = f"authz_ro_{world['marker']}", uuid.uuid4().hex
     store = world["store"]
     store.execute_command(
-        "ACL", "SETUSER", user, "reset", "on", f">{secret}", "~*", "+@read", "+ping"
+        "ACL", "SETUSER", user, "reset", "on", f">{secret}", "~*", "+@read", "+@connection"
     )
-    mp.setattr(
-        world["m"],
-        "_redis",
-        aioredis.from_url(
-            _REDIS_URL, username=user, password=secret, encoding="utf-8", decode_responses=True
-        ),
-    )
-    return lambda: store.execute_command("ACL", "DELUSER", user)
+    read_only = _redis_acl_client(_REDIS_URL, username=user, password=secret)
+    probe = f"sahool:authz_acl_probe:{world['marker']}:{uuid.uuid4().hex}"
+    denied_probe = f"{probe}:denied"
+
+    def cleanup():
+        try:
+            world["client"].portal.call(read_only.aclose)
+        finally:
+            store.delete(probe, denied_probe)
+            store.execute_command("ACL", "DELUSER", user)
+
+    async def qualify_read_only():
+        # Connection setup (including SELECT/client_name from URL options) is
+        # allowed. Prove actual authentication/read success and write denial;
+        # an AuthenticationError must never stand in for a revocation failure.
+        assert await read_only.ping()
+        assert await read_only.get(probe) in ("readable", b"readable")
+        with pytest.raises(redis.exceptions.NoPermissionError):
+            await read_only.setex(denied_probe, 60, "must-not-persist")
+
+    try:
+        store.setex(probe, 60, "readable")
+        world["client"].portal.call(qualify_read_only)
+        assert store.exists(denied_probe) == 0
+        mp.setattr(world["m"], "_redis", read_only)
+    except BaseException:
+        cleanup()
+        raise
+    return cleanup
 
 
 _OUTAGES = {
