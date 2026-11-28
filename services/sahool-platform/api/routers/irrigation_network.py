@@ -72,6 +72,30 @@ def network_feasibility_endpoint(
         raise HTTPException(status_code=422, detail="Network node IDs must be nonblank and unique")
     if any(edge.from_id not in node_ids or edge.to_id not in node_ids for edge in req.edges):
         raise HTTPException(status_code=422, detail="Network edges must reference existing nodes")
+    # The screen allocates each zone's entire demand to one upstream path.
+    # Do not silently choose a well or branch by the input order of edges.
+    parents: dict[str, set[str]] = {}
+    kinds = {node.node_id: node.kind for node in req.nodes}
+    for edge in req.edges:
+        parents.setdefault(edge.to_id, set()).add(edge.from_id)
+    checked: set[str] = set()
+    for zone in req.nodes:
+        if zone.kind != "zone":
+            continue
+        current = zone.node_id
+        seen: set[str] = set()
+        while current not in checked and kinds[current] != "well":
+            upstream = parents.get(current, set())
+            if current in seen or len(upstream) > 1:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Network screen requires a single selected upstream path per zone",
+                )
+            seen.add(current)
+            if not upstream:
+                break
+            current = next(iter(upstream))
+        checked.update(seen)
     nodes = [
         NetworkNode(
             node_id=n.node_id,
