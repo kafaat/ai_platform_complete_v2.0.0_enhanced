@@ -59,10 +59,37 @@ function KV({ data }: { data: Record<string, unknown> }) {
 }
 
 export default function FieldIntelligencePage() {
-  const { fieldId, field } = useSelectedField();
+  const { fieldId, field: activeField } = useSelectedField();
   const identity = useAuthQueryIdentity();
-  // Remount the job observer and its mutation callbacks as soon as the selection changes.
-  return <FieldAnalysis key={JSON.stringify([...identity, fieldId])} fieldId={fieldId} activeField={field} />;
+  return (
+    <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
+      <div className="flex items-center gap-2">
+        <Activity className="w-5 h-5 text-ops-info" />
+        <h2 className="text-xl font-bold text-sahool-text">المايسترو — تحليل الحقل الموحّد</h2>
+      </div>
+      <p className="text-sm text-sahool-muted">
+        يدمج المصادر الحيّة (طقس/تربة/استشعار/ذاكرة الحقل) في حالة موحّدة: حقائق
+        تشغيليّة + ثقة + قرار سياسة + تنبيهات. المصادر المتعذّرة تُعلَن بصدق.
+      </p>
+
+      <div className="grid sm:grid-cols-4 gap-3">
+        <WorkflowCard icon={<Map className="w-4 h-4 text-sahool-green-dark" />} title="مناطق الإنتاجية" desc="تحويل NDVI/الإنتاجية/المختبر إلى High/Medium/Low/Problem بدلاً من عرض المؤشر فقط." />
+        <WorkflowCard icon={<FlaskConical className="w-4 h-4 text-ops-info" />} title="العينات والمختبر" desc="نقاط GPS ونتائج تربة/مياه تدخل بوابة القرار ولا تُستخدم إن كانت ناقصة أو غير معتمدة." />
+        <WorkflowCard icon={<ListChecks className="w-4 h-4 text-ops-warning" />} title="خرائط الوصفات" desc="القرار يتحول إلى وصفة ومهام يومية، ثم يُغلق بسجل تنفيذ وتغذية راجعة." />
+        <WorkflowCard icon={<Bot className="w-4 h-4 text-violet-400" />} title="الموجز اليومي" desc="ضغط إشارات كثيرة إلى قائمة إجراءات قابلة للتنفيذ: ري، رش، فحص، مختبر، أو تأجيل." />
+      </div>
+
+      {/* The selector stays OUTSIDE the keyed subtree: choosing a field must not destroy the
+          focused <select>, or keyboard users lose their place (e2e ui-quality-field-accessibility). */}
+      <div className="space-y-2">
+        <FieldSelector label="الحقل للتحليل" />
+        {activeField ? <div className="text-xs text-sahool-muted">سيتم تحليل: <b className="text-sahool-text">{activeField.name}</b> · {activeField.crop || 'بلا محصول'} · {activeField.area ? `${activeField.area} هـ` : 'مساحة غير معروفة'}</div> : null}
+      </div>
+
+      {/* Remount the job observer and its mutation callbacks as soon as the selection changes. */}
+      <FieldAnalysis key={JSON.stringify([...identity, fieldId])} fieldId={fieldId} activeField={activeField} />
+    </div>
+  );
 }
 
 function FieldAnalysis({ fieldId, activeField }: { fieldId: string | null; activeField?: FieldOption }) {
@@ -112,27 +139,9 @@ function FieldAnalysis({ fieldId, activeField }: { fieldId: string | null; activ
   const dailyActions = Array.isArray(dailyBrief?.actions) ? dailyBrief.actions as Record<string, unknown>[] : [];
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
-      <div className="flex items-center gap-2">
-        <Activity className="w-5 h-5 text-ops-info" />
-        <h2 className="text-xl font-bold text-sahool-text">المايسترو — تحليل الحقل الموحّد</h2>
-      </div>
-      <p className="text-sm text-sahool-muted">
-        يدمج المصادر الحيّة (طقس/تربة/استشعار/ذاكرة الحقل) في حالة موحّدة: حقائق
-        تشغيليّة + ثقة + قرار سياسة + تنبيهات. المصادر المتعذّرة تُعلَن بصدق.
-      </p>
-
-      <div className="grid sm:grid-cols-4 gap-3">
-        <WorkflowCard icon={<Map className="w-4 h-4 text-sahool-green-dark" />} title="مناطق الإنتاجية" desc="تحويل NDVI/الإنتاجية/المختبر إلى High/Medium/Low/Problem بدلاً من عرض المؤشر فقط." />
-        <WorkflowCard icon={<FlaskConical className="w-4 h-4 text-ops-info" />} title="العينات والمختبر" desc="نقاط GPS ونتائج تربة/مياه تدخل بوابة القرار ولا تُستخدم إن كانت ناقصة أو غير معتمدة." />
-        <WorkflowCard icon={<ListChecks className="w-4 h-4 text-ops-warning" />} title="خرائط الوصفات" desc="القرار يتحول إلى وصفة ومهام يومية، ثم يُغلق بسجل تنفيذ وتغذية راجعة." />
-        <WorkflowCard icon={<Bot className="w-4 h-4 text-violet-400" />} title="الموجز اليومي" desc="ضغط إشارات كثيرة إلى قائمة إجراءات قابلة للتنفيذ: ري، رش، فحص، مختبر، أو تأجيل." />
-      </div>
-
+    <>
       {/* Form */}
       <div className="rounded-xl border p-4 space-y-3" style={{ background: 'rgb(var(--sahool-surface))', borderColor: 'rgb(var(--sahool-border))' }}>
-        <FieldSelector label="الحقل للتحليل" />
-        {activeField ? <div className="text-xs text-sahool-muted">سيتم تحليل: <b className="text-sahool-text">{activeField.name}</b> · {activeField.crop || 'بلا محصول'} · {activeField.area ? `${activeField.area} هـ` : 'مساحة غير معروفة'}</div> : null}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { label: 'lat اختياري', v: lat, set: setLat, ph: '15.05' },
@@ -292,6 +301,6 @@ function FieldAnalysis({ fieldId, activeField }: { fieldId: string | null; activ
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }
