@@ -755,3 +755,101 @@ async def test_period_volume_serial_reservations_over_live_postgres(live):
     assert evidence["available_m3"] == "2500"
     await app.execute("select set_config('app.current_tenant', $1, false)", str(uuid4()))
     assert await app.fetchval("select count(*) from irrigation_resource_reservations") == 0
+
+
+@pytest.mark.parametrize("first_commits", [True, False], ids=["commit", "rollback"])
+async def test_concurrent_disjoint_windows_respect_period_quota(live, first_commits):
+    """The later hour fits peak capacity; quota depends on whether the lock holder commits."""
+    adapter, kernel = _adapter()
+    first, tenant, node = live["app"], live["tenant"], live["n1"]
+    second = await asyncpg.connect(APP_DSN)
+    hour = timedelta(hours=1)
+    resource = adapter.ResourceRequest(
+        node,
+        kernel.ResourcePolicy.SHARED_CAPACITY,
+        Decimal("1500"),
+        Decimal("2000"),
+        requires_period_volume_budget=True,
+    )
+
+    async def resolve(conn, _request):
+        assert conn.is_in_transaction()
+        assert await conn.fetchval("SELECT current_setting('app.current_tenant')") == str(tenant)
+        return kernel.PeriodVolumeBudget(
+            START, START + 24 * hour, Decimal("2500"), "concurrent-period-v1"
+        )
+
+    async def reserve(conn, offset):
+        start = START + offset * hour
+        return await adapter.reserve_and_request_dispatch_db(
+            conn,
+            tenant_id=tenant,
+            project_id=live["project"],
+            requested_start=start,
+            requested_end=start + hour,
+            resources=[resource],
+            execution_ref_type="manual_execution",
+            execution_ref_id=f"period-window-{offset}",
+            idempotency_key=f"period-key-{offset}",
+            calculation_model_version="period-test",
+            correlation_id=tenant,
+            execution_port=_Port(),
+            resolve_period_volume_budget=resolve,
+        )
+
+    async def contender():
+        async with second.transaction(isolation="read_committed"):
+            return await reserve(second, 1)
+
+    task = None
+    try:
+        tx = first.transaction(isolation="read_committed")
+        await tx.start()
+        try:
+            await reserve(first, 0)
+            task = asyncio.create_task(contender())
+            # Observe a server-side lock wait, not a timer expiring on a slow client.
+            async with asyncio.timeout(10):
+                while not await first.fetchval(
+                    "SELECT pg_backend_pid() = ANY(pg_blocking_pids($1))",
+                    second.get_server_pid(),
+                ):
+                    assert not task.done(), "contender finished before the holder released its lock"
+                    await asyncio.sleep(0.01)
+        except BaseException:
+            await tx.rollback()
+            raise
+        if first_commits:
+            await tx.commit()
+            with pytest.raises(adapter.CapacityNotAdmissible) as error:
+                await asyncio.wait_for(task, timeout=10)
+            assert error.value.admission.blocking_code == "PERIOD_VOLUME_EXCEEDED"
+            assert error.value.admission.peak_existing_flow_m3h == 0
+        else:
+            await tx.rollback()
+            await asyncio.wait_for(task, timeout=10)
+    finally:
+        if task is not None:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        await second.close()
+
+    await first.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await first.fetchval(f"SELECT count(*) FROM {table}") == 1
+    kept = 0 if first_commits else 1
+    assert await first.fetchval("SELECT idempotency_key FROM irrigation_resource_reservations") == (
+        f"period-key-{kept}"
+    )
+    assert (
+        await first.fetchval(
+            "SELECT derating_factors->'period_volume_budgets'->$1::text->>'evidence_ref' "
+            "FROM hydraulic_capacity_evaluations WHERE execution_ref_id=$2",
+            str(node),
+            f"period-window-{kept}",
+        )
+        == "concurrent-period-v1"
+    )
+    await first.execute("SELECT set_config('app.current_tenant', $1, false)", str(uuid4()))
+    for table in CORE_TABLES:
+        assert await first.fetchval(f"SELECT count(*) FROM {table}") == 0
