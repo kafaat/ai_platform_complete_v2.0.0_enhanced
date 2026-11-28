@@ -22,6 +22,7 @@ import importlib.util
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -338,6 +339,90 @@ def test_flag_probe_accepts_unchanged_dirty_tree(tmp_path, monkeypatch):
     artifact.write_text("already dirty\n", encoding="utf-8")
     assert MOD.flag_map_problems(steps) == []
     assert artifact.read_bytes() == b"already dirty\n"
+
+
+@pytest.mark.parametrize("change", ["created", "modified", "deleted"])
+def test_flag_probe_rejects_nonignored_untracked_writes(tmp_path, monkeypatch, change):
+    body = (
+        'Path("new-output.py").unlink()'
+        if change == "deleted"
+        else 'Path("new-output.py").write_text("changed by help\\n")'
+    )
+    root, steps = _isolated_flag_probe_repo(tmp_path, monkeypatch, body)
+    output = root / "new-output.py"
+    if change != "created":
+        output.write_text("previous untracked bytes\n", encoding="utf-8")
+    problems = MOD.flag_map_problems(steps)
+    assert any("--help" in problem and "changed" in problem for problem in problems), problems
+    if change == "deleted":
+        assert not output.exists()
+    else:
+        assert output.read_bytes() == b"changed by help\n"
+
+
+def test_flag_probe_allows_gitignored_tool_cache(tmp_path, monkeypatch):
+    root, steps = _isolated_flag_probe_repo(
+        tmp_path,
+        monkeypatch,
+        'Path("tool-cache").mkdir(); Path("tool-cache/value").write_text("cache bytes")',
+    )
+    (root / ".gitignore").write_text("tool-cache/\n", encoding="utf-8")
+    subprocess.run(["git", "add", ".gitignore"], cwd=root, check=True, capture_output=True)
+    assert MOD.flag_map_problems(steps) == []
+    assert (root / "tool-cache/value").read_text() == "cache bytes"
+    ignored = subprocess.run(
+        ["git", "check-ignore", "-q", "tool-cache/value"], cwd=root, capture_output=True
+    )
+    assert ignored.returncode == 0
+
+
+def test_registered_writer_nonzero_help_is_not_skipped(tmp_path, monkeypatch):
+    root, steps = _isolated_flag_probe_repo(
+        tmp_path,
+        monkeypatch,
+        'import sys\nif "--help" in sys.argv:\n'
+        '    print("usage: probe.py --check --write")\n    raise SystemExit(2)\n',
+    )
+    monkeypatch.setitem(MOD._GENERATE_FLAG, "probe.py", "--write")
+    check = subprocess.run(
+        [sys.executable, "scripts/ci/probe.py", "--check"], cwd=root, capture_output=True
+    )
+    assert check.returncode == 0, "a passing check must not excuse a failed help probe"
+    with pytest.raises(SystemExit, match=r"probe.py.*2"):
+        MOD.flag_map_problems(steps)
+
+
+def test_registered_writer_requires_its_declared_flag_even_with_empty_help(tmp_path, monkeypatch):
+    _root, steps = _isolated_flag_probe_repo(
+        tmp_path, monkeypatch, 'import sys\nif "--help" in sys.argv:\n    raise SystemExit(0)\n'
+    )
+    monkeypatch.setitem(MOD._GENERATE_FLAG, "probe.py", "--write")
+    problems = MOD.flag_map_problems(steps)
+    assert any("probe.py" in problem and "--write" in problem for problem in problems), problems
+
+
+def test_successful_bare_writer_help_without_options_remains_supported(tmp_path, monkeypatch):
+    _root, steps = _isolated_flag_probe_repo(
+        tmp_path, monkeypatch, 'import sys\nif "--help" in sys.argv:\n    raise SystemExit(0)\n'
+    )
+    monkeypatch.setitem(MOD._GENERATE_FLAG, "probe.py", "")
+    assert MOD.flag_map_problems(steps) == []
+
+
+def test_flag_probe_reports_mutation_even_when_discovery_raises(tmp_path, monkeypatch, capsys):
+    root, steps = _isolated_flag_probe_repo(tmp_path, monkeypatch)
+    output = root / "interrupted-output.py"
+
+    def failed_probe(_script):
+        output.write_text("preserved diagnostic bytes\n", encoding="utf-8")
+        raise RuntimeError("original probe failure")
+
+    monkeypatch.setattr(MOD, "_accepted_flags", failed_probe)
+    with pytest.raises(RuntimeError, match="original probe failure"):
+        MOD.flag_map_problems(steps)
+    assert output.read_bytes() == b"preserved diagnostic bytes\n"
+    diagnostic = capsys.readouterr().err
+    assert "--help" in diagnostic and "changed" in diagnostic
 
 
 def test_flag_probe_requires_git_measurement_before_invocation(tmp_path, monkeypatch):
