@@ -77,6 +77,8 @@ def test_compensation_cases_are_required_in_the_fresh_suite_and_listed_in_run_su
     }
     required = {name.split("[", 1)[0] for name in COMPENSATION}
     assert required == defined
-    run_suite = (Path(__file__).resolve().parents[1] / "scripts/irr_f01/run_suite.sh").read_text()
+    run_suite = (Path(__file__).resolve().parents[1] / "scripts/irr_f01/run_suite.sh").read_text(
+        encoding="utf-8"
+    )
     fresh = re.search(r"fresh\)(.*?);;", run_suite, re.S).group(1)
     assert "tests_v9/test_irr_f01_compensation_live_pg.py" in fresh
