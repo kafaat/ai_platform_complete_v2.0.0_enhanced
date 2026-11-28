@@ -31,7 +31,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python -m pip install -c constraints-ci-tools.txt ruff
-          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+          python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0 httpx==0.28.1 "PyJWT[crypto]==2.15.0"
           python - <<'PY'
           import pathlib, re, runpy
           p = pathlib.Path
