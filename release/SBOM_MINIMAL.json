@@ -21525,7 +21525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa9f84a55d15ecd3d9d7b5854545ff8ac1c38f2a69b6ca395c74af870cac2938"
+          "content": "b323634c184763fc4b9dbc44790a81c683bae720b7573fdeea2cf1f465a9dadf"
         }
       ],
       "name": "services/field-management-service/tests/test_field_task_routes_unit.py",
@@ -35905,7 +35905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "059d095b150b05c107f603ed7b891785450485c21bac0f37176084216136f4e3"
+          "content": "46b604c385d5d580d1a0ea84b82f61ed161d021528ab4e7ba0789109a9070054"
         }
       ],
       "name": "services/sahool-platform/tests/test_farm_ledger_inventory_boundary.py",
