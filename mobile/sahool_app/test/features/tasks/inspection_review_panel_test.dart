@@ -37,7 +37,8 @@ void main() {
       'can_submit': true,
       'current_evidence': {'photo_evidence_id': 'e-2'},
     });
-    await tester.enterText(find.byType(TextField), '  تغيّرت القراءة  ');
+    await tester.enterText(find.byType(TextField).first, '  تغيّرت القراءة  ');
+    await tester.enterText(find.byType(TextField).last, 'eqp_pump_a');
     await tester.pump();
     await tester.tap(find.text('رفع النتيجة للمراجعة'));
     await tester.pumpAndSettle();
@@ -47,6 +48,7 @@ void main() {
       'reason': 'تغيّرت القراءة',
       'notes': 'تغيّرت القراءة',
       'photo_evidence_id': 'e-2',
+      'equipment_id': 'eqp_pump_a',
     });
   });
 
@@ -55,7 +57,9 @@ void main() {
       'revision': 4,
       'can_review': true,
       'events': [{'action': 'submit', 'evidence_version': 2}],
+      'evidence': [{'version': 2, 'equipment_id': 'eqp_pump_a'}],
     });
+    expect(find.textContaining('المعدّة المصرّح بها: eqp_pump_a'), findsOneWidget);
     await tester.enterText(find.byType(TextField), '  تم التحقق  ');
     await tester.pump();
     await tester.tap(find.text('اعتماد النتيجة'));
