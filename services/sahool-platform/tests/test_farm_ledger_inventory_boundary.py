@@ -315,3 +315,65 @@ def test_request_digest_unchanged_for_inputs_without_a_batch():
         update={"inputs": [req.inputs[0].model_copy(update={"inventory_batch_id": "b-1"})]}
     )
     assert router._request_digest(named) != expected
+
+
+def test_one_unconvertible_item_does_not_hide_the_catalogue_from_older_clients(monkeypatch):
+    """Devin review on #1666: a sack added to a kg item made the legacy list answer 409 for every
+    item. The uncertainty now stays on that item; the others keep their numeric totals."""
+    import contextlib
+
+    from api.routers import inventory
+
+    rows = [
+        {
+            "item_id": "fert",
+            "category": "fertilizer",
+            "name": "NPK",
+            "unit": "kg",
+            "reorder_level": Decimal("5"),
+            "batch_unit": "kg",
+            "quantity": Decimal("10"),
+        },
+        {
+            "item_id": "fert",
+            "category": "fertilizer",
+            "name": "NPK",
+            "unit": "kg",
+            "reorder_level": Decimal("5"),
+            "batch_unit": "كيس",
+            "quantity": Decimal("1"),
+        },
+        {
+            "item_id": "seed",
+            "category": "seed",
+            "name": "Wheat",
+            "unit": "kg",
+            "reorder_level": Decimal("50"),
+            "batch_unit": "g",
+            "quantity": Decimal("20000"),
+        },
+    ]
+
+    class _Conn:
+        async def fetch(self, sql, *args):
+            return rows
+
+    @contextlib.asynccontextmanager
+    async def _connection(_user):
+        yield _Conn()
+
+    monkeypatch.setattr(inventory, "tenant_connection", _connection)
+    legacy = asyncio.run(inventory.list_inventory_items(user=_user(), unit_breakdown=False))
+    by_id = {item["item_id"]: item for item in legacy}
+    assert by_id["fert"]["total_quantity"] is None and by_id["fert"]["low_stock"] is None
+    assert by_id["fert"]["unit_conversion_unavailable"] is True
+    assert by_id["seed"]["total_quantity"] == 20.0 and by_id["seed"]["low_stock"] is True
+    assert "unit_conversion_unavailable" not in by_id["seed"]
+    assert all("quantities_by_unit" not in item for item in legacy)
+
+    detailed = asyncio.run(inventory.list_inventory_items(user=_user(), unit_breakdown=True))
+    fert = next(item for item in detailed if item["item_id"] == "fert")
+    assert {q["unit"]: q["quantity"] for q in fert["quantities_by_unit"]} == {
+        "kg": 10.0,
+        "كيس": 1.0,
+    }

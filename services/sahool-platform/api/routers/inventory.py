@@ -112,11 +112,10 @@ async def list_inventory_items(
         first = unit_rows[0]
         amounts = {r["batch_unit"]: r["quantity"] for r in unit_rows if r["quantity"] is not None}
         total = stock_in_item_unit(first["unit"], amounts)
-        if total is None and not unit_breakdown:
-            raise HTTPException(
-                status_code=409,
-                detail={"code": "inventory_unit_conversion_unavailable", "item_id": item_id},
-            )
+        # An unconvertible unit is uncertainty about THIS item, so it stays scoped to it: the
+        # total and low_stock are null (never a guessed number) and the rest of the catalogue
+        # is served. Deployed clients that call without unit_breakdown already read both as
+        # nullable; refusing the whole list made every item unreachable for them.
         level = first["reorder_level"]
         item = {
             "item_id": item_id,
@@ -127,6 +126,8 @@ async def list_inventory_items(
             "total_quantity": float(total) if total is not None else None,
             "low_stock": (level is not None and total <= level) if total is not None else None,
         }
+        if total is None:
+            item["unit_conversion_unavailable"] = True
         if unit_breakdown:
             item["quantities_by_unit"] = [
                 {"unit": unit, "quantity": float(quantity)} for unit, quantity in amounts.items()

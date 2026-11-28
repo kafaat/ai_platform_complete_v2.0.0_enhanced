@@ -452,10 +452,15 @@ def test_item_stock_discloses_incompatible_units_without_guessing(monkeypatch):
                 f"{path}/{live.item_id}/batches", json={"quantity": 1, "unit": "كيس"}
             )
             assert batch.status_code == 201, batch.text
+            # Deployed clients call without unit_breakdown: the uncertainty stays on this item
+            # (null total, null low_stock, explicit flag) and the catalogue is still served.
             legacy = await client.get(path)
-            assert legacy.status_code == 409
-            assert legacy.json()["detail"]["code"] == "inventory_unit_conversion_unavailable"
-            assert legacy.json()["detail"]["item_id"] == live.item_id
+            assert legacy.status_code == 200, legacy.text
+            (old_view,) = legacy.json()
+            assert old_view["item_id"] == live.item_id
+            assert old_view["total_quantity"] is None and old_view["low_stock"] is None
+            assert old_view["unit_conversion_unavailable"] is True
+            assert "quantities_by_unit" not in old_view
             result = await client.get(path, params={"unit_breakdown": True})
             assert result.status_code == 200, result.text
             (item,) = result.json()
