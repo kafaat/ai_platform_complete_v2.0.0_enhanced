@@ -9439,3 +9439,24 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الاحتواء:** حفظ القياسات والهيدروليك مع حد تشغيلي صفري، ورفض اللقطات القديمة في المحول. يقرأ `api/irrigation_source_binding.py::aquifer_allocation_blocker` الربط الفعال والرسم المحفوظ للمستأجر والحقل والموسم الحالي؛ بذلك لا يعيد غياب الربط أو انتهاءه المسار اليومي إلى تشغيل بئر غير مخصص.
 - **الشواهد:** `services/sahool-platform/tests/test_canonical_well_capability.py` و`services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py` و`tests_v9/test_h51_field_source_binding_pg.py`. شاهد ASGI يستخدم بدائل نقل معلنة؛ PG يقيس المخطط وعزل الدور المقيد بإيصال مستقل.
 - **شرط الإغلاق:** جهة دليل قابلة للتحقق وصلاحيات كتابة مفروضة، نطاق مستأجر/مورد/بئر وصلاحية زمنية، وحصص تمنع منح حد المورد نفسه لكل بئر، ثم اختبار المصدر والتخزين والمسارين اليومي والساعي والجسر على الرأس المنشور وبواباته.
+
+## IRR-PERIOD-QUOTA-STALE-SNAPSHOT-01 — انتظار القفل لا يجدد لقطة ميزانية الفترة
+
+- **الحالة:** fixed في المرشح المحلي `577bc954aedbbe101f6c329b0e738ec145737321`؛ شاهد PostgreSQL معزول، وقبول النشر مستقل.
+- **المصدر:** #1664 عند `544b3a76` و`services/sahool-platform/api/irrigation_reservation_adapter.py:229-248`. أعاد شاهد مستقل على PostgreSQL 15.20 حجزين ملتزمين بمجموع 3000 م³ مقابل ميزانية 2500 م³، عندما انتظر طالب REPEATABLE READ قفل طالب READ COMMITTED بنافذتين غير متداخلتين.
+- **العلاج:** يشترط المحول معاملة يملكها المستدعي وعزل READ COMMITTED أو READ UNCOMMITTED قبل ضبط سياق المستأجر وقراءة الحجوزات والكتابة؛ يرفض اللقطة الثابتة صراحة. تبقى راية حجم الفترة اختيارية ولا ينشئ الإصلاح سلطة تخصيص للمورد.
+- **الانحدار والحدود:** `tests_v9/test_irr_f01_reservation_live_pg.py::test_concurrent_disjoint_windows_respect_period_quota` يغطي التزام السابق وتراجعه؛ و`test_reservations_require_fresh_statement_snapshots` يغطي رفض REPEATABLE READ وSERIALIZABLE. لم يُنسب مثال التجاوز المقيس إلى SERIALIZABLE، ولا إلى بيئة إنتاج.
+
+## IRR-RESERVATION-CALLER-TX-SNAPSHOT-01 — قبول السعة المشتركة يحتاج معاملة ولقطة حديثة
+
+- **الحالة:** fixed في المرشح المحلي `577bc954aedbbe101f6c329b0e738ec145737321`؛ يشمل الوضع الذي لا يفعّل حجم الفترة.
+- **المصدر:** `services/sahool-platform/api/irrigation_reservation_adapter.py:229-248` و`tests_v9/test_irr_f01_reservation_live_pg.py:871-978`. وصل شاهد REPEATABLE READ في المسار السابق إلى إدخال حجز يتجاوز السعة المشتركة ثم أُجبر على التراجع؛ يثبت قبولًا غير صحيح ولا يثبت تجاوزًا ملتزمًا في ذلك المسار.
+- **العلاج:** يعمم شرط المعاملة واللقطة الحديثة على كل طلب حجز، مع حفظ رفض التفعيل قبل التعامل مع قاعدة البيانات ورموز الأخطاء المتخصصة بحجم الفترة. لا يتحول قفل قصير في autocommit إلى ضمان للقراءة ثم الكتابة.
+- **الانحدار والحدود:** يثبت `test_reservation_rejects_autocommit_before_resolver_or_dispatch` رفض autocommit قبل المحلل أو منفذ الإرسال أو الصفوف؛ وتغطي اختبارات اللقطة الراية مفعلة ومطفأة. لم يُثبت مسار HTTP أو عامل إنتاج مركب يستدعي هذا المحول.
+
+## IRR-DISPATCH-COMPENSATION-GROUP-01 — تعويض الإرسال يجب أن يحفظ المجموعة والتاريخ ذريًا
+
+- **الحالة:** fixed في المرشح المحلي `577bc954aedbbe101f6c329b0e738ec145737321`؛ عشرة شواهد PostgreSQL للتعويض، دون ادعاء تسليم خارجي.
+- **المصدر:** `services/sahool-platform/api/irrigation_reservation_adapter.py:388` و`tests_v9/test_irr_f01_compensation_live_pg.py`. كشف الشاهد الأصلي سبعة إخفاقات من ثماني حالات، ثم كشفت المراجعة حالة إضافية تسمح بتعويض مجموعة جزئية في المحاولة الأولى.
+- **العلاج:** يلزم معاملة خارجية وقائمة UUID غير فارغة وفريدة تطابق مجموعة التقييم كاملة؛ تُقفل الصفوف بترتيب ثابت ويحيط savepoint بالتعديل وأحداث التدقيق وصادر الفشل عبر الاتصال نفسه. لا يغير تعويض حالة نهائية أو نطاقًا مختلطًا، والتكرار المطابق يصبح بلا أثر إضافي. يُحسم توافق توقيع المنفذ قبل الاستدعاء، فلا تعاد محاولته بعد TypeError قد يلي أثرًا جانبيًا.
+- **الانحدار والحدود:** `test_incomplete_first_attempts_preserve_group_for_full_compensation` و`test_port_error_caught_by_caller_rolls_back_rows_and_does_not_retry` و`test_concurrent_reverse_order_replay_waits_then_preserves_one_outbox` تثبت رفض الجزء الأول والتراجع والتكرار المتزامن. `execution_request_ref` مفتاح عملية معتم لا شهادة مستقلة لملكية الإرسال. يفترض العقد كاتب الخدمة الذي ينشئ التقييم وكل أشقائه في معاملة واحدة؛ إدخال أشقاء لاحقًا عبر SQL خارج العقد لم يُضمن.
