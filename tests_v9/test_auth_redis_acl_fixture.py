@@ -13,6 +13,21 @@ from tests_v9.test_auth_admin_authz_live_pg_redis import _redis_acl_client
 
 pytestmark = pytest.mark.unit
 
+_PLAIN = (str, bytes, int, float, bool, type(None))
+
+
+def _comparable(options: dict) -> dict:
+    """Plain option values compare exactly; per-pool runtime objects compare by type.
+
+    redis>=8 puts objects into ``connection_kwargs`` that each new pool creates afresh
+    (``HImportRegistry``, ``AsyncMaintNotificationsPoolHandler``) and that define no
+    ``__eq__``, so two independently built pools never compare equal even when every
+    connection option matches. The requirements pin only ``redis>=5.0.0``, so the
+    comparison must not depend on which release CI resolves. Every key must still be
+    present on both sides, and a dropped or altered option value still fails.
+    """
+    return {k: v if isinstance(v, _PLAIN) else type(v) for k, v in options.items()}
+
 
 @pytest.mark.parametrize(
     "url",
@@ -48,7 +63,7 @@ def test_acl_identity_overrides_url_auth_but_preserves_connection_options(url):
             for k, v in baseline.connection_pool.connection_kwargs.items()
             if k not in {"username", "password"}
         }
-        assert actual_options == baseline_options
+        assert _comparable(actual_options) == _comparable(baseline_options)
         assert client.connection_pool.connection_class is baseline.connection_pool.connection_class
         assert client.connection_pool.max_connections == baseline.connection_pool.max_connections
         assert client.auto_close_connection_pool is True
