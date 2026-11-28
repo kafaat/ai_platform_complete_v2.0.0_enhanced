@@ -299,7 +299,8 @@ def _accepted_flags(script: str) -> set[str]:
         timeout=STEP_TIMEOUT_SECONDS,
     )
     if proc.returncode != 0:
-        return set()
+        detail = (proc.stderr or proc.stdout).strip()[:200]
+        raise SystemExit(f"--help probe failed for {script} (exit {proc.returncode}): {detail}")
     return set(re.findall(r"--[a-z][a-z0-9-]*", proc.stdout))
 
 
@@ -316,17 +317,20 @@ def _probe_git(*args: str) -> bytes:
 
 
 def _flag_probe_state() -> dict:
-    """Measure tracked bytes/existence/modes, symlink targets, index and HEAD.
+    """Measure tracked/nonignored file state, symlink targets, index and HEAD.
 
     Porcelain cannot distinguish one dirty version from another (M -> M). Include
     HEAD paths as well as index paths so a staged deletion cannot hide a file.
-    This is a tracked-source boundary, not an audit of ignored or untracked files.
+    Nonignored untracked files are also inputs: a probe must not create or rewrite
+    them after the initial unindexed-files check. Gitignored tool caches are excluded.
+    These before/after samples do not detect transient changes restored in between.
     """
     head = _probe_git("rev-parse", "--verify", "HEAD").strip()
     index = _probe_git("ls-files", "--stage", "-z")
     flags = _probe_git("ls-files", "-v", "-z")
     paths = set(_probe_git("ls-tree", "-r", "--name-only", "-z", "HEAD").split(b"\0"))
     paths.update(row.split(b"\t", 1)[1] for row in index.split(b"\0") if row)
+    paths.update(_probe_git("ls-files", "--others", "--exclude-standard", "-z").split(b"\0"))
     paths.discard(b"")
     files = {}
     for raw_path in sorted(paths):
@@ -351,20 +355,32 @@ def _flag_probe_state() -> dict:
         except OSError as error:
             raise SystemExit(f"--help probe cannot read {relative}: {error}") from error
         files[relative] = (mode, content)
-    return {"HEAD": head, "index": index, "index_flags": flags, "tracked_files": files}
+    return {"HEAD": head, "index": index, "index_flags": flags, "source_files": files}
 
 
 def flag_map_problems(steps) -> list[str]:
     """Interrogating CLI flags must not repair the files that the sweep checks."""
     before = _flag_probe_state()
-    problems = _flag_map_problems(steps)
-    after = _flag_probe_state()
-    if before != after:
-        changed = ", ".join(key for key in before if before[key] != after[key])
-        problems.append(
-            f"--help probe changed tracked source state ({changed}); "
-            "refusing to continue after a mutating probe. No files were restored."
-        )
+    problems: list[str] = []
+    try:
+        problems = _flag_map_problems(steps)
+    finally:
+        original_error = sys.exc_info()[1]
+        try:
+            after = _flag_probe_state()
+        except BaseException:
+            if original_error is not None:
+                print(f"Original --help probe failure: {original_error}", file=sys.stderr)
+            raise
+        if before != after:
+            changed = ", ".join(key for key in before if before[key] != after[key])
+            diagnostic = (
+                f"--help probe changed measured source state ({changed}); "
+                "refusing to continue after a mutating probe. No files were restored."
+            )
+            problems.append(diagnostic)
+            if original_error is not None:
+                print(diagnostic, file=sys.stderr)
     return problems
 
 
@@ -384,8 +400,6 @@ def _flag_map_problems(steps) -> list[str]:
     for script in sorted({s for s, _ in steps}):
         name = Path(script).name
         flags = _accepted_flags(script)
-        if not flags:
-            continue  # لا ``--help`` قابلاً للاستجواب ⇒ لا حكم (لا تخمين)
         seen.add(script)
         if name in _GENERATE_FLAG:
             declared = _GENERATE_FLAG[name]
@@ -397,8 +411,6 @@ def _flag_map_problems(steps) -> list[str]:
                 )
             continue
         usable = write_flags_of(flags)
-        if not usable:
-            continue
         if script in baseline:
             if baseline[script] not in usable:
                 problems.append(
@@ -406,6 +418,8 @@ def _flag_map_problems(steps) -> list[str]:
                     f"{', '.join(usable)} — حدّث generated_sweep_unmapped_generators.json"
                 )
             continue
+        if not usable:
+            continue  # A successful bare/check-only CLI need not advertise a write flag.
         problems.append(
             f"{script}: يملك علم كتابة ({', '.join(usable)}) ولا يذكره _GENERATE_FLAG "
             "⇒ لا يُعاد توليده أبداً، وانحرافه يبقى بلا إصلاح. صِلْه بالخريطة، أو "
