@@ -212,3 +212,20 @@ async def test_concurrent_reverse_order_replay_waits_then_preserves_one_outbox(l
             await asyncio.gather(task, return_exceptions=True)
         await second.close()
     assert await snapshot(live) == (["cancelled", "cancelled"], 2, 1)
+
+
+async def test_incomplete_first_attempts_preserve_group_for_full_compensation(live):
+    compensate = _adapter()[0].compensate_dispatch_failure
+    args = await reserve(live)
+    conn = live["app"]
+    for rid, reason in zip(
+        args["reservation_ids"], ("first failure", "other failure"), strict=True
+    ):
+        async with conn.transaction():
+            with pytest.raises(ValueError, match="^COMPENSATION_CONFLICT$"):
+                await compensate(conn, **{**args, "reservation_ids": [rid], "reason": reason})
+        assert await snapshot(live) == (["reserved", "reserved"], 0, 0)
+    async with conn.transaction():
+        await compensate(conn, **args)
+        await compensate(conn, **args)
+    assert await snapshot(live) == (["cancelled", "cancelled"], 2, 1)

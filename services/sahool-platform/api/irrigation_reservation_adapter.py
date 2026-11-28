@@ -417,17 +417,31 @@ async def compensate_dispatch_failure(
     )
     async with conn.transaction():
         await conn.execute(SET_TENANT_SQL, str(tenant_id))
+        requested = await conn.fetch(
+            """SELECT evaluation_id FROM irrigation_resource_reservations
+               WHERE tenant_id = $1 AND reservation_id = ANY($2::uuid[])""",
+            tenant_id,
+            ids,
+        )
+        if len(requested) != len(ids):
+            raise ValueError("COMPENSATION_RESERVATION_NOT_FOUND")
+        evaluations = {row["evaluation_id"] for row in requested}
+        if len(evaluations) != 1:
+            raise ValueError("COMPENSATION_GROUP_MISMATCH")
+        evaluation_id = evaluations.pop()
+        # One dispatch is emitted for the complete evaluation. Acquire locks in the
+        # same order even when callers supply different subsets or ordering.
         rows = await conn.fetch(
             """SELECT reservation_id, evaluation_id, execution_ref_type, execution_ref_id,
                       correlation_id, state
                FROM irrigation_resource_reservations
-               WHERE tenant_id = $1 AND reservation_id = ANY($2::uuid[])
+               WHERE tenant_id = $1 AND evaluation_id = $2
                ORDER BY reservation_id FOR UPDATE""",
             tenant_id,
-            ids,
+            evaluation_id,
         )
-        if len(rows) != len(ids):
-            raise ValueError("COMPENSATION_RESERVATION_NOT_FOUND")
+        if [row["reservation_id"] for row in rows] != ids:
+            raise ValueError("COMPENSATION_CONFLICT")
         groups = {
             (
                 row["evaluation_id"],
