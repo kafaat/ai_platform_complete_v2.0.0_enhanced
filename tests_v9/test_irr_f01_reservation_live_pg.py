@@ -692,3 +692,66 @@ async def test_reservation_mqtt_replay_has_one_simulated_device_effect(live, tmp
         assert effects.read_text(encoding="utf-8").splitlines() == [reservation_id]
     finally:
         await broker.shutdown()
+
+
+async def test_period_volume_serial_reservations_over_live_postgres(live):
+    """Synthetic quota: two nonoverlapping 50-ha pivot requests, each 1500 m3."""
+    import json
+
+    adapter, kernel = _adapter()
+    app, tenant, project, node = live["app"], live["tenant"], live["project"], live["n1"]
+    hour = timedelta(hours=1)
+    resource = adapter.ResourceRequest(
+        resource_node_id=node,
+        policy=kernel.ResourcePolicy.SHARED_CAPACITY,
+        reserved_flow_m3h=Decimal("1500"),
+        derated_capacity_m3h=Decimal("2000"),
+        requires_period_volume_budget=True,
+    )
+
+    async def resolve(conn, req):
+        assert conn.is_in_transaction()
+        assert req.resource_node_id == node
+        assert await conn.fetchval("select current_setting('app.current_tenant')") == str(tenant)
+        return kernel.PeriodVolumeBudget(
+            START, START + 24 * hour, Decimal("2500"), "synthetic-budget-v1"
+        )
+
+    async def reserve(start, ref, resolver):
+        async with app.transaction():
+            return await adapter.reserve_and_request_dispatch_db(
+                app,
+                tenant_id=tenant,
+                project_id=project,
+                requested_start=start,
+                requested_end=start + hour,
+                resources=[resource],
+                execution_ref_type="manual_execution",
+                execution_ref_id=ref,
+                calculation_model_version="period-volume-test",
+                execution_port=_Port(),
+                correlation_id=tenant,
+                resolve_period_volume_budget=resolver,
+            )
+
+    with pytest.raises(ValueError, match="PERIOD_VOLUME_BUDGET_REQUIRED"):
+        await reserve(START, "missing-budget", None)
+
+    first = await reserve(START, "pivot-a", resolve)
+    with pytest.raises(adapter.CapacityNotAdmissible) as blocked:
+        await reserve(START + hour, "pivot-b", resolve)
+    assert blocked.value.admission.blocking_code == "PERIOD_VOLUME_EXCEEDED"
+    assert blocked.value.admission.peak_existing_flow_m3h == 0
+
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"select count(*) from {table}") == 1
+    raw = await app.fetchval(
+        "select derating_factors from hydraulic_capacity_evaluations where evaluation_id=$1",
+        UUID(first.evaluation_id),
+    )
+    evidence = json.loads(raw)["period_volume_budgets"][str(node)]
+    assert evidence["evidence_ref"] == "synthetic-budget-v1"
+    assert evidence["available_m3"] == "2500"
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(uuid4()))
+    assert await app.fetchval("select count(*) from irrigation_resource_reservations") == 0
