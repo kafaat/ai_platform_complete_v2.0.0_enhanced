@@ -1450,6 +1450,7 @@ def test_cli_help_and_invalid_arguments_never_repair_outputs(tmp_path, arguments
         cwd=root,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
 
     assert result.returncode == exit_code, result.stdout + result.stderr
@@ -1469,6 +1470,7 @@ def test_help_preserves_drift_until_explicit_write(tmp_path):
         cwd=root,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert helped.returncode == 0
     assert inventory.read_bytes() == b"stale inventory\n"
@@ -1479,6 +1481,7 @@ def test_help_preserves_drift_until_explicit_write(tmp_path):
         cwd=root,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert written.returncode == 0, written.stdout + written.stderr
     assert _run_check(root).returncode == 0

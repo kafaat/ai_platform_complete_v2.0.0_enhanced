@@ -369,7 +369,7 @@ def test_flag_probe_allows_gitignored_tool_cache(tmp_path, monkeypatch):
     (root / ".gitignore").write_text("tool-cache/\n", encoding="utf-8")
     subprocess.run(["git", "add", ".gitignore"], cwd=root, check=True, capture_output=True)
     assert MOD.flag_map_problems(steps) == []
-    assert (root / "tool-cache/value").read_text() == "cache bytes"
+    assert (root / "tool-cache/value").read_text(encoding="utf-8") == "cache bytes"
     ignored = subprocess.run(
         ["git", "check-ignore", "-q", "tool-cache/value"], cwd=root, capture_output=True
     )
