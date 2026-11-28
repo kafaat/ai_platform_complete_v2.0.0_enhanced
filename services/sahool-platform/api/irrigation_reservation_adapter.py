@@ -34,6 +34,7 @@ from uuid import UUID
 
 from api.irrigation_capacity_reservation import (
     CapacityAdmission,
+    PeriodVolumeBudget,
     ReservationWindow,
     ResourcePolicy,
     ResourceRef,
@@ -116,6 +117,7 @@ class ResourceRequest:
     policy: ResourcePolicy
     reserved_flow_m3h: Decimal
     derated_capacity_m3h: Decimal | None
+    requires_period_volume_budget: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -179,6 +181,9 @@ async def reserve_and_request_dispatch_db(
     idempotency_key: str | None = None,
     activation_guard: Callable[[], Awaitable[None]] | None = None,
     after_locks_acquired: Callable[[], Awaitable[None]] | None = None,
+    resolve_period_volume_budget: (
+        Callable[[Any, ResourceRequest], Awaitable[PeriodVolumeBudget | None]] | None
+    ) = None,
 ) -> ReservationOutcome:
     """Lock-before-evaluate reserve + dispatch-REQUEST inside the caller's tx.
 
@@ -193,6 +198,11 @@ async def reserve_and_request_dispatch_db(
     ``None``; production callers never pass it): it is awaited once, with every
     advisory lock held but BEFORE the fresh overlap read, so a concurrency test can
     interleave a second transaction and certify end-to-end serialization without sleeps.
+
+    Period volume is opt-in, not an authority grant. Only an owner-side resolver may
+    mark a resource as requiring a budget and supply the current approved quota net of
+    settled use. Resolution and settlement must share the same lock and transaction
+    contract. No existing groundwater eligibility gate is changed by this seam.
     """
 
     if not resources:
@@ -204,6 +214,12 @@ async def reserve_and_request_dispatch_db(
     resource_ids = [r.resource_node_id for r in resources]
     if len(resource_ids) != len(set(resource_ids)):
         raise ValueError("DUPLICATE_HYDRAULIC_RESOURCE")
+
+    if any(r.requires_period_volume_budget for r in resources):
+        if resolve_period_volume_budget is None:
+            raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
+        if not conn.is_in_transaction():
+            raise ValueError("PERIOD_VOLUME_TRANSACTION_REQUIRED")
 
     # Activation enforcement AT THE SOURCE: gate the reservation before any side effect.
     # A disabled/revoked gate raises here, so no lock is taken and no row is written.
@@ -229,9 +245,27 @@ async def reserve_and_request_dispatch_db(
     peak_over_all = Decimal("0")
 
     # After locks are held, evaluate every resource against a FRESH overlap read.
+    period_evidence: dict[str, dict[str, str]] = {}
     for req in resources:
+        budget = None
+        read_start, read_end = requested_start, requested_end
+        if req.requires_period_volume_budget:
+            if resolve_period_volume_budget is None:
+                raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
+            budget = await resolve_period_volume_budget(conn, req)
+            if budget is None:
+                raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
+            # Include sequential reservations anywhere in the quota period, not
+            # just reservations concurrent with this request.
+            read_start, read_end = budget.starts_at, budget.ends_at
+            period_evidence[str(req.resource_node_id)] = {
+                "starts_at": budget.starts_at.isoformat(),
+                "ends_at": budget.ends_at.isoformat(),
+                "available_m3": str(budget.available_m3),
+                "evidence_ref": budget.evidence_ref,
+            }
         rows = await conn.fetch(
-            OVERLAP_WINDOWS_SQL, tenant, req.resource_node_id, requested_start, requested_end
+            OVERLAP_WINDOWS_SQL, tenant, req.resource_node_id, read_start, read_end
         )
         existing = [
             ReservationWindow(r["starts_at"], r["ends_at"], Decimal(str(r["reserved_flow_m3h"])))
@@ -244,6 +278,7 @@ async def reserve_and_request_dispatch_db(
             requested_end=requested_end,
             requested_flow_m3h=req.reserved_flow_m3h,
             derated_capacity_m3h=req.derated_capacity_m3h,
+            period_volume_budget=budget,
         )
         if not admission.eligible:
             raise CapacityNotAdmissible(str(req.resource_node_id), admission)
@@ -280,7 +315,7 @@ async def reserve_and_request_dispatch_db(
         True,
         json.dumps([]),
         json.dumps([]),
-        json.dumps({}),
+        json.dumps({"period_volume_budgets": period_evidence} if period_evidence else {}),
         capability_digest,
         telemetry_snapshot_version,
         calculation_model_version,

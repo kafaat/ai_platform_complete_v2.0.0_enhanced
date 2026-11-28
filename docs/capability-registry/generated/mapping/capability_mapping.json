@@ -15,25 +15,25 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7778,
+    "files_scanned": 7779,
     "files_by_kind": {
       "backend": 1322,
       "database": 360,
       "governance": 92,
       "mobile": 429,
       "other": 2261,
-      "tests": 2727,
+      "tests": 2728,
       "web": 587
     },
-    "unmapped_artifacts": 3707,
+    "unmapped_artifacts": 3708,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4230,
+      "python_functional": 4231,
       "raw": 3548
     },
-    "test_dependency_files": 2078,
-    "test_dependency_edges": 5637,
-    "test_dependency_bounded_files": 1195,
+    "test_dependency_files": 2079,
+    "test_dependency_edges": 5639,
+    "test_dependency_bounded_files": 1196,
     "test_dependency_unresolved_relations": 539
   },
   "capabilities": [
@@ -44556,6 +44556,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/irrigation/test_irrigation_period_volume_reservation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/irrigation/test_irrigation_reservation_adapter.py",
       "kind": "tests"
     },
@@ -75441,6 +75445,24 @@
           "source": "services/sahool-platform/api/irrigation_path_query.py",
           "kind": "source_read",
           "line": 10
+        }
+      ],
+      "unresolved": []
+    },
+    {
+      "test": "tests/irrigation/test_irrigation_period_volume_reservation.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "services/sahool-platform/api/irrigation_capacity_reservation.py",
+          "kind": "loader",
+          "line": 13
+        },
+        {
+          "source": "services/sahool-platform/api/irrigation_capacity_reservation.py",
+          "kind": "source_read",
+          "line": 12
         }
       ],
       "unresolved": []
