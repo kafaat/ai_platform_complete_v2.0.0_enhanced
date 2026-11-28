@@ -2173,3 +2173,60 @@ def test_the_meter_gate_admits_the_accepted_inspector_or_a_supervisor_only():
     assert out["other_worker"] == 403
     assert out["supervisor"] == 200
     assert out["after_accept"] == 200
+
+
+def test_equipment_declaration_survives_review_and_conflicting_replay():
+    """A declaration is part of the immutable owner evidence, not maintenance authorization."""
+
+    async def target():
+        async with Live() as live:
+            task = await live.assign()
+            accepted = await live.handoff(task, "accept", "inspector", {"expected_revision": 0})
+            assert accepted.status_code == 200, accepted.text
+            body = {
+                "expected_revision": 1,
+                "action": "submit",
+                "reason": "synthetic pump inspection",
+                "notes": "synthetic observation",
+                "equipment_id": "eqp_pump_a",
+            }
+            submitted = await live.handoff(task, "finding", "inspector", body)
+            assert submitted.status_code == 200, submitted.text
+            before = await live.state(task, "inspector")
+            evidence = before["current_evidence"]
+            assert evidence["equipment_id"] == "eqp_pump_a"
+            assert evidence["digest"] == hashlib.sha256(
+                b"equipment:eqp_pump_a|||synthetic observation"
+            ).hexdigest()
+            for change in ({"equipment_id": "eqp_pump_b"}, {"equipment_id": None}):
+                conflict = await live.handoff(task, "finding", "inspector", body | change)
+                assert conflict.status_code == 409, conflict.text
+                assert await live.state(task, "inspector") == before
+            replay = await live.handoff(task, "finding", "inspector", body)
+            assert replay.status_code == 200, replay.text
+            assert replay.json() == before
+            reviewer = await live.state(task, "reviewer")
+            assert reviewer["current_evidence"]["equipment_id"] == "eqp_pump_a"
+            approved = await live.handoff(
+                task,
+                "finding",
+                "reviewer",
+                {
+                    "expected_revision": 2,
+                    "action": "approve",
+                    "reason": "reviewed synthetic finding",
+                    "evidence_version": evidence["version"],
+                },
+            )
+            assert approved.status_code == 200, approved.text
+            assert approved.json()["approved_evidence"]["equipment_id"] == "eqp_pump_a"
+            assert len(approved.json()["evidence"]) == 1
+            assert await _as_app(
+                live,
+                "inspector",
+                "UPDATE inspection_evidence_versions SET equipment_id=$1 WHERE task_id=$2::uuid",
+                "eqp_pump_b",
+                task,
+            ) != "allowed"
+
+    run(target())
