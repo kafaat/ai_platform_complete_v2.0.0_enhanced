@@ -187,6 +187,38 @@ async def _has_equipment_column(conn) -> bool:
     return bool(await conn.fetchval(_EQUIPMENT_COLUMN))
 
 
+def _evidence_read_columns(has_equipment: bool) -> str:
+    return "equipment_id" if has_equipment else "NULL AS equipment_id"
+
+
+def _evidence_insert_sql(has_equipment: bool, equipment_id: str | None) -> tuple[str, bool]:
+    """The INSERT for this store, and whether it binds equipment_id as the 11th parameter.
+
+    Pre-v292 store: never drop a declaration silently and never bind it into a digest the
+    database cannot hold, so a declaration is refused (409) while the legacy path stays open.
+    """
+    if has_equipment:
+        return (
+            """INSERT INTO inspection_evidence_versions
+                (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
+                 photo_content_sha256, notes, digest, recorded_by, equipment_id)
+               VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10,$11)""",
+            True,
+        )
+    if equipment_id is not None:
+        raise HTTPException(
+            409,
+            "تصريح المعدّة غير متاح قبل تطبيق الهجرة v292؛ ارفع النتيجة بلا معدّة أو انتظر التطبيق",
+        )
+    return (
+        """INSERT INTO inspection_evidence_versions
+            (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
+             photo_content_sha256, notes, digest, recorded_by)
+           VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10)""",
+        False,
+    )
+
+
 async def _load(conn, caller: Caller, field_id: str, task_id: UUID, *, write: bool):
     lock = "FOR UPDATE" if write else "FOR SHARE"
     row = await conn.fetchrow(
@@ -209,7 +241,7 @@ async def _load(conn, caller: Caller, field_id: str, task_id: UUID, *, write: bo
         field_id,
         task_id,
     )
-    equipment = "equipment_id" if await _has_equipment_column(conn) else "NULL AS equipment_id"
+    equipment = _evidence_read_columns(await _has_equipment_column(conn))
     versions = await conn.fetch(
         f"""SELECT version, photo_evidence_id, photo_content_sha256, notes, digest, recorded_by,
                   recorded_at, {equipment}
@@ -539,30 +571,8 @@ async def _record_version(
         digest,
         caller.user_id,
     ]
-    if await _has_equipment_column(conn):
-        await conn.execute(
-            """INSERT INTO inspection_evidence_versions
-                (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
-                 photo_content_sha256, notes, digest, recorded_by, equipment_id)
-               VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10,$11)""",
-            *values,
-            equipment_id,
-        )
-    elif equipment_id is not None:
-        # Pre-v292 store: never drop a declaration silently, and never bind it into a digest
-        # the database cannot hold. The legacy (equipment-free) path below stays open.
-        raise HTTPException(
-            409,
-            "تصريح المعدّة غير متاح قبل تطبيق الهجرة v292؛ ارفع النتيجة بلا معدّة أو انتظر التطبيق",
-        )
-    else:
-        await conn.execute(
-            """INSERT INTO inspection_evidence_versions
-                (tenant_id, field_id, task_id, version, pin_id, photo_evidence_id,
-                 photo_content_sha256, notes, digest, recorded_by)
-               VALUES ($1::uuid,$2,$3,$4,$5,$6::uuid,$7,$8,$9,$10)""",
-            *values,
-        )
+    sql, binds_equipment = _evidence_insert_sql(await _has_equipment_column(conn), equipment_id)
+    await conn.execute(sql, *values, *([equipment_id] if binds_equipment else []))
     return version
 
 

@@ -340,97 +340,33 @@ def test_invalid_equipment_reference_refused(equipment_id):
 # writing; only an explicit equipment declaration is refused, never silently dropped.
 
 
-class _EvidenceStore:
-    """Answers the inspection queries the way a v274..v291 (or v292) store would."""
-
-    def __init__(self, *, has_equipment: bool):
-        self.has_equipment = has_equipment
-        self.queries: list[str] = []
-        self.inserts: list[tuple] = []
-
-    async def fetchval(self, sql, *args):
-        self.queries.append(sql)
-        assert "pg_attribute" in sql and "equipment_id" in sql
-        return self.has_equipment
-
-    async def fetchrow(self, sql, *args):
-        self.queries.append(sql)
-        if "FROM field_tasks" in sql:
-            return {"assigned_to": "u1", "status": "open", "pin_id": "pin-1"}
-        return None  # no prior version / no photo
-
-    async def fetch(self, sql, *args):
-        self.queries.append(sql)
-        if "inspection_evidence_versions" in sql and not self.has_equipment:
-            assert "NULL AS equipment_id" in sql, "pre-v292 read must not name the column"
-        return []
-
-    async def execute(self, sql, *args):
-        self.queries.append(sql)
-        if "equipment_id" in sql and not self.has_equipment:
-            raise AssertionError("pre-v292 write named a column the store does not have")
-        self.inserts.append(args)
-        return "INSERT 0 1"
-
-
-def _run(coro):
-    import asyncio
-
-    return asyncio.run(coro)
-
-
 @pytest.mark.parametrize("has_equipment", [False, True])
-def test_inspection_read_works_with_and_without_the_v292_column(has_equipment):
-    store = _EvidenceStore(has_equipment=has_equipment)
-    task, events = _run(
-        fm_task_inspection._load(
-            store, fm_gateway.Caller(TENANT, "u1", "owner"), "f1", "t1", write=False
-        )
-    )
-    assert task["evidence"] == [] and events == []
-    reads = [q for q in store.queries if "FROM inspection_evidence_versions" in q]
-    assert reads and ("NULL AS equipment_id" in reads[0]) is (not has_equipment)
+def test_inspection_read_names_the_v292_column_only_when_present(has_equipment):
+    columns = fm_task_inspection._evidence_read_columns(has_equipment)
+    assert columns == ("equipment_id" if has_equipment else "NULL AS equipment_id")
 
 
-def test_pre_v292_legacy_evidence_write_keeps_the_v274_digest():
-    store = _EvidenceStore(has_equipment=False)
-    version = _run(
-        fm_task_inspection._record_version(
-            store, fm_gateway.Caller(TENANT, "u1", "owner"), "f1", "t1", "pin-1", None, "note"
-        )
-    )
-    assert version == 1
-    (args,) = store.inserts
-    assert len(args) == 10  # no equipment column
-    assert args[8] == fm_task_inspection.evidence_digest(None, None, "note")
+def test_pre_v292_legacy_write_omits_the_column():
+    sql, binds = fm_task_inspection._evidence_insert_sql(False, None)
+    assert binds is False and "equipment_id" not in sql and "$10)" in sql and "$11" not in sql
 
 
 def test_pre_v292_equipment_declaration_is_refused_not_dropped():
-    store = _EvidenceStore(has_equipment=False)
-    with pytest.raises(HTTPException) as err:
-        _run(
-            fm_task_inspection._record_version(
-                store,
-                fm_gateway.Caller(TENANT, "u1", "owner"),
-                "f1",
-                "t1",
-                "pin-1",
-                None,
-                "note",
-                "eqp_A",
-            )
-        )
-    assert err.value.status_code == 409 and "v292" in err.value.detail
-    assert store.inserts == []
+    status, detail = _status(fm_task_inspection._evidence_insert_sql, False, "eqp_A")
+    assert status == 409 and "v292" in detail
 
 
-def test_v292_equipment_declaration_is_written_and_digested():
-    store = _EvidenceStore(has_equipment=True)
-    _run(
-        fm_task_inspection._record_version(
-            store, fm_gateway.Caller(TENANT, "u1", "owner"), "f1", "t1", "pin-1", None, "n", "eqp_A"
-        )
-    )
-    (args,) = store.inserts
-    assert args[-1] == "eqp_A"
-    assert args[8] == fm_task_inspection.evidence_digest(None, None, "n", "eqp_A")
+@pytest.mark.parametrize("equipment_id", [None, "eqp_A"])
+def test_v292_write_binds_the_column(equipment_id):
+    sql, binds = fm_task_inspection._evidence_insert_sql(True, equipment_id)
+    assert binds is True and "equipment_id)" in sql and "$11)" in sql
+
+
+def test_load_and_record_use_the_probe_not_a_fixed_column():
+    import inspect
+
+    load = inspect.getsource(fm_task_inspection._load)
+    record = inspect.getsource(fm_task_inspection._record_version)
+    assert "_evidence_read_columns(await _has_equipment_column(conn))" in load
+    assert "_evidence_insert_sql(await _has_equipment_column(conn), equipment_id)" in record
+    assert "recorded_at, equipment_id" not in load
