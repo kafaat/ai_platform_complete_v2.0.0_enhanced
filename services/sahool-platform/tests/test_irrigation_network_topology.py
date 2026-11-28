@@ -1,11 +1,10 @@
 """Reject ambiguous request topology before invoking the irrigation network screen."""
 
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-
 from api.main import UserSchema, get_current_user
 from api.routers import irrigation_network as network
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 URL = "/api/v1/irrigation/network/feasibility"
 
