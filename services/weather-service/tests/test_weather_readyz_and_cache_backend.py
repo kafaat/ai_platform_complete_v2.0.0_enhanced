@@ -109,3 +109,85 @@ def test_cache_uses_redis_backend_when_available(monkeypatch):
     assert age == 0
     assert stats["backend"] == "redis"
     assert stats["redis_configured"] is True
+
+
+def test_failed_redis_write_keeps_newer_value_until_complete_same_key_recovery(monkeypatch):
+    import json
+
+    class IntermittentRedis:
+        rejected_prefix = "sahool:weather:fresh:"
+        stored = {}
+
+        def setex(self, key, ttl, value):
+            if self.rejected_prefix and key.startswith(self.rejected_prefix):
+                raise RuntimeError("weather cache write refused")
+            self.stored[key] = value
+
+        def get(self, key):
+            return self.stored.get(key)
+
+        def ttl(self, key):
+            return int(cache.TTL_S) - 3
+
+    client = IntermittentRedis()
+    monkeypatch.setattr(cache, "REDIS_URL", "redis://fixture")
+    monkeypatch.setattr(cache, "_REDIS_CLIENT", client)
+    monkeypatch.setattr(cache, "_REDIS_ERROR", None)
+    monkeypatch.setattr(cache, "_CACHE", {})
+    clock = [100.0]
+    monkeypatch.setattr(cache, "monotonic", lambda: clock[0])
+    client.stored[cache._fresh_key("k")] = json.dumps({"value": {"revision": 0}})
+    cache.set("k", {"revision": 1})
+    assert cache.get("k") == ({"revision": 1}, "fresh", 0)
+    assert cache.stats()["redis_error"] == "weather cache write refused"
+
+    client.rejected_prefix = "sahool:weather:stale:"
+    cache.set("k", {"revision": 2})
+    clock[0] += cache.TTL_S + 1
+    assert cache.get("k") == ({"revision": 2}, "stale", int(cache.TTL_S) + 1)
+    client.rejected_prefix = ""
+    cache.set("another", {"revision": 4})
+    assert cache.stats()["redis_error"] == "weather cache write refused"
+    cache.set("k", {"revision": 3})
+    assert "redis_error" not in cache.stats()
+    assert cache.get("k") == ({"revision": 3}, "fresh", 3)
+    client.stored.clear()
+    assert cache.get("k") == (None, "miss", None)
+
+
+def test_redis_miss_preserves_memory_expiry_after_write_denial(monkeypatch):
+    class ReadOnly:
+        def get(self, key):
+            return None
+
+        def setex(self, key, ttl, value):
+            raise RuntimeError("read only")
+
+    monkeypatch.setattr(cache, "REDIS_URL", "redis://fixture")
+    monkeypatch.setattr(cache, "_REDIS_CLIENT", ReadOnly())
+    monkeypatch.setattr(cache, "_CACHE", {})
+    monkeypatch.setattr(cache, "_REDIS_ERROR", None)
+    monkeypatch.setattr(cache, "monotonic", lambda: 10.0)
+    cache.set("k", {"temp": 31})
+    assert cache.stats()["redis_error"] == "read only"
+    assert cache.get("k") == ({"temp": 31}, "fresh", 0)
+    age = int(cache.STALE_TTL_S) + 1
+    monkeypatch.setattr(cache, "monotonic", lambda: 10.0 + age)
+    assert cache.get("k") == (None, "expired", age)
+    assert cache.get("k") == (None, "miss", None)
+
+
+def test_expired_local_fallback_does_not_hide_another_workers_fresh_redis_value(monkeypatch):
+    class RecoveredRedis:
+        def get(self, key):
+            return '{"value":{"revision":2}}'
+
+        def ttl(self, key):
+            return int(cache.TTL_S) - 4
+
+    monkeypatch.setattr(cache, "REDIS_URL", "redis://fixture")
+    monkeypatch.setattr(cache, "_REDIS_CLIENT", RecoveredRedis())
+    monkeypatch.setattr(cache, "_CACHE", {"k": (0.0, {"revision": 1})})
+    monkeypatch.setattr(cache, "monotonic", lambda: cache.STALE_TTL_S + 1)
+    assert cache.get("k") == ({"revision": 2}, "fresh", 4)
+    assert "k" not in cache._CACHE
