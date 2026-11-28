@@ -2195,9 +2195,10 @@ def test_equipment_declaration_survives_review_and_conflicting_replay():
             before = await live.state(task, "inspector")
             evidence = before["current_evidence"]
             assert evidence["equipment_id"] == "eqp_pump_a"
-            assert evidence["digest"] == hashlib.sha256(
-                b"equipment:eqp_pump_a|||synthetic observation"
-            ).hexdigest()
+            assert (
+                evidence["digest"]
+                == hashlib.sha256(b"equipment:eqp_pump_a|||synthetic observation").hexdigest()
+            )
             for change in ({"equipment_id": "eqp_pump_b"}, {"equipment_id": None}):
                 conflict = await live.handoff(task, "finding", "inspector", body | change)
                 assert conflict.status_code == 409, conflict.text
@@ -2221,12 +2222,37 @@ def test_equipment_declaration_survives_review_and_conflicting_replay():
             assert approved.status_code == 200, approved.text
             assert approved.json()["approved_evidence"]["equipment_id"] == "eqp_pump_a"
             assert len(approved.json()["evidence"]) == 1
-            assert await _as_app(
-                live,
-                "inspector",
-                "UPDATE inspection_evidence_versions SET equipment_id=$1 WHERE task_id=$2::uuid",
-                "eqp_pump_b",
+            saved = await live.state(task, "inspector")
+            statement = (
+                "UPDATE inspection_evidence_versions SET equipment_id=$1 WHERE task_id=$2::uuid"
+            )
+            conn = await asyncpg.connect(live.app_dsn)
+            try:
+                async with conn.transaction():
+                    await conn.execute(
+                        "SELECT set_config('app.current_tenant', $1, true),"
+                        " set_config('app.current_user_id', $2, true)",
+                        live.tenant,
+                        live.users[(live.tenant, "inspector")],
+                    )
+                    # No UPDATE policy: PostgreSQL safely matches no rows rather
+                    # than raising. A successful command alone is not a write.
+                    assert await conn.execute(statement, "eqp_pump_b", task) == "UPDATE 0"
+            finally:
+                await conn.close()
+            row = await live.admin.fetchrow(
+                "SELECT equipment_id,digest FROM inspection_evidence_versions "
+                "WHERE task_id=$1::uuid AND version=$2",
                 task,
-            ) != "allowed"
+                evidence["version"],
+            )
+            assert row["equipment_id"] == "eqp_pump_a"
+            assert row["digest"] == evidence["digest"]
+            # Independently prove the append-only trigger for a matched row,
+            # using the fixture owner so RLS cannot conceal the attempted write.
+            with pytest.raises(asyncpg.PostgresError) as blocked:
+                await live.admin.execute(statement, "eqp_pump_b", task)
+            assert blocked.value.sqlstate == "55000"
+            assert await live.state(task, "inspector") == saved
 
     run(target())
