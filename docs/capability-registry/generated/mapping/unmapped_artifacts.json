@@ -2944,6 +2944,14 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v292_inspection_equipment_evidence.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v292_inspection_equipment_evidence.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v31_fields_manager.sql",
     "kind": "database"
   },
@@ -9424,6 +9432,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_irrigation_network_topology.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
     "kind": "tests"
   },
@@ -11033,6 +11045,10 @@
   },
   {
     "path": "tests/irrigation/test_irrigation_path_query.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_period_volume_reservation.py",
     "kind": "tests"
   },
   {
@@ -12837,6 +12853,10 @@
   },
   {
     "path": "tests_v9/test_iot_devices.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irr_f01_compensation_live_pg.py",
     "kind": "tests"
   },
   {

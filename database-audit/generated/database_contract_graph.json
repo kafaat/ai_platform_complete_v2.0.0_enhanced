@@ -279,6 +279,7 @@
       "v289_scouting_verification_bridge.sql",
       "v290_scouting_verification_initial_state.sql",
       "v291_scouting_task_page_index.sql",
+      "v292_inspection_equipment_evidence.sql",
       "v240_converge_first_pass_schema.sql",
       "v206_rls_final_hardening.sql"
     ],
@@ -1997,14 +1998,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 280,
+    "manifest_entries": 281,
     "manifest_missing_count": 0,
     "policies": 244,
     "production_certified": false,
     "rls_enabled": 237,
     "rls_forced": 218,
     "runtime_verified": false,
-    "sql_files": 302,
+    "sql_files": 304,
     "tables": 367,
     "tenant_rls_gaps": 139,
     "tenant_tables": 348,
@@ -5131,7 +5132,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/irrigation_reservation_adapter.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/irrigation_reservation_adapter.py"
       ],

@@ -166,7 +166,7 @@ medium,sahool-platform,function,tile_cdn_policy,services/sahool-platform/api/gis
 medium,sahool-platform,class,IPMStage,services/sahool-platform/api/ipm_advisor.py,24,0,review_before_delete,False
 medium,sahool-platform,function,supported_pests,services/sahool-platform/api/ipm_advisor.py,332,0,review_before_delete,False
 medium,sahool-platform,function,reserve_authoritative_intent,services/sahool-platform/api/irrigation_authoritative_reservation.py,18,0,review_before_delete,False
-medium,sahool-platform,function,reserve_and_request_dispatch,services/sahool-platform/api/irrigation_capacity_reservation.py,215,0,review_before_delete,False
+medium,sahool-platform,function,reserve_and_request_dispatch,services/sahool-platform/api/irrigation_capacity_reservation.py,296,0,review_before_delete,False
 medium,sahool-platform,function,certify_irrigation_production_runtime,services/sahool-platform/api/irrigation_closed_loop_learning.py,397,0,review_before_delete,False
 medium,sahool-platform,function,build_commissioning_evidence,services/sahool-platform/api/irrigation_commissioning_certification.py,123,0,review_before_delete,False
 medium,sahool-platform,function,build_irrigation_commissioning_certification,services/sahool-platform/api/irrigation_commissioning_certification.py,163,0,review_before_delete,False
@@ -174,7 +174,7 @@ medium,sahool-platform,function,apply_commissioning_executability_gate,services/
 medium,sahool-platform,class,PumpEngineeringContract,services/sahool-platform/api/irrigation_engineering_contracts.py,71,0,review_before_delete,False
 medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platform/api/irrigation_execution_request_port.py,83,0,review_before_delete,False
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
-medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
+medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,388,0,review_before_delete,False
 medium,sahool-platform,function,live_water_sets,services/sahool-platform/api/lab_store.py,518,0,review_before_delete,False
 medium,sahool-platform,function,append_water_analysis_revision,services/sahool-platform/api/lab_store.py,529,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,123,0,review_before_delete,False

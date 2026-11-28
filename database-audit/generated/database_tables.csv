@@ -182,7 +182,7 @@ irrigation_projects,v168_irrigation_engineering_foundation.sql,173,True,False,Fa
 irrigation_pump_curve_points,v171_pump_hydraulic_network_capability.sql,176,True,False,False,0,False,True,0,0
 irrigation_pumps,v168_irrigation_engineering_foundation.sql,173,True,False,False,0,False,True,0,0
 irrigation_pv_arrays,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
-irrigation_resource_reservation_events,v195_irrigation_capacity_reservation_core.sql,200,True,False,False,0,False,True,0,1
+irrigation_resource_reservation_events,v195_irrigation_capacity_reservation_core.sql,200,True,False,False,0,False,True,1,1
 irrigation_resource_reservations,v195_irrigation_capacity_reservation_core.sql,200,True,False,False,0,False,True,3,1
 irrigation_runs,v136_irrigation_runs.sql,142,True,True,True,1,True,False,3,1
 irrigation_schedules,v25_irrigation.sql,29,True,False,False,0,False,True,6,3

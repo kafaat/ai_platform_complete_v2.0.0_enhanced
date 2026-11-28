@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 842,
+      "evidence_count": 846,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -105,6 +105,8 @@
         "migrations/v286_canonical_observations.down.sql",
         "migrations/v286_canonical_observations.sql",
         "migrations/v289_scouting_verification_bridge.sql",
+        "migrations/v292_inspection_equipment_evidence.down.sql",
+        "migrations/v292_inspection_equipment_evidence.sql",
         "migrations/v78_decision_record.sql",
         "migrations/v79_outcome_record.sql",
         "migrations/v86_calibration_evidence_trigger.sql",
@@ -360,6 +362,7 @@
         "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
         "services/sahool-platform/api/freshness_store.py",
         "services/sahool-platform/api/high_value_crops.py",
+        "services/sahool-platform/api/irrigation_capacity_reservation.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/irrigation_commissioning_certification.py",
@@ -372,6 +375,7 @@
         "services/sahool-platform/api/irrigation_models.py",
         "services/sahool-platform/api/irrigation_observations.py",
         "services/sahool-platform/api/irrigation_recommendation_policy.py",
+        "services/sahool-platform/api/irrigation_reservation_adapter.py",
         "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/api/irrigation_source_binding.py",
@@ -2296,7 +2300,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 225,
+      "evidence_count": 226,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2440,6 +2444,7 @@
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/irrigation_activation_gate.py",
+        "services/sahool-platform/api/irrigation_capacity_reservation.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/irrigation_commissioning_runtime.py",
@@ -3338,7 +3343,7 @@
         "services/sahool-platform/api/irrigation_source_binding.py",
         "services/sahool-platform/api/lab_store.py"
       ],
-      "source_evidence_count": 842,
+      "source_evidence_count": 846,
       "target_evidence_count": 604,
       "static_supported": true,
       "runtime_verified": false
@@ -3650,7 +3655,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 52,
-      "target_evidence_count": 225,
+      "target_evidence_count": 226,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3690,7 +3695,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 225,
+      "source_evidence_count": 226,
       "target_evidence_count": 51,
       "static_supported": true,
       "runtime_verified": false
@@ -3812,5 +3817,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "37238d871bb9b8744cd74469803ee2c90c4072ee608734591da6bbee8942dc6d"
+  "content_sha256": "f9dad327cd4c165446bef94a7cd93a76214503e8f575dac3f4b225ff232536ce"
 }

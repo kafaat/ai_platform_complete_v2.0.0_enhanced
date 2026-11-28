@@ -5345,7 +5345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "122e9aaa74b71622b1195af29e67cefbd295877a2741c8cc9a9e7f0d8c30dc12"
+          "content": "ab3ff1832ca1b2af6338e2cf750b4d36ead095bb446f84f425871cf759283b30"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6855,7 +6855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9299356d6cc1046142024ecc3389b6229bc2a7f7b05db0300f6c425fe8b35ed"
+          "content": "39e514287ac874ab9530198ebe7e620d5985ad95c6cf632e2de7892c0351aaa7"
         }
       ],
       "name": "frontend/src/sections/InspectionHandoff.test.tsx",
@@ -6865,7 +6865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52d35e182afd0676bbbd5d680e113d55c796f4bebfe3bb50d6bfc087bf6b343d"
+          "content": "6c7d827db9f904ed7c74e5e443f968423a58d597060328bfc415f38dc58d5d75"
         }
       ],
       "name": "frontend/src/sections/InspectionHandoff.tsx",
@@ -8645,7 +8645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d6ed3a4d1e0ba2c81189255a1bd5e1409a3ef0a00aa469dfb5ca326ae26516c"
+          "content": "004c4090bdafa7be4b4c1cf2495c854c28c00c7ff0020a347c98afb33782437c"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -10849,6 +10849,26 @@
         }
       ],
       "name": "migrations/v291_scouting_task_page_index.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aed750d1d98365a287ffd1b22937b954f3c264560c9e1d4087ccc98749bd5493"
+        }
+      ],
+      "name": "migrations/v292_inspection_equipment_evidence.down.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "447fd068a4bdd4fdd5aae90a62e5965a085b229c0019225eba30d161f1593968"
+        }
+      ],
+      "name": "migrations/v292_inspection_equipment_evidence.sql",
       "type": "file"
     },
     {
@@ -15795,7 +15815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db0e975d036df658db74e6ab339727597ea90c30abf9eaaa372c73c40c0718a8"
+          "content": "b693c2e74253a16a020b704889ddb0412cc31afdcf8523025b4b65b7e02c76a7"
         }
       ],
       "name": "mobile/sahool_app/lib/features/tasks/presentation/inspection_review_panel.dart",
@@ -18135,7 +18155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eeae7c361ee304039d6830b79c14605cf3a70efa25705d6022d9ed380396a2f4"
+          "content": "758504f587ad9b18f50f52619d8c46a5f895f0ff12f3f2973f5a4f2932ba746b"
         }
       ],
       "name": "mobile/sahool_app/test/features/tasks/inspection_review_panel_test.dart",
@@ -21415,7 +21435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1899f98c3f90f41bdfc87eb919017d61770a569e9e855db1cfff2ad0ef035eb2"
+          "content": "7aa60a3ceea3497c6d12711697d76e0bdc4dab3af02257a15801e35ab156a090"
         }
       ],
       "name": "services/field-management-service/fm_task_inspection.py",
@@ -21505,7 +21525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95e9fb7f1dfaefba0bde071800f15a8e033772fe10dff23f94628e3b97627344"
+          "content": "0cecdf277c59ea1e42168bca8c72d7b3bb786cbd7d9a490a48ffca39acc88151"
         }
       ],
       "name": "services/field-management-service/tests/test_field_task_routes_unit.py",
@@ -27325,7 +27345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d053cd84f3887dca5bc96852cd7d686773565533c45f3b535a1abadd4583b83"
+          "content": "0e0847eeb11daa5191d84b4da81c19cad72aa145c687ea5217778f3dbc8f3869"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_capacity_reservation.py",
@@ -27545,7 +27565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c8db8b05fc2267ccc81a7e024074eafa168c36bcb68c008650aa6b3b2590d43f"
+          "content": "807619733f543af034e304b2668044a0d3a6e955eb57b9a8bfdc6c3a15be6249"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_reservation_adapter.py",
@@ -28945,7 +28965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63971945452d31249ea8b90bebc58c2f6ec92e5dfd2b1f3a99a55a8bfcc72ce6"
+          "content": "402685d0d76c84c18258d07964dae6df2e4b5b70f7d53e2f22842453e13f2065"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_network.py",
@@ -36849,6 +36869,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93ae837a465ce69f92f7b22d30d1ec3d062b6630e1395aa7b82031f0b2e27886"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_network_topology.py",
       "type": "file"
     },
     {
