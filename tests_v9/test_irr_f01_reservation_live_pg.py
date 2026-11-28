@@ -975,3 +975,151 @@ async def test_reservation_rejects_autocommit_before_resolver_or_dispatch(live, 
     await app.execute("SELECT set_config('app.current_tenant', $1, false)", str(live["tenant"]))
     for table in CORE_TABLES:
         assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0
+
+
+async def test_period_volume_concurrent_nonoverlapping_requests_serialize(live):
+    """Two 1500 m3 requests fit alone but cannot both consume a 2500 m3 quota.
+
+    Their half-open operating windows are adjacent, so peak-flow admission cannot
+    detect this overcommit. The second real transaction must read the first one's
+    committed volume after acquiring the same resource lock, then leave no rows
+    or dispatch intent when period-volume admission rejects it.
+    """
+    adapter, kernel = _adapter()
+    from api.irrigation_execution_request_port import EmitEventExecutionRequestPort
+
+    app, tenant, project, node = live["app"], live["tenant"], live["project"], live["n1"]
+    hour = timedelta(hours=1)
+    budget = kernel.PeriodVolumeBudget(
+        START, START + 24 * hour, Decimal("2500"), "synthetic-concurrent-budget-v1"
+    )
+    resource = adapter.ResourceRequest(
+        resource_node_id=node,
+        policy=kernel.ResourcePolicy.SHARED_CAPACITY,
+        reserved_flow_m3h=Decimal("1500"),
+        derated_capacity_m3h=Decimal("2000"),
+        requires_period_volume_budget=True,
+    )
+    for start in (START, START + hour):
+        assert kernel.evaluate_admission(
+            policy=resource.policy,
+            existing=[],
+            requested_start=start,
+            requested_end=start + hour,
+            requested_flow_m3h=resource.reserved_flow_m3h,
+            derated_capacity_m3h=resource.derated_capacity_m3h,
+            period_volume_budget=budget,
+        ).eligible
+
+    async def resolve(conn, req):
+        assert conn.is_in_transaction()
+        assert req.resource_node_id == node
+        assert await conn.fetchval("select current_setting('app.current_tenant')") == str(tenant)
+        return budget
+
+    dispatch_calls = []
+
+    class RecordingPort(EmitEventExecutionRequestPort):
+        async def request_dispatch(self, conn, **kwargs):
+            dispatch_calls.append(kwargs["execution_ref_id"])
+            return await super().request_dispatch(conn, **kwargs)
+
+    port = RecordingPort()
+    t1_has_lock = asyncio.Event()
+    release_t1 = asyncio.Event()
+    t2_has_lock = asyncio.Event()
+
+    async def hook1():
+        t1_has_lock.set()
+        await release_t1.wait()
+
+    async def hook2():
+        t2_has_lock.set()
+
+    async def reserve(conn, start, ref, hook):
+        async with conn.transaction():
+            return await adapter.reserve_and_request_dispatch_db(
+                conn,
+                tenant_id=tenant,
+                project_id=project,
+                requested_start=start,
+                requested_end=start + hour,
+                resources=[resource],
+                execution_ref_type="manual_execution",
+                execution_ref_id=ref,
+                calculation_model_version="period-volume-concurrency-test",
+                execution_port=port,
+                correlation_id=tenant,
+                idempotency_key=ref,
+                after_locks_acquired=hook,
+                resolve_period_volume_budget=resolve,
+            )
+
+    c1 = await asyncpg.connect(APP_DSN)
+    c2 = await asyncpg.connect(APP_DSN)
+    tasks = []
+    try:
+        t1 = asyncio.create_task(reserve(c1, START, "period-cc-1", hook1))
+        tasks.append(t1)
+        await asyncio.wait_for(t1_has_lock.wait(), timeout=5)
+        t2 = asyncio.create_task(reserve(c2, START + hour, "period-cc-2", hook2))
+        tasks.append(t2)
+        with pytest.raises(TimeoutError):
+            await asyncio.wait_for(t2_has_lock.wait(), timeout=1.5)
+        # Prove the server is actually waiting on T1, rather than interpreting an
+        # unscheduled or failed T2 as successful serialization.
+        assert not t2.done()
+        assert await app.fetchval("select pg_blocking_pids($1)", c2.get_server_pid()) == [
+            c1.get_server_pid()
+        ]
+        assert dispatch_calls == []
+        release_t1.set()
+        first = await asyncio.wait_for(t1, timeout=10)
+        with pytest.raises(adapter.CapacityNotAdmissible) as blocked:
+            await asyncio.wait_for(t2, timeout=10)
+        assert t2_has_lock.is_set()
+        assert blocked.value.resource_node_id == str(node)
+        assert blocked.value.admission.blocking_code == "PERIOD_VOLUME_EXCEEDED"
+        assert blocked.value.admission.peak_existing_flow_m3h == 0
+        assert blocked.value.admission.peak_with_request_m3h == Decimal("1500")
+    finally:
+        release_t1.set()
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        await c1.close()
+        await c2.close()
+
+    # The recording wrapper delegates to the real event/outbox port. T2 must not
+    # even reach that boundary, and no evaluation, reservation, or event survives.
+    assert dispatch_calls == ["period-cc-1"]
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"select count(*) from {table} where tenant_id=$1", tenant) == 1
+    for table in ("hydraulic_capacity_evaluations", "irrigation_resource_reservations"):
+        assert (
+            await app.fetchval(f"select execution_ref_id from {table} where tenant_id=$1", tenant)
+            == "period-cc-1"
+        )
+    events = await app.fetch(
+        "select event_id, entity_id, payload->>'execution_ref_id' as execution_ref_id "
+        "from events where tenant_id=$1 "
+        "and event_type='irrigation.reservation.dispatch_requested'",
+        tenant,
+    )
+    assert [dict(row) for row in events] == [
+        {
+            "event_id": UUID(first.dispatch_intent_id),
+            "entity_id": first.evaluation_id,
+            "execution_ref_id": "period-cc-1",
+        }
+    ]
+    assert (
+        await app.fetchval(
+            "select count(*) from event_outbox o join events e using (event_id) "
+            "where e.tenant_id=$1",
+            tenant,
+        )
+        == 1
+    )
