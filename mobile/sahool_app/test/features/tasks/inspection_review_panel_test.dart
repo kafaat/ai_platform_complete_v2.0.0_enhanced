@@ -37,7 +37,8 @@ void main() {
       'can_submit': true,
       'current_evidence': {'photo_evidence_id': 'e-2'},
     });
-    await tester.enterText(find.byType(TextField), '  تغيّرت القراءة  ');
+    await tester.enterText(find.byType(TextField).first, '  تغيّرت القراءة  ');
+    await tester.enterText(find.byType(TextField).last, 'eqp_pump_a');
     await tester.pump();
     await tester.tap(find.text('رفع النتيجة للمراجعة'));
     await tester.pumpAndSettle();
@@ -47,6 +48,7 @@ void main() {
       'reason': 'تغيّرت القراءة',
       'notes': 'تغيّرت القراءة',
       'photo_evidence_id': 'e-2',
+      'equipment_id': 'eqp_pump_a',
     });
   });
 
@@ -55,7 +57,9 @@ void main() {
       'revision': 4,
       'can_review': true,
       'events': [{'action': 'submit', 'evidence_version': 2}],
+      'evidence': [{'version': 2, 'equipment_id': 'eqp_pump_a'}],
     });
+    expect(find.textContaining('المعدّة المصرّح بها: eqp_pump_a'), findsOneWidget);
     await tester.enterText(find.byType(TextField), '  تم التحقق  ');
     await tester.pump();
     await tester.tap(find.text('اعتماد النتيجة'));
@@ -66,5 +70,18 @@ void main() {
       'reason': 'تم التحقق',
       'evidence_version': 2,
     });
+  });
+
+  testWidgets('equipment-only changes keep the approved and pending declarations visible', (tester) async {
+    final approved = {'version': 1, 'notes': 'فحص', 'equipment_id': 'pump_a'};
+    final pending = {...approved, 'version': 2, 'equipment_id': 'pump_b'};
+    await _open(tester, {
+      'approved_evidence': approved,
+      'current_evidence': pending,
+      'evidence_pending_review': true,
+    });
+    expect(find.textContaining('النسخة المعتمدة 1 · بلا صورة · فحص · المعدّة المصرّح بها: pump_a'), findsOneWidget);
+    expect(find.textContaining('نسخة بانتظار المراجعة 2 · بلا صورة · فحص · المعدّة المصرّح بها: pump_b'), findsOneWidget);
+    expect(find.textContaining('الملاحظات أو الصورة أو المعدّة'), findsOneWidget);
   });
 }

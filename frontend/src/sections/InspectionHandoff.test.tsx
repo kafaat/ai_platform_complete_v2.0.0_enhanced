@@ -50,9 +50,11 @@ it('requires a different user and reason and displays the saved transfer', async
 it('requires a review comment and approves the exact submitted evidence version', async () => {
   const submit = {revision:4,action:'submit',assignee:'1',previous_assignee:'1',actor:'1',
     reason:'اصفرار',occurred_at:'2026-11-12T07:00:00Z',evidence_version:2};
-  open({...original, revision:4, can_review:true, events:[submit]} as unknown as typeof original);
+  const evidence = {version:2, photo_evidence_id:null, photo_content_sha256:null, equipment_id:'eqp_pump_a'};
+  open({...original, revision:4, can_review:true, events:[submit], evidence:[evidence]} as unknown as typeof original);
   const post = vi.spyOn(kongApi, 'post').mockResolvedValue({data:{...original, revision:5}});
   const approve = await screen.findByRole('button', {name:'اعتماد نتيجة التفتيش'});
+  expect(screen.getByText(/نسخة بانتظار المراجعة 2.*المعدّة المصرّح بها: eqp_pump_a/)).toBeInTheDocument();
   expect(approve).toBeDisabled();
   expect(screen.queryByRole('button', {name:'رفع النتيجة للمراجعة'})).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText('تعليق المراجع'), {target:{value:'تم التحقق'}});
@@ -71,9 +73,20 @@ it('keeps the approved version visible, marks a later photo record as pending an
   expect(screen.getByRole('status')).toHaveTextContent('لا تُغلق الزيارة قبل اعتماد النسخة الجديدة');
   const post = vi.spyOn(kongApi, 'post').mockResolvedValue({data:{...original, revision:4}});
   fireEvent.change(screen.getByLabelText('نتيجة التفتيش والملاحظات'), {target:{value:'مع الصورة'}});
+  fireEvent.change(screen.getByLabelText(/معرّف المعدّة/), {target:{value:'eqp_pump_a'}});
   fireEvent.click(screen.getByRole('button', {name:'رفع النتيجة للمراجعة'}));
   await waitFor(() => expect(post).toHaveBeenCalledWith(path + '/finding',
-    {action:'submit', reason:'مع الصورة', notes:'مع الصورة', expected_revision:3, photo_evidence_id:'e-2'}));
+    {action:'submit', reason:'مع الصورة', notes:'مع الصورة', expected_revision:3, photo_evidence_id:'e-2', equipment_id:'eqp_pump_a'}));
+});
+
+it('shows both declared equipment IDs when only the equipment changed after approval', async () => {
+  const approved = {version:1, photo_evidence_id:null, photo_content_sha256:null, notes:'فحص', equipment_id:'pump_a'};
+  const submitted = {...approved, version:2, equipment_id:'pump_b'};
+  open({...original, approved_evidence:approved, current_evidence:submitted,
+    evidence_pending_review:true} as typeof original);
+  expect(await screen.findByText(/النسخة المعتمدة 1.*فحص.*pump_a/)).toBeInTheDocument();
+  expect(screen.getByText(/نسخة بانتظار المراجعة 2.*فحص.*pump_b/)).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('الملاحظات أو الصورة أو المعدّة');
 });
 
 it('requires a new review for changed notes even when neither evidence version has a photo', async () => {
