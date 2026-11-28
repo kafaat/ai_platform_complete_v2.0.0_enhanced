@@ -2221,12 +2221,14 @@ def test_equipment_declaration_survives_review_and_conflicting_replay():
             assert approved.status_code == 200, approved.text
             assert approved.json()["approved_evidence"]["equipment_id"] == "eqp_pump_a"
             assert len(approved.json()["evidence"]) == 1
-            assert await _as_app(
-                live,
-                "inspector",
-                "UPDATE inspection_evidence_versions SET equipment_id=$1 WHERE task_id=$2::uuid",
-                "eqp_pump_b",
-                task,
-            ) != "allowed"
+            # RLS denies UPDATE by hiding the row (UPDATE 0), not necessarily an error.
+            # The owner can see the row but the append-only trigger must still refuse.
+            assert await _append_only(live, "inspection_evidence_versions", task) == (
+                "UPDATE 0",
+                "55000",
+            )
+            stored = await live.state(task, "reviewer")
+            assert stored["approved_evidence"]["equipment_id"] == "eqp_pump_a"
+            assert stored["approved_evidence"]["digest"] == evidence["digest"]
 
     run(target())
