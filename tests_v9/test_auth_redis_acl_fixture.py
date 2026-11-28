@@ -26,7 +26,20 @@ def _comparable(options: dict) -> dict:
     comparison must not depend on which release CI resolves. Every key must still be
     present on both sides, and a dropped or altered option value still fails.
     """
-    return {k: v if isinstance(v, _PLAIN) else type(v) for k, v in options.items()}
+    return {k: _comparable_value(v) for k, v in options.items()}
+
+
+def _comparable_value(value):
+    """Containers compare element by element; only opaque objects fall back to their type."""
+    if isinstance(value, _PLAIN):
+        return value
+    if isinstance(value, (list, tuple)):
+        return (type(value), tuple(_comparable_value(v) for v in value))
+    if isinstance(value, dict):
+        return (dict, {k: _comparable_value(v) for k, v in value.items()})
+    if type(value).__eq__ is not object.__eq__:
+        return value  # defines value equality (e.g. a dataclass): compare it as such
+    return type(value)
 
 
 @pytest.mark.parametrize(

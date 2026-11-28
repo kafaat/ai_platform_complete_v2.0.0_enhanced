@@ -369,4 +369,7 @@ def test_load_and_record_use_the_probe_not_a_fixed_column():
     record = inspect.getsource(fm_task_inspection._record_version)
     assert "_evidence_read_columns(await _has_equipment_column(conn))" in load
     assert "_evidence_insert_sql(await _has_equipment_column(conn), equipment_id)" in record
-    assert "recorded_at, equipment_id" not in load
+    assert "recorded_at, equipment_id" not in load, (
+        "naming the v292 column unconditionally makes every evidence read fail with "
+        "UndefinedColumn (503) on a pre-v292 store (Devin review on #1666)"
+    )

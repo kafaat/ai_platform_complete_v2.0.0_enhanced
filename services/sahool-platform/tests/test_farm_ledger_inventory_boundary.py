@@ -359,4 +359,7 @@ def test_the_list_route_builds_its_answer_with_the_pure_catalogue():
 
     source = inspect.getsource(inventory.list_inventory_items)
     assert "return inventory_catalogue(rows, unit_breakdown)" in source
-    assert "409" not in source
+    assert "409" not in source, (
+        "one item's unit uncertainty must not refuse the whole catalogue: deployed clients "
+        "call without unit_breakdown and would lose every item (Devin review on #1666)"
+    )
