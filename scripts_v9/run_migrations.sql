@@ -701,7 +701,9 @@
 \i migrations/v290_scouting_verification_initial_state.sql
 \echo '═══ 278. v291_scouting_task_page_index.sql ═══'
 \i migrations/v291_scouting_task_page_index.sql
-\echo '═══ 279. v240_converge_first_pass_schema.sql ═══'
+\echo '═══ 279. v292_inspection_equipment_evidence.sql ═══'
+\i migrations/v292_inspection_equipment_evidence.sql
+\echo '═══ 280. v240_converge_first_pass_schema.sql ═══'
 \i migrations/v240_converge_first_pass_schema.sql
-\echo '═══ 280. v206_rls_final_hardening.sql ═══'
+\echo '═══ 281. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
