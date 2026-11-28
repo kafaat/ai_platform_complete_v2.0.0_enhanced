@@ -300,9 +300,10 @@ def test_the_task_routes_are_registered_under_the_gateway_prefix():
 def test_equipment_identity_is_part_of_evidence_digest():
     digest = fm_task_inspection.evidence_digest
     assert digest(None, None, "notes|x") == hashlib.sha256(b"||notes|x").hexdigest()
-    assert digest(None, None, "notes|x", "eqp_A") == hashlib.sha256(
-        b"equipment:eqp_A|||notes|x"
-    ).hexdigest()
+    assert (
+        digest(None, None, "notes|x", "eqp_A")
+        == hashlib.sha256(b"equipment:eqp_A|||notes|x").hexdigest()
+    )
     assert digest(None, None, "notes|x", "eqp_A") != digest(None, None, "notes|x", "eqp_B")
 
 

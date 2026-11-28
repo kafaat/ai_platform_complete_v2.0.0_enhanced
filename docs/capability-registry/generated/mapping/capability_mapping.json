@@ -15,21 +15,21 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7778,
+    "files_scanned": 7780,
     "files_by_kind": {
       "backend": 1322,
-      "database": 360,
+      "database": 362,
       "governance": 92,
       "mobile": 429,
       "other": 2261,
       "tests": 2727,
       "web": 587
     },
-    "unmapped_artifacts": 3707,
+    "unmapped_artifacts": 3709,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
       "python_functional": 4230,
-      "raw": 3548
+      "raw": 3550
     },
     "test_dependency_files": 2078,
     "test_dependency_edges": 5637,
@@ -15400,31 +15400,31 @@
           "score": 16
         },
         {
-          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:283",
+          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:293",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:302",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:312",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:317",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:327",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:367",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:377",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:458",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:468",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:606",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:622",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:473",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:483",
           "score": 8
         },
         {
@@ -36461,6 +36461,14 @@
     },
     {
       "path": "migrations/v28_settings.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v292_inspection_equipment_evidence.down.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v292_inspection_equipment_evidence.sql",
       "kind": "database"
     },
     {

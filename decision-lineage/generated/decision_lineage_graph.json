@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 841,
+      "evidence_count": 843,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -105,6 +105,8 @@
         "migrations/v286_canonical_observations.down.sql",
         "migrations/v286_canonical_observations.sql",
         "migrations/v289_scouting_verification_bridge.sql",
+        "migrations/v292_inspection_equipment_evidence.down.sql",
+        "migrations/v292_inspection_equipment_evidence.sql",
         "migrations/v78_decision_record.sql",
         "migrations/v79_outcome_record.sql",
         "migrations/v86_calibration_evidence_trigger.sql",
@@ -3336,7 +3338,7 @@
         "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/api/learning_feedback.py"
       ],
-      "source_evidence_count": 841,
+      "source_evidence_count": 843,
       "target_evidence_count": 603,
       "static_supported": true,
       "runtime_verified": false
@@ -3810,5 +3812,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "687e9a7aa7188faf24988c67afeacd460141863024c0167c3a696cd9d58131b4"
+  "content_sha256": "07727abf1ea0794fc236633350f78a04ae73e7d195e38c6235af77bef3c42454"
 }

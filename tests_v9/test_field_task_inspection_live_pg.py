@@ -2195,9 +2195,10 @@ def test_equipment_declaration_survives_review_and_conflicting_replay():
             before = await live.state(task, "inspector")
             evidence = before["current_evidence"]
             assert evidence["equipment_id"] == "eqp_pump_a"
-            assert evidence["digest"] == hashlib.sha256(
-                b"equipment:eqp_pump_a|||synthetic observation"
-            ).hexdigest()
+            assert (
+                evidence["digest"]
+                == hashlib.sha256(b"equipment:eqp_pump_a|||synthetic observation").hexdigest()
+            )
             for change in ({"equipment_id": "eqp_pump_b"}, {"equipment_id": None}):
                 conflict = await live.handoff(task, "finding", "inspector", body | change)
                 assert conflict.status_code == 409, conflict.text
