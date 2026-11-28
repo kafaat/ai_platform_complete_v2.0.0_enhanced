@@ -90,9 +90,7 @@ def _utc(value: datetime) -> datetime:
     return value.astimezone(UTC)
 
 
-def _volume_in_period(
-    window: ReservationWindow, start: datetime, end: datetime
-) -> Fraction:
+def _volume_in_period(window: ReservationWindow, start: datetime, end: datetime) -> Fraction:
     """Integrate constant flow exactly over the clipped half-open window."""
     flow = window.reserved_flow_m3h
     if not flow.is_finite() or flow <= 0:

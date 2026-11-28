@@ -11020,6 +11020,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/irrigation/test_irrigation_period_volume_reservation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/irrigation/test_irrigation_reservation_adapter.py",
     "kind": "tests"
   },
