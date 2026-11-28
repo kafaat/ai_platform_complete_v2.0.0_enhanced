@@ -1,0 +1,511 @@
+name: Register verified SAHOOL Git objects
+on:
+  push:
+    branches: ['audit/bundle-transfer-feb42b34bb26-b5c46a9f']
+permissions: {}
+jobs:
+  import:
+    if: >-
+      github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' &&
+      github.ref == 'refs/heads/audit/bundle-transfer-feb42b34bb26-b5c46a9f' &&
+      github.event_name == 'push' && github.run_attempt == '1' &&
+      github.event.before == 'ee67db2f563486319a4a6aa5b52dd414e8b46eb0' && github.event.after == github.sha &&
+      !github.event.created && !github.event.deleted && !github.event.forced
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    steps:
+      - name: Read the one-shot transport tree
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+          submodules: false
+          lfs: false
+      - name: Verify bundle and register its immutable Git objects
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_TERMINAL_PROMPT: '0'
+          GIT_CONFIG_NOSYSTEM: '1'
+          LC_ALL: C
+        run: |
+          set -euo pipefail
+          export GIT_CONFIG_GLOBAL=/dev/null
+          export GIT_NO_REPLACE_OBJECTS=1
+          umask 077
+          readonly target='feb42b34bb269d5e9060f04940d5905b645c459d' target_tree='c0b43bcd8f741967cf2d8f442471819958d41f3e'
+          readonly newref='refs/heads/audit/verified-review-feb42b34bb26-b5c46a9f'
+          readonly remote='https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced.git'
+          readonly bundle="$GITHUB_WORKSPACE/payload/reviewed.bundle"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git show -s --format=%P HEAD)" = 'ee67db2f563486319a4a6aa5b52dd414e8b46eb0'
+          # The inert seed is a sparse child of the known published carrier.
+          test "$(git cat-file -p 'ee67db2f563486319a4a6aa5b52dd414e8b46eb0' | sed -n 's/^parent //p')" = '293b12640ed5eccc5e4dc6c07e19eacd37ad68de'
+          test "$(git ls-tree -r 'ee67db2f563486319a4a6aa5b52dd414e8b46eb0' --name-only)" = 'payload/reviewed.bundle'
+          test "$(git rev-parse 'ee67db2f563486319a4a6aa5b52dd414e8b46eb0:payload/reviewed.bundle')" = '8ce7a25c3a8698ec8dfad18a94bf56ae4e0bc5fa'
+          test "$(git ls-tree -r HEAD --name-only)" = "$(printf '%s\n' '.github/workflows/verified-review-bundle.yml' 'payload/reviewed.bundle')"
+          test "$(git rev-parse HEAD:payload/reviewed.bundle)" = '8ce7a25c3a8698ec8dfad18a94bf56ae4e0bc5fa'
+          test "$(wc -c < "$bundle")" -eq '522910'
+          printf '%s  %s\n' '809f7594bfc21444c548ef67b2626cc6958bb62d0bffc56cd44d5aecad2c272c' "$bundle" | sha256sum --check --strict
+          # No project hooks, programs, submodules, or project checkout. The helper
+          # and fixed URL expose the job token only to the expected HTTPS remote.
+          tmp=$(mktemp -d "$RUNNER_TEMP/sahool-objects.XXXXXXXX")
+          trap 'rm -rf -- "$tmp"' EXIT
+          cat > "$tmp/askpass" <<'ASKPASS'
+          #!/bin/sh
+          case "$1" in
+            "Username for 'https://github.com': "*) printf '%s\n' x-access-token ;;
+            "Password for 'https://x-access-token@github.com': "*) printf '%s\n' "$GH_TOKEN" ;;
+            *) exit 1 ;;
+          esac
+          ASKPASS
+          chmod 700 "$tmp/askpass"
+          export GIT_ASKPASS="$tmp/askpass"
+          git init --quiet --bare "$tmp/objects.git"
+          cd "$tmp/objects.git"
+          git config core.hooksPath /dev/null
+          git config fetch.fsckObjects true
+          git config transfer.fsckObjects true
+          git config protocol.allow never
+          git config protocol.https.allow always
+          git config http.followRedirects false
+          git remote add origin "$remote"
+          # Exit status 2 means a successful remote lookup returned zero matching refs.
+          set +e
+          git ls-remote --exit-code --refs origin "$newref" > "$tmp/ref-before"
+          status=$?
+          set -e
+          test "$status" -eq 2 && test ! -s "$tmp/ref-before" || exit 1
+          # Read the complete Git v2 header; only ONE advertised branch is accepted.
+          python3 - "$bundle" <<'PY'
+          import pathlib, sys
+          with pathlib.Path(sys.argv[1]).open("rb") as f:
+              assert f.readline() == b"# v2 git bundle\n"
+              headers = []
+              while True:
+                  line = f.readline()
+                  if line == b"\n": break
+                  if not line or len(line)>65536 or len(headers)>128:
+                      raise ValueError("invalid header")
+                  headers.append(line.rstrip(b"\n"))
+          required=sorted(x.split(b" ",1)[0][1:].decode() for x in headers if x.startswith(b"-"))
+          assert required == sorted("96937bde542482270bc44a9fade843582ab407f9 3d12c83d88f18ea2ee6d9170d33cbf84d3793ffb 3b298b8d0c51b25635edea8c0e9f9f4b607908e0 e5c40853f03d1cc6d775bcb92cd157988ee65c90 e6b96665bb736482adf9bf8c5ccb9e788bebcd0c 7b346622997819bf7006309bdcc27081086c0950 293b12640ed5eccc5e4dc6c07e19eacd37ad68de 01b9789a43aaee6ce00bdc938dad9959ae4ebd53 41693d094117eb8544f450211a2d589f9acba245 fd7f31209a8c1e24febe612835e8dd96bcbc5039 5fa9bf1423b3668ef7be50933cef16c7bbb11b22 57e3c5f3b7fe8f5dc1116cad68c5efbdff231575 794c15b95f393fba43757aaa6926813026622268 620b26dca33423baf2f30d5314f60af5bdffd713 544b3a76c296601cca073b9929a9c8c1803b7c6d baca54c1a491e62fa1182af1dafc927becd37cfa 970f52780be9804ebcfb3d1ed4516588afb8460f".split())
+          assert [x for x in headers if not x.startswith(b"-")] == [b"feb42b34bb269d5e9060f04940d5905b645c459d refs/heads/verified-review-export"]
+          PY
+          git fetch --no-tags --no-recurse-submodules origin 293b12640ed5eccc5e4dc6c07e19eacd37ad68de:refs/transfer/prereq-0 96937bde542482270bc44a9fade843582ab407f9:refs/transfer/prereq-1 3d12c83d88f18ea2ee6d9170d33cbf84d3793ffb:refs/transfer/prereq-2 e5c40853f03d1cc6d775bcb92cd157988ee65c90:refs/transfer/prereq-3 3b298b8d0c51b25635edea8c0e9f9f4b607908e0:refs/transfer/prereq-4 e6b96665bb736482adf9bf8c5ccb9e788bebcd0c:refs/transfer/prereq-5 fd7f31209a8c1e24febe612835e8dd96bcbc5039:refs/transfer/prereq-6 5fa9bf1423b3668ef7be50933cef16c7bbb11b22:refs/transfer/prereq-7 7b346622997819bf7006309bdcc27081086c0950:refs/transfer/prereq-8 620b26dca33423baf2f30d5314f60af5bdffd713:refs/transfer/prereq-9 544b3a76c296601cca073b9929a9c8c1803b7c6d:refs/transfer/prereq-10 970f52780be9804ebcfb3d1ed4516588afb8460f:refs/transfer/prereq-11
+          for pre in 96937bde542482270bc44a9fade843582ab407f9 3d12c83d88f18ea2ee6d9170d33cbf84d3793ffb 3b298b8d0c51b25635edea8c0e9f9f4b607908e0 e5c40853f03d1cc6d775bcb92cd157988ee65c90 e6b96665bb736482adf9bf8c5ccb9e788bebcd0c 7b346622997819bf7006309bdcc27081086c0950 293b12640ed5eccc5e4dc6c07e19eacd37ad68de 01b9789a43aaee6ce00bdc938dad9959ae4ebd53 41693d094117eb8544f450211a2d589f9acba245 fd7f31209a8c1e24febe612835e8dd96bcbc5039 5fa9bf1423b3668ef7be50933cef16c7bbb11b22 57e3c5f3b7fe8f5dc1116cad68c5efbdff231575 794c15b95f393fba43757aaa6926813026622268 620b26dca33423baf2f30d5314f60af5bdffd713 544b3a76c296601cca073b9929a9c8c1803b7c6d baca54c1a491e62fa1182af1dafc927becd37cfa 970f52780be9804ebcfb3d1ed4516588afb8460f; do git cat-file -e "$pre^{commit}"; done
+          git bundle verify "$bundle"
+          git -c protocol.file.allow=always fetch --no-tags --no-recurse-submodules "$bundle"             'refs/heads/verified-review-export:refs/transfer/candidate'
+          test "$(git rev-parse refs/transfer/candidate)" = "$target"
+          test "$(git rev-parse "$target^{tree}")" = "$target_tree"
+          test "$(git show -s --format=%P "$target")" = 'addddaebb21060aad11f0691b471f68a66c1f07d'
+          for base in 293b12640ed5eccc5e4dc6c07e19eacd37ad68de 96937bde542482270bc44a9fade843582ab407f9 3d12c83d88f18ea2ee6d9170d33cbf84d3793ffb e5c40853f03d1cc6d775bcb92cd157988ee65c90 3b298b8d0c51b25635edea8c0e9f9f4b607908e0 e6b96665bb736482adf9bf8c5ccb9e788bebcd0c fd7f31209a8c1e24febe612835e8dd96bcbc5039 5fa9bf1423b3668ef7be50933cef16c7bbb11b22 7b346622997819bf7006309bdcc27081086c0950 620b26dca33423baf2f30d5314f60af5bdffd713 544b3a76c296601cca073b9929a9c8c1803b7c6d 970f52780be9804ebcfb3d1ed4516588afb8460f 87aeecec4868e3107a10cb15d30d730cd00fbd19 6fb83dcf7c7b5f23e11f545bb650ab72250964a0 9222e256591e9f8e707640eefd91832c264ddad6 9c26ed06da244b48c1618e00972b98c619a570bc 8ee18eb88945139a2e549e13b5c09ec09316873c 5708276f9dc7ff597ad5412f0e9acb53466516f0 db79cf6d33fb8adb900f049d742de229f8616d4b; do git merge-base --is-ancestor "$base" "$target"; done
+          git fsck --connectivity-only --no-dangling "$target"
+          cat > "$tmp/register_objects.py" <<'OBJECT_REGISTRAR'
+          """Proposed root-tree batching: exact Git objects and HTTP plan; never writes refs."""
+          import argparse
+          import base64
+          import collections
+          import datetime
+          import hashlib
+          import http.client
+          import json
+          import os
+          import re
+          import subprocess
+          import time
+          
+          REPO = "kafaat/ai_platform_complete_v2.0.0_enhanced"
+          SHA = re.compile(r"[0-9a-f]{40}")
+          MAX_OBJECTS = 953  # Raw closure only; HTTP operations have a separate lower bound.
+          MAX_TOTAL = 271_279_720
+          MAX_OBJECT = 30_000_000
+          # Replaced by the renderer with the exact frozen local qualification. An
+          # unrendered helper cannot upload. These outer limits are not the final budget.
+          EXPECTED = {'raw_objects': {'target': 'feb42b34bb269d5e9060f04940d5905b645c459d', 'tree': 'c0b43bcd8f741967cf2d8f442471819958d41f3e', 'parents': ['addddaebb21060aad11f0691b471f68a66c1f07d'], 'bases': ['293b12640ed5eccc5e4dc6c07e19eacd37ad68de', '96937bde542482270bc44a9fade843582ab407f9', '3d12c83d88f18ea2ee6d9170d33cbf84d3793ffb', 'e5c40853f03d1cc6d775bcb92cd157988ee65c90', '3b298b8d0c51b25635edea8c0e9f9f4b607908e0', 'e6b96665bb736482adf9bf8c5ccb9e788bebcd0c', 'fd7f31209a8c1e24febe612835e8dd96bcbc5039', '5fa9bf1423b3668ef7be50933cef16c7bbb11b22', '7b346622997819bf7006309bdcc27081086c0950', '620b26dca33423baf2f30d5314f60af5bdffd713', '544b3a76c296601cca073b9929a9c8c1803b7c6d', '970f52780be9804ebcfb3d1ed4516588afb8460f'], 'objects': 953, 'counts': {'tree': 484, 'commit': 80, 'blob': 389}, 'bytes': 271279720, 'largest_object_bytes': 21488723, 'object_plan_sha256': '8c0d30eb3a64754923733527c32e083dc235597927c552d8eac0923734528be5'}, 'http_plan': {'requests': 546, 'counts': {'blob': 389, 'tree': 77, 'commit': 80}, 'body_bytes': 451479213, 'largest_body_bytes': 28651666, 'largest_tree_body_bytes': 1267956, 'largest_tree_leaves': 8890, 'new_trees_covered': 484, 'distinct_trees_reconstructed': 1283, 'reconstructed_tree_bytes': 6414576, 'operation_plan_sha256': 'd4f20364be990bebba25f678030b9c55813d55c3c60fc2e974a8f2a2abe1fd39', 'pacing_seconds': 8.0, 'tree_receipt_limit': 16000000, 'other_receipt_limit': 2000000}}
+          MODES = {"100644": "blob", "100755": "blob", "120000": "blob", "040000": "tree", "160000": "commit"}
+          
+          
+          def git(*args, data=None):
+              return subprocess.run(["git", "--no-replace-objects", *args], input=data, stdout=subprocess.PIPE, check=True).stdout
+          
+          
+          def require(value, message):
+              if not value:
+                  raise ValueError(message)
+          
+          
+          def identity(line):
+              match = re.fullmatch(r"([^<>\n]+) <([^<>\n]+)> ([0-9]+) ([+-][0-9]{4})", line)
+              require(match, "unsupported Git identity")
+              name, email, seconds, offset = match.groups()
+              require(offset != "-0000", "unknown negative zero timezone")
+              zone = datetime.datetime.strptime(offset, "%z").tzinfo
+              date = datetime.datetime.fromtimestamp(int(seconds), zone).isoformat(timespec="seconds")
+              return {"name": name, "email": email, "date": date}
+          
+          
+          def raw_identity(fields):
+              dt = datetime.datetime.fromisoformat(fields["date"])
+              return f'{fields["name"]} <{fields["email"]}> {int(dt.timestamp())} {dt.strftime("%z")}'
+          
+          
+          def commit_fields(raw):
+              headers, message = raw.decode("utf-8", "strict").split("\n\n", 1)
+              lines = headers.split("\n")
+              require(lines[0].startswith("tree ") and lines[-2].startswith("author ") and
+                      lines[-1].startswith("committer ") and all(x.startswith("parent ") for x in lines[1:-2]),
+                      "unsupported commit header, ordering, signature or encoding")
+              tree = lines[0][5:]
+              parents = [p[7:] for p in lines[1:-2]]
+              require(all(SHA.fullmatch(oid) for oid in [tree,*parents]), "invalid git pointer")
+              author = identity(lines[-2][7:])
+              committer = identity(lines[-1][10:])
+              obj = dict(message=message, tree=tree, parents=parents, author=author, committer=committer)
+              # Rebuild independently from the actual JSON fields (including final LF, offsets and parent order).
+              rebuilt = "\n".join([f'tree {obj["tree"]}', *["parent "+p for p in obj["parents"]],
+                                   "author "+raw_identity(obj["author"]), "committer "+raw_identity(obj["committer"]),
+                                   "", obj["message"]]).encode()
+              require(raw == rebuilt, "REST commit fields cannot round-trip Git headers/message")
+              return obj
+          
+          
+          def tree_fields(raw):
+              pos, entries = 0, []
+              while pos < len(raw):
+                  mode_end = raw.index(b" ", pos)
+                  end = raw.index(b"\0", mode_end+1)
+                  mode = raw[pos:mode_end].decode().zfill(6)
+                  path = raw[mode_end+1:end].decode("utf-8","strict")
+                  require(mode in MODES and path not in ("",".","..") and "/" not in path, "unsupported tree entry")
+                  oid = raw[end+1:end+21].hex()
+                  require(SHA.fullmatch(oid), "truncated tree entry")
+                  entries.append(dict(path=path,mode=mode,type=MODES[mode],sha=oid))
+                  pos = end+21
+              rebuilt = b"".join(e["mode"].lstrip("0").encode()+b" "+e["path"].encode()+b"\0"+bytes.fromhex(e["sha"]) for e in entries)
+              require(rebuilt==raw, "tree cannot round-trip")
+              return {"tree":entries}
+          
+          
+          def fields(kind, raw):
+              if kind=="blob":
+                  return {"content":base64.b64encode(raw).decode("ascii"),"encoding":"base64"}
+              if kind=="tree":
+                  return tree_fields(raw)
+              require(kind=="commit","unexpected object kind")
+              return commit_fields(raw)
+          
+          
+          def plan(target, bases):
+              ids = git("rev-list","--objects","--no-object-names",target,"--not",*bases).splitlines()
+              require(0<len(ids)<=MAX_OBJECTS, "object count outside reviewed budget")
+              stats = git("cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)",data=b"\n".join(ids)+b"\n")
+              objects = {}
+              total = 0
+              for row in stats.decode().splitlines():
+                  oid,kind,size = row.split()
+                  size=int(size)
+                  require(0<=size<=MAX_OBJECT and kind in ("tree","blob","commit"),"unsupported type or size")
+                  objects[oid] = kind
+                  total+=size
+              require(total<=MAX_TOTAL and len(objects)==len(ids), "aggregate object budget or duplicate")
+              ordered, visited = [], set()
+              def visit(oid):
+                  if oid not in objects or oid in visited:
+                      return
+                  kind = objects[oid]
+                  raw = git("cat-file",kind,oid)
+                  require(hashlib.sha1(kind.encode()+b" "+str(len(raw)).encode()+b"\0"+raw).hexdigest()==oid,"local SHA mismatch")
+                  if kind=="tree":
+                      for entry in tree_fields(raw)["tree"]:
+                          if entry["mode"]!="160000":
+                              visit(entry["sha"])
+                  elif kind=="commit":
+                      obj=commit_fields(raw)
+                      for dependency in [*obj["parents"],obj["tree"]]:
+                          visit(dependency)
+                  visited.add(oid)
+                  ordered.append((oid,kind))
+              visit(target)
+              require(len(visited)==len(objects) and ordered[-1]==(target,"commit"),"incomplete closure")
+              return ordered,total
+          
+          
+          def qualification(target, bases, ordered, total):
+              rows = git("cat-file", "--batch-check=%(objectname) %(objecttype) %(objectsize)",
+                         data=b"\n".join(oid.encode() for oid, _ in ordered)+b"\n").decode().splitlines()
+              require(len(rows) == len(ordered), "missing qualification rows")
+              sizes = []
+              for row, (expected_oid, expected_kind) in zip(rows, ordered):
+                  oid, kind, size = row.split()
+                  require((oid, kind) == (expected_oid, expected_kind), "qualification order mismatch")
+                  sizes.append(int(size))
+              require(sum(sizes) == total, "qualification byte mismatch")
+              return dict(
+                  target=target, tree=git("rev-parse",target+"^{tree}").decode().strip(),
+                  parents=git("show","-s","--format=%P",target).decode().strip().split(),
+                  bases=list(bases), objects=len(ordered),
+                  counts=dict(collections.Counter(k for _, k in ordered)), bytes=total,
+                  largest_object_bytes=max(sizes),
+                  object_plan_sha256=hashlib.sha256(("\n".join(rows)+"\n").encode()).hexdigest(),
+              )
+          
+          
+          def verify_expected(actual):
+              require(isinstance(EXPECTED, dict), "unrendered helper: no exact reviewed qualification")
+              require(actual == EXPECTED, "frozen target, closure, or exact object budget changed")
+          
+          
+          # These are outer fail-closed bounds. Rendered EXPECTED pins the exact raw
+          # closure and the exact ordered HTTP body plan before the first POST.
+          MAX_HTTP_REQUESTS = 546
+          MAX_TREE_LEAVES = 20_000
+          MAX_TREE_BODY = 4_000_000
+          MAX_HTTP_BODY = 40_100_000
+          MAX_HTTP_TOTAL = 451_479_213
+          MAX_RECONSTRUCTED_TREES = 5_000
+          MAX_RECONSTRUCTED_BYTES = 12_000_000
+          TREE_RECEIPT_LIMIT = 16_000_000
+          OTHER_RECEIPT_LIMIT = 2_000_000
+          PATHS = {"tree": "trees", "blob": "blobs", "commit": "commits"}
+          
+          
+          def object_sha(kind, raw):
+              return hashlib.sha1(kind.encode()+b" "+str(len(raw)).encode()+b"\0"+raw).hexdigest()
+          
+          
+          def json_body(value):
+              return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+          
+          
+          def rebuild_flat_tree(entries):
+              """Rebuild every raw directory from leaves, without filesystem access."""
+              require(0 < len(entries) <= MAX_TREE_LEAVES, "empty root or too many leaves")
+              trie = {}
+              for entry in entries:
+                  require(set(entry) == {"path", "mode", "type", "sha"}, "unexpected leaf fields")
+                  path, mode, kind, oid = (entry[k] for k in ("path", "mode", "type", "sha"))
+                  require(isinstance(path, str) and "\\" not in path and
+                          all(ord(c) >= 32 and ord(c) != 127 for c in path), "unsupported path bytes")
+                  # Strict UTF-8, no normalization or case folding. Gitlink and symlink
+                  # modes remain leaves; neither is traversed or executed.
+                  path.encode("utf-8", "strict")
+                  parts = path.split("/")
+                  require(all(part not in ("", ".", "..") for part in parts), "invalid path component")
+                  require(mode in MODES and mode != "040000" and MODES[mode] == kind and
+                          SHA.fullmatch(oid), "invalid leaf mode/type/SHA")
+                  node = trie
+                  for part in parts[:-1]:
+                      if part not in node:
+                          node[part] = {}
+                      require(isinstance(node[part], dict), "leaf/directory prefix collision")
+                      node = node[part]
+                  require(parts[-1] not in node, "duplicate path or directory/leaf collision")
+                  node[parts[-1]] = (mode, kind, oid)
+              directories = {}
+          
+              def build(node, prefix):
+                  rows = []
+                  for name, value in node.items():
+                      if isinstance(value, dict):
+                          child = build(value, prefix+name+"/")
+                          rows.append((name, "040000", child))
+                      else:
+                          mode, _, oid = value
+                          rows.append((name, mode, oid))
+                  # Git compares a directory name as if followed by '/', not NUL.
+                  rows.sort(key=lambda row: row[0].encode("utf-8")+(b"/" if row[1] == "040000" else b"\0"))
+                  raw = b"".join(mode.lstrip("0").encode()+b" "+name.encode("utf-8")+b"\0"+bytes.fromhex(oid)
+                                 for name, mode, oid in rows)
+                  oid = object_sha("tree", raw)
+                  directories[prefix[:-1]] = (oid, raw)
+                  return oid
+          
+              root = build(trie, "")
+              return root, directories
+          
+          
+          class RootTrees:
+              def __init__(self):
+                  self.verified = {}
+          
+              def fields(self, root):
+                  require(SHA.fullmatch(root), "invalid root tree SHA")
+                  # -t retains directory entries, so leaf-only loss of an empty directory
+                  # is detected by equality of the reconstructed and source path maps.
+                  listing = git("ls-tree", "-rzt", "--full-tree", root)
+                  leaves, source_trees = [], {"": root}
+                  for row in listing.split(b"\0"):
+                      if not row:
+                          continue
+                      metadata, raw_path = row.split(b"\t", 1)
+                      mode, kind, oid = metadata.decode("ascii", "strict").split()
+                      path = raw_path.decode("utf-8", "strict")
+                      mode = mode.zfill(6)
+                      require(mode in MODES and MODES[mode] == kind and SHA.fullmatch(oid), "invalid tree listing")
+                      if kind == "tree":
+                          require(path not in source_trees, "duplicate source directory")
+                          source_trees[path] = oid
+                      else:
+                          leaves.append(dict(path=path, mode=mode, type=kind, sha=oid))
+                  # Canonical HTTP order is flat raw UTF-8 path order. Reconstructed Git
+                  # object order is handled separately above with directory-aware sorting.
+                  leaves.sort(key=lambda entry: entry["path"].encode("utf-8"))
+                  reconstructed_root, directories = rebuild_flat_tree(leaves)
+                  require(reconstructed_root == root, "flat leaf reconstruction changed root")
+                  require(set(directories) == set(source_trees), "empty or omitted source directory")
+                  require(all(oid == source_trees[path] for path, (oid, _) in directories.items()),
+                          "subtree identity changed")
+                  missing = {}
+                  for oid, raw in directories.values():
+                      if oid in self.verified:
+                          require(self.verified[oid] == raw, "inconsistent reconstructed tree")
+                      else:
+                          if oid in missing:
+                              require(missing[oid] == raw, "inconsistent repeated tree")
+                          missing[oid] = raw
+                  require(len(self.verified)+len(missing) <= MAX_RECONSTRUCTED_TREES, "too many reconstructed trees")
+                  require(sum(map(len, self.verified.values()))+sum(map(len, missing.values())) <= MAX_RECONSTRUCTED_BYTES,
+                          "reconstructed tree byte budget exceeded")
+                  if missing:
+                      ordered = sorted(missing)
+                      data = git("cat-file", "--batch", data=("\n".join(ordered)+"\n").encode())
+                      pos = 0
+                      for expected_oid in ordered:
+                          end = data.index(b"\n", pos)
+                          oid, kind, raw_size = data[pos:end].decode().split()
+                          size = int(raw_size)
+                          require(oid == expected_oid and kind == "tree", "batch tree identity mismatch")
+                          start = end+1
+                          raw = data[start:start+size]
+                          require(raw == missing[oid] and data[start+size:start+size+1] == b"\n", "raw subtree bytes changed")
+                          pos = start+size+1
+                      require(pos == len(data), "trailing batch tree data")
+                      self.verified.update(missing)
+                  return {"tree": leaves}, set(oid for oid, _ in directories.values())
+          
+          
+          def operation(oid, kind, body, tree_leaves=0):
+              require(kind in PATHS and SHA.fullmatch(oid), "unsupported HTTP operation")
+              require(len(body) <= MAX_HTTP_BODY, "HTTP body too large")
+              if kind == "tree":
+                  require(len(body) <= MAX_TREE_BODY, "tree HTTP body too large")
+              return dict(sha=oid, kind=kind, body_bytes=len(body), body_sha256=hashlib.sha256(body).hexdigest(),
+                          tree_leaves=tree_leaves)
+          
+          
+          def http_plan(ordered):
+              """Post blobs once, then missing complete roots and original commits."""
+              new_objects = dict(ordered)
+              new_trees = {oid for oid, kind in ordered if kind == "tree"}
+              roots = RootTrees()
+              covered_trees, posted_commits, operations = set(), set(), []
+              # Every new blob is registered before any root may reference it.
+              for oid, kind in ordered:
+                  if kind == "blob":
+                      raw = git("cat-file", "blob", oid)
+                      require(object_sha("blob", raw) == oid, "blob changed during planning")
+                      operations.append(operation(oid, kind, json_body(fields(kind, raw))))
+              for oid, kind in ordered:
+                  if kind != "commit":
+                      continue
+                  raw = git("cat-file", "commit", oid)
+                  require(object_sha("commit", raw) == oid, "commit changed during planning")
+                  commit = commit_fields(raw)
+                  require(all(parent not in new_objects or parent in posted_commits for parent in commit["parents"]),
+                          "new commit parent has not been scheduled")
+                  tree = commit["tree"]
+                  require(tree not in new_objects or new_objects[tree] == "tree", "root is not a tree")
+                  if tree in new_trees and tree not in covered_trees:
+                      tree_fields_value, generated = roots.fields(tree)
+                      operations.append(operation(tree, "tree", json_body(tree_fields_value), len(tree_fields_value["tree"])))
+                      covered_trees.update(generated & new_trees)
+                  require(tree not in new_trees or tree in covered_trees, "missing commit root")
+                  operations.append(operation(oid, "commit", json_body(commit)))
+                  posted_commits.add(oid)
+              require(covered_trees == new_trees, "new tree closure not generated by complete roots")
+              require(posted_commits == {oid for oid, kind in ordered if kind == "commit"}, "commit plan incomplete")
+              require(0 < len(operations) <= MAX_HTTP_REQUESTS, "HTTP request budget exceeded")
+              require(operations[-1]["sha"] == ordered[-1][0] and operations[-1]["kind"] == "commit", "target not last")
+              total = sum(op["body_bytes"] for op in operations)
+              require(total <= MAX_HTTP_TOTAL, "HTTP aggregate byte budget exceeded")
+              summary = dict(
+                  requests=len(operations), counts=dict(collections.Counter(op["kind"] for op in operations)),
+                  body_bytes=total, largest_body_bytes=max(op["body_bytes"] for op in operations),
+                  largest_tree_body_bytes=max((op["body_bytes"] for op in operations if op["kind"] == "tree"), default=0),
+                  largest_tree_leaves=max(op["tree_leaves"] for op in operations),
+                  new_trees_covered=len(covered_trees), distinct_trees_reconstructed=len(roots.verified),
+                  reconstructed_tree_bytes=sum(map(len, roots.verified.values())),
+                  operation_plan_sha256=hashlib.sha256(json_body(operations)).hexdigest(),
+                  pacing_seconds=8.0, tree_receipt_limit=TREE_RECEIPT_LIMIT, other_receipt_limit=OTHER_RECEIPT_LIMIT,
+              )
+              return operations, summary
+          
+          
+          def body_for(op, roots):
+              oid, kind = op["sha"], op["kind"]
+              if kind == "tree":
+                  value, _ = roots.fields(oid)
+                  require(len(value["tree"]) == op["tree_leaves"], "tree leaf count changed")
+                  body = json_body(value)
+              else:
+                  raw = git("cat-file", kind, oid)
+                  require(object_sha(kind, raw) == oid, "object changed before POST")
+                  body = json_body(fields(kind, raw))
+              require(len(body) == op["body_bytes"] and hashlib.sha256(body).hexdigest() == op["body_sha256"],
+                      "HTTP body differs from qualified plan")
+              return body
+          
+          
+          def register_operations(operations):
+              # Fixed TLS destination and exactly three object endpoints. No refs,
+              # redirects, retries, branch updates, project execution or token switching.
+              require(os.environ.get("GITHUB_REPOSITORY") == REPO, "unexpected hosted repository")
+              token = os.environ["GH_TOKEN"]
+              roots = RootTrees()
+              for op in operations:
+                  oid, kind = op["sha"], op["kind"]
+                  body = body_for(op, roots)
+                  time.sleep(8.0)
+                  connection = http.client.HTTPSConnection("api.github.com", timeout=25)
+                  try:
+                      connection.request("POST", f"/repos/{REPO}/git/{PATHS[kind]}", body, {
+                          "Authorization": "Bearer "+token, "Content-Type": "application/json",
+                          "Accept": "application/vnd.github+json", "User-Agent": "sahool-reviewed-root-trees",
+                          "X-GitHub-Api-Version": "2022-11-28"})
+                      response = connection.getresponse()
+                      require(response.status == 201, f"{kind} {oid}: HTTP {response.status}, stopping")
+                      limit = TREE_RECEIPT_LIMIT if kind == "tree" else OTHER_RECEIPT_LIMIT
+                      data = response.read(limit+1)
+                      require(len(data) <= limit and json.loads(data).get("sha") == oid,
+                              f"{kind} {oid}: GitHub returned a different object or oversized receipt")
+                  finally:
+                      connection.close()
+                  print("registered", kind, oid, flush=True)
+          
+          
+          if __name__ == "__main__":
+              parser = argparse.ArgumentParser(description=__doc__)
+              parser.add_argument("--upload", action="store_true")
+              parser.add_argument("--plan-out")
+              parser.add_argument("target")
+              parser.add_argument("bases", nargs="+")
+              args = parser.parse_args()
+              require(all(SHA.fullmatch(x) for x in [args.target, *args.bases]), "expected full SHA")
+              ordered, total = plan(args.target, args.bases)
+              operations, http_summary = http_plan(ordered)
+              actual = {"raw_objects": qualification(args.target, args.bases, ordered, total), "http_plan": http_summary}
+              print(json.dumps(dict(**actual, remote_requests=0)), flush=True)
+              if args.plan_out:
+                  with open(args.plan_out, "x") as f:
+                      json.dump(operations, f, indent=2)
+                      f.write("\n")
+              if args.upload:
+                  verify_expected(actual)
+                  register_operations(operations)
+                  print("All original object identities confirmed; target", args.target, flush=True)
+          OBJECT_REGISTRAR
+          python3 -I "$tmp/register_objects.py" --upload "$target" 293b12640ed5eccc5e4dc6c07e19eacd37ad68de 96937bde542482270bc44a9fade843582ab407f9 3d12c83d88f18ea2ee6d9170d33cbf84d3793ffb e5c40853f03d1cc6d775bcb92cd157988ee65c90 3b298b8d0c51b25635edea8c0e9f9f4b607908e0 e6b96665bb736482adf9bf8c5ccb9e788bebcd0c fd7f31209a8c1e24febe612835e8dd96bcbc5039 5fa9bf1423b3668ef7be50933cef16c7bbb11b22 7b346622997819bf7006309bdcc27081086c0950 620b26dca33423baf2f30d5314f60af5bdffd713 544b3a76c296601cca073b9929a9c8c1803b7c6d 970f52780be9804ebcfb3d1ed4516588afb8460f
