@@ -10,7 +10,7 @@ type Event = {
 // v274 (gap P3): a version names the pin's scout photo evidence record (id + content digest), never a URL.
 type Evidence = {
   version: number | null; photo_evidence_id: string | null; photo_content_sha256: string | null;
-  notes?: string | null; recorded_by?: string; recorded_at?: string;
+  notes?: string | null; equipment_id?: string | null; recorded_by?: string; recorded_at?: string;
 };
 type History = {
   revision: number; accepted: boolean; review_state?: Event['action'] | 'assigned'; assigned_to: string; initial_assignee: string;
@@ -20,12 +20,13 @@ type History = {
 function EvidenceLine({ label, item }: { label: string; item: Evidence }) {
   return <p>{label}{item.version != null && ' ' + item.version}
     {' · '}{item.photo_evidence_id ? 'صورة الدبوس ' + (item.photo_content_sha256 ?? '').slice(0, 12) : 'بلا صورة'}
-    {item.notes && <> · {item.notes}</>}</p>;
+    {item.notes && <> · {item.notes}</>}
+    {item.equipment_id && <> · المعدّة المصرّح بها: {item.equipment_id}</>}</p>;
 }
 
 type Command = {
   action: Event['action']; expected_revision: number; assigned_to?: number; reason?: string; notes?: string;
-  evidence_version?: number; photo_evidence_id?: string;
+  evidence_version?: number; photo_evidence_id?: string; equipment_id?: string;
 };
 
 export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; taskId: string; tenant?: string}) {
@@ -41,6 +42,7 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
   const [person, setPerson] = useState('');
   const [reason, setReason] = useState('');
   const [finding, setFinding] = useState('');
+  const [equipment, setEquipment] = useState('');
   const team = useQuery({
     queryKey: ['inspection-assignees', scope, fieldId], enabled: !!data?.can_reassign,
     queryFn: async () => (await kongApi.get<{assignees: {id: number; full_name: string}[]}>(fieldPath + '/inspection-assignees')).data.assignees,
@@ -55,7 +57,7 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
       cache.setQueryData(key, state);
       void cache.invalidateQueries({queryKey: ['pin-inspection', scope, fieldId]});
       void cache.invalidateQueries({queryKey: ['tasks', scope]});
-      setPerson(''); setReason(''); setFinding('');
+      setPerson(''); setReason(''); setFinding(''); setEquipment('');
     },
     onError: () => { void query.refetch(); },
   });
@@ -63,14 +65,18 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
   if (!data) return <p>جارٍ جلب سجل التسليم…</p>;
   // A review names the exact evidence version that was submitted (the last event's).
   const submitted = data.events[data.events.length - 1]?.evidence_version ?? null;
+  const submittedEvidence = data.evidence?.find(item => item.version === submitted)
+    ?? (data.current_evidence?.version === submitted ? data.current_evidence : undefined);
   return <section aria-label="سجل تسليم التفتيش" className="space-y-2">
     <p>المستلم الحالي {data.assigned_to} · {data.accepted ? 'قَبِل التكليف' : 'بانتظار تأكيد الاستلام'}</p>
     {data.review_state === 'submit' && <p>رُفعت النتيجة وبانتظار المراجعة</p>}
     {data.review_state === 'return' && <p>أعيدت الزيارة للاستكمال. راجع تعليق المراجع في السجل.</p>}
     {data.review_state === 'approve' && <p>اعتُمدت النتيجة الفنية</p>}
     {data.approved_evidence && <EvidenceLine label="النسخة المعتمدة" item={data.approved_evidence} />}
-    {data.current_evidence && data.approved_evidence && data.current_evidence.version !== data.approved_evidence.version
-      && <EvidenceLine label="نسخة بانتظار المراجعة" item={data.current_evidence} />}
+    {data.can_review && submittedEvidence
+      ? <EvidenceLine label="نسخة بانتظار المراجعة" item={submittedEvidence} />
+      : data.current_evidence && data.approved_evidence && data.current_evidence.version !== data.approved_evidence.version
+        && <EvidenceLine label="نسخة بانتظار المراجعة" item={data.current_evidence} />}
     {data.evidence_pending_review && data.approved_evidence && <p role="status">تغيرت صورة الدبوس بعد الاعتماد. لا تُغلق الزيارة قبل اعتماد النسخة الجديدة</p>}
     <details><summary>سجل التسليم</summary>
       <p>كلّف {data.assigned_by} المفتش {data.initial_assignee} · {new Date(data.assigned_at).toLocaleString('ar')}</p>
@@ -88,11 +94,15 @@ export function InspectionHandoff({fieldId, taskId, tenant}: {fieldId: string; t
       <label>{data.can_submit ? 'نتيجة التفتيش والملاحظات' : 'تعليق المراجع'}
         <textarea maxLength={2000} value={finding} onChange={e => setFinding(e.target.value)} />
       </label>
+      {data.can_submit && <label>معرّف المعدّة (اختياري؛ يخضع للتحقق عند طلب الصيانة)
+        <input value={equipment} maxLength={50} onChange={e => setEquipment(e.target.value)} />
+      </label>}
       {(data.can_submit ? ['submit'] as const : ['approve','return'] as const).map(action =>
-        <button key={action} type="button" disabled={change.isPending || !finding.trim()}
+        <button key={action} type="button" disabled={change.isPending || !finding.trim() || (action === 'submit' && !!equipment && !/^[A-Za-z0-9_-]{1,50}$/.test(equipment))}
           onClick={() => change.mutate(action === 'submit'
             ? {action, reason:finding.trim(), notes:finding.trim(), expected_revision:data.revision,
-               ...(data.current_evidence?.photo_evidence_id ? {photo_evidence_id:data.current_evidence.photo_evidence_id} : {})}
+               ...(data.current_evidence?.photo_evidence_id ? {photo_evidence_id:data.current_evidence.photo_evidence_id} : {}),
+               ...(equipment ? {equipment_id:equipment} : {})}
             : {action, reason:finding.trim(), expected_revision:data.revision, evidence_version:submitted ?? undefined})}>
           {{submit:'رفع النتيجة للمراجعة', approve:'اعتماد نتيجة التفتيش', return:'إعادة للاستكمال'}[action]}
         </button>)}
