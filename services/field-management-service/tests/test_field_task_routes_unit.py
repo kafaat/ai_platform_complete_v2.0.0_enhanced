@@ -295,3 +295,39 @@ def test_the_task_routes_are_registered_under_the_gateway_prefix():
         ("POST", f"{prefix}/farm-book/entries/{{entry_id}}/task"),
     }
     assert expected <= routes
+
+
+def test_equipment_identity_is_part_of_evidence_digest():
+    digest = fm_task_inspection.evidence_digest
+    assert digest(None, None, "notes|x") == hashlib.sha256(b"||notes|x").hexdigest()
+    assert digest(None, None, "notes|x", "eqp_A") == hashlib.sha256(
+        b"equipment:eqp_A|||notes|x"
+    ).hexdigest()
+    assert digest(None, None, "notes|x", "eqp_A") != digest(None, None, "notes|x", "eqp_B")
+
+
+def test_submit_carries_equipment_identity():
+    request = fm_task_inspection.InspectionFinding(
+        action="submit", expected_revision=1, reason="finding", equipment_id="eqp_A"
+    )
+    assert request.equipment_id == "eqp_A"
+
+
+@pytest.mark.parametrize("action", ["approve", "return"])
+def test_reviewer_cannot_replace_the_equipment_identity(action):
+    with pytest.raises(ValueError):
+        fm_task_inspection.InspectionFinding(
+            action=action,
+            expected_revision=2,
+            reason="review",
+            evidence_version=1,
+            equipment_id="eqp_B",
+        )
+
+
+@pytest.mark.parametrize("equipment_id", ["", "a|b", " x ", "a" * 51])
+def test_invalid_equipment_reference_refused(equipment_id):
+    with pytest.raises(ValueError):
+        fm_task_inspection.InspectionFinding(
+            action="submit", expected_revision=1, reason="finding", equipment_id=equipment_id
+        )
