@@ -1,1 +1,0 @@
-# SAHOOL platform API package
