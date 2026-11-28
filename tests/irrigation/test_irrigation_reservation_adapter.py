@@ -57,6 +57,9 @@ class FakeConn:
         self._overlap = overlap_rows or []
         self._res = 0
 
+    def is_in_transaction(self):
+        return True
+
     @staticmethod
     def _head(sql: str) -> str:
         return sql.strip().split()[0].upper() if sql.strip() else ""
@@ -70,6 +73,9 @@ class FakeConn:
         return list(self._overlap)
 
     async def fetchval(self, sql, *args):
+        if "current_setting('transaction_isolation')" in sql:
+            self.calls.append(("fetchval", "ISOLATION", args))
+            return "read committed"
         if "hydraulic_capacity_evaluations" in sql:
             self.calls.append(("fetchval", "EVAL", args))
             return "eval-1"
@@ -125,10 +131,8 @@ def test_happy_path_locks_then_evaluates_then_reserves_then_requests_dispatch():
         )
     )
     heads = [f"{m}:{h}" for m, h, _ in conn.calls]
-    # tenant GUC first, then advisory lock, then overlap read, then eval, then reservation.
-    assert heads[0] == "execute:SELECT"  # set_config
-    assert "execute:SELECT" in heads  # pg_advisory_xact_lock
-    assert heads.index("fetch:OVERLAP") > 1  # overlap read after locks
+    # Validate isolation, set the tenant GUC, acquire the advisory lock, then read.
+    assert heads[:4] == ["fetchval:ISOLATION", "execute:SELECT", "execute:SELECT", "fetch:OVERLAP"]
     assert heads.index("fetchval:EVAL") < heads.index("fetchval:RESV")
     # dispatch REQUEST happens after the reservation, exactly once.
     assert len(port.dispatch_calls) == 1

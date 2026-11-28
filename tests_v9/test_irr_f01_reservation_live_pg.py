@@ -861,10 +861,13 @@ async def test_concurrent_disjoint_windows_respect_period_quota(live, first_comm
         ("repeatable_read", True, True),
         ("serializable", True, True),
         ("read_uncommitted", True, False),
-        ("repeatable_read", False, False),
+        ("repeatable_read", False, True),
+        ("serializable", False, True),
+        ("read_committed", False, False),
+        ("read_uncommitted", False, False),
     ],
 )
-async def test_period_quota_requires_fresh_statement_snapshots(
+async def test_reservations_require_fresh_statement_snapshots(
     live, isolation, quota_enabled, refused
 ):
     adapter, kernel = _adapter()
@@ -877,6 +880,13 @@ async def test_period_quota_requires_fresh_statement_snapshots(
         requires_period_volume_budget=quota_enabled,
     )
     resolver_called = False
+    dispatch_called = False
+
+    class RecordingPort(_Port):
+        async def request_dispatch(self, conn, **kw):
+            nonlocal dispatch_called
+            dispatch_called = True
+            return await super().request_dispatch(conn, **kw)
 
     async def resolve(_conn, _request):
         nonlocal resolver_called
@@ -897,17 +907,70 @@ async def test_period_quota_requires_fresh_statement_snapshots(
                 execution_ref_type="manual_execution",
                 execution_ref_id="isolation-check",
                 calculation_model_version="period-test",
-                execution_port=_Port(),
+                execution_port=RecordingPort(),
                 correlation_id=tenant,
                 resolve_period_volume_budget=resolve,
             )
 
     if refused:
-        with pytest.raises(ValueError, match="^PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED$"):
+        code = (
+            "PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED"
+            if quota_enabled
+            else "RESERVATION_FRESH_SNAPSHOT_REQUIRED"
+        )
+        with pytest.raises(ValueError, match=f"^{code}$"):
             await reserve()
     else:
         await reserve()
+    assert dispatch_called == (not refused)
     assert resolver_called == (quota_enabled and not refused)
     await app.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant))
     for table in CORE_TABLES:
         assert await app.fetchval(f"SELECT count(*) FROM {table}") == int(not refused)
+
+
+@pytest.mark.parametrize("quota_enabled", [False, True], ids=["legacy", "period"])
+async def test_reservation_rejects_autocommit_before_resolver_or_dispatch(live, quota_enabled):
+    adapter, kernel = _adapter()
+    app = live["app"]
+    assert not app.is_in_transaction()
+
+    class RefusingPort(_Port):
+        async def request_dispatch(self, conn, **kw):
+            pytest.fail("autocommit must fail before dispatch")
+
+    async def resolver(_conn, _req):
+        pytest.fail("autocommit must fail before budget resolution")
+
+    request = adapter.ResourceRequest(
+        live["n1"],
+        kernel.ResourcePolicy.SHARED_CAPACITY,
+        Decimal("1"),
+        Decimal("2"),
+        requires_period_volume_budget=quota_enabled,
+    )
+    code = (
+        "PERIOD_VOLUME_TRANSACTION_REQUIRED"
+        if quota_enabled
+        else "RESERVATION_TRANSACTION_REQUIRED"
+    )
+    with pytest.raises(ValueError, match=f"^{code}$"):
+        await adapter.reserve_and_request_dispatch_db(
+            app,
+            tenant_id=live["tenant"],
+            project_id=live["project"],
+            requested_start=START,
+            requested_end=START + timedelta(hours=1),
+            resources=[request],
+            execution_ref_type="manual_execution",
+            execution_ref_id="no-tx",
+            calculation_model_version="txn-test",
+            execution_port=RefusingPort(),
+            correlation_id=live["tenant"],
+            resolve_period_volume_budget=resolver,
+        )
+
+    assert not app.is_in_transaction()
+    await app.execute("SELECT set_config('app.current_tenant', $1, false)", str(live["tenant"]))
+    for table in CORE_TABLES:
+        assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0

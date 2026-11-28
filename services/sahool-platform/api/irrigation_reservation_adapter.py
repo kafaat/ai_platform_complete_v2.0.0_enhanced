@@ -199,6 +199,10 @@ async def reserve_and_request_dispatch_db(
     advisory lock held but BEFORE the fresh overlap read, so a concurrency test can
     interleave a second transaction and certify end-to-end serialization without sleeps.
 
+    The caller must use a PostgreSQL READ COMMITTED transaction (READ UNCOMMITTED
+    has equivalent statement snapshots). After a lock wait, admission must see
+    the preceding holder's committed reservations, including legacy peak-capacity rows.
+
     Period volume is opt-in, not an authority grant. Only an owner-side resolver may
     mark a resource as requiring a budget and supply the current approved quota net of
     settled use. Resolution and settlement must share the same lock and transaction
@@ -216,23 +220,28 @@ async def reserve_and_request_dispatch_db(
         raise ValueError("DUPLICATE_HYDRAULIC_RESOURCE")
 
     needs_period_budget = any(r.requires_period_volume_budget for r in resources)
-    if needs_period_budget:
-        if resolve_period_volume_budget is None:
-            raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
-        if not conn.is_in_transaction():
-            raise ValueError("PERIOD_VOLUME_TRANSACTION_REQUIRED")
+    if needs_period_budget and resolve_period_volume_budget is None:
+        raise ValueError("PERIOD_VOLUME_BUDGET_REQUIRED")
 
     # Activation enforcement AT THE SOURCE: gate the reservation before any side effect.
     # A disabled/revoked gate raises here, so no lock is taken and no row is written.
     if activation_guard is not None:
         await activation_guard()
 
-    if needs_period_budget:
-        # A transaction-wide snapshot can predate a contending reservation's commit.
-        # PostgreSQL READ UNCOMMITTED uses the same statement snapshots as READ COMMITTED.
-        isolation = await conn.fetchval("SELECT current_setting('transaction_isolation')")
-        if isolation not in ("read committed", "read uncommitted"):
-            raise ValueError("PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED")
+    if not conn.is_in_transaction():
+        raise ValueError(
+            "PERIOD_VOLUME_TRANSACTION_REQUIRED"
+            if needs_period_budget
+            else "RESERVATION_TRANSACTION_REQUIRED"
+        )
+    # The lock covers a fresh admission read and all writes through the caller's commit.
+    isolation = await conn.fetchval("SELECT current_setting('transaction_isolation')")
+    if isolation not in ("read committed", "read uncommitted"):
+        raise ValueError(
+            "PERIOD_VOLUME_FRESH_SNAPSHOT_REQUIRED"
+            if needs_period_budget
+            else "RESERVATION_FRESH_SNAPSHOT_REQUIRED"
+        )
 
     tenant = str(tenant_id)
     await conn.execute(SET_TENANT_SQL, tenant)
