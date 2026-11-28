@@ -78,3 +78,13 @@ it('keeps the approved version visible, marks a later photo record as pending an
   await waitFor(() => expect(post).toHaveBeenCalledWith(path + '/finding',
     {action:'submit', reason:'مع الصورة', notes:'مع الصورة', expected_revision:3, photo_evidence_id:'e-2', equipment_id:'eqp_pump_a'}));
 });
+
+it('shows both declared equipment IDs when only the equipment changed after approval', async () => {
+  const approved = {version:1, photo_evidence_id:null, photo_content_sha256:null, notes:'فحص', equipment_id:'pump_a'};
+  const submitted = {...approved, version:2, equipment_id:'pump_b'};
+  open({...original, approved_evidence:approved, current_evidence:submitted,
+    evidence_pending_review:true} as typeof original);
+  expect(await screen.findByText(/النسخة المعتمدة 1.*فحص.*pump_a/)).toBeInTheDocument();
+  expect(screen.getByText(/نسخة بانتظار المراجعة 2.*فحص.*pump_b/)).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('الملاحظات أو الصورة أو المعدّة');
+});

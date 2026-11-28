@@ -100,7 +100,7 @@ class _InspectionReviewPanelState extends State<InspectionReviewPanel> {
       else if (approved is Map && current is Map && current['version'] != approved['version'])
         Text(evidenceLine('نسخة بانتظار المراجعة', current)),
       if (approved is Map && state?['evidence_pending_review'] == true)
-        const Text('تغيرت صورة الدبوس بعد الاعتماد. لا تُغلق الزيارة قبل اعتماد النسخة الجديدة'),
+        const Text('تغيّرت أدلة التفتيش (الملاحظات أو الصورة أو المعدّة) بعد الاعتماد. لا تُغلق الزيارة قبل اعتماد النسخة الجديدة'),
       for (final event in (state?['events'] as List? ?? []).whereType<Map>())
         Text('${labels[event['action']] ?? ''} · ${event['actor']} · ${event['reason'] ?? ''}'),
       if (error != null) Text(error!),
@@ -112,13 +112,7 @@ class _InspectionReviewPanelState extends State<InspectionReviewPanel> {
             onChanged: (_) => setState(() {}), decoration:const InputDecoration(labelText:'معرّف المعدّة (اختياري؛ يخضع للتحقق عند طلب الصيانة)')),
       for (final action in actions)
         TextButton(onPressed:busy || (action != 'accept' && note.text.trim().isEmpty)
-            || (action == 'submit' && equipment.text.isNotEmpty && !RegExp(r'^[A-Za-z0-9_-]{1,50}
-            ? null : () => update(action), child:Text(labels[action]!)),
-      TextButton(onPressed:busy ? null : () => update(), child:const Text('تحديث سجل التفتيش')),
-    ]);
-  }
-}
-).hasMatch(equipment.text))
+            || (action == 'submit' && equipment.text.isNotEmpty && !RegExp(r'^[A-Za-z0-9_-]{1,50}$').hasMatch(equipment.text))
             ? null : () => update(action), child:Text(labels[action]!)),
       TextButton(onPressed:busy ? null : () => update(), child:const Text('تحديث سجل التفتيش')),
     ]);
