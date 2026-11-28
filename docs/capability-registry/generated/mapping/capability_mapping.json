@@ -15,24 +15,24 @@
     "capabilities_mapped": 77,
     "capabilities_unmapped": 4,
     "capabilities_multidimensional": 46,
-    "files_scanned": 7796,
+    "files_scanned": 7797,
     "files_by_kind": {
       "backend": 1325,
       "database": 364,
       "governance": 92,
       "mobile": 429,
       "other": 2261,
-      "tests": 2735,
+      "tests": 2736,
       "web": 590
     },
-    "unmapped_artifacts": 3717,
+    "unmapped_artifacts": 3718,
     "ambiguous_artifacts": 266,
     "files_by_reading": {
-      "python_functional": 4239,
+      "python_functional": 4240,
       "raw": 3557
     },
-    "test_dependency_files": 2084,
-    "test_dependency_edges": 5661,
+    "test_dependency_files": 2085,
+    "test_dependency_edges": 5663,
     "test_dependency_bounded_files": 1199,
     "test_dependency_unresolved_relations": 540
   },
@@ -9480,7 +9480,7 @@
           "score": 10
         },
         {
-          "value": "/decorated @ tests_v9/test_api_versioning_policy_guard.py:1459",
+          "value": "/decorated @ tests_v9/test_api_versioning_policy_guard.py:1514",
           "score": 10
         },
         {
@@ -15436,31 +15436,31 @@
           "score": 16
         },
         {
-          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:291",
+          "value": "/fields/{field_id}/inspection-assignees @ services/field-management-service/fm_task_inspection.py:293",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:310",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:312",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:325",
+          "value": "/fields/{field_id}/pins/{pin_id}/inspection-task @ services/field-management-service/fm_task_inspection.py:327",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:375",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff @ services/field-management-service/fm_task_inspection.py:377",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:466",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/accept @ services/field-management-service/fm_task_inspection.py:468",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:618",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/finding @ services/field-management-service/fm_task_inspection.py:622",
           "score": 8
         },
         {
-          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:481",
+          "value": "/fields/{field_id}/tasks/{task_id}/handoff/reassign @ services/field-management-service/fm_task_inspection.py:483",
           "score": 8
         },
         {
@@ -45228,6 +45228,10 @@
     },
     {
       "path": "tests_v9/test_auth_main_decomposition_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_redis_acl_fixture.py",
       "kind": "tests"
     },
     {
@@ -75067,7 +75071,7 @@
         {
           "source": "services/weather-service/cache.py",
           "kind": "import",
-          "line": 20
+          "line": 22
         }
       ],
       "unresolved": []
@@ -79490,6 +79494,19 @@
       "unresolved": []
     },
     {
+      "test": "tests_v9/test_auth_redis_acl_fixture.py",
+      "bounded": true,
+      "unbounded_reasons": [],
+      "edges": [
+        {
+          "source": "tests_v9/test_auth_admin_authz_live_pg_redis.py",
+          "kind": "import",
+          "line": 12
+        }
+      ],
+      "unresolved": []
+    },
+    {
       "test": "tests_v9/test_auth_revocation_outage_read_policy.py",
       "bounded": false,
       "unbounded_reasons": [
@@ -82575,13 +82592,20 @@
       "test": "tests_v9/test_contract_capabilities_schema_guard.py",
       "bounded": false,
       "unbounded_reasons": [
+        "directory_reference",
+        "reads_repository_data_file",
         "subprocess"
       ],
       "edges": [
         {
           "source": "scripts/ci/contract_capabilities_schema_guard.py",
+          "kind": "loader",
+          "line": 28
+        },
+        {
+          "source": "scripts/ci/contract_capabilities_schema_guard.py",
           "kind": "source_read",
-          "line": 13
+          "line": 16
         }
       ],
       "unresolved": []
@@ -88934,18 +88958,20 @@
     },
     {
       "test": "tests_v9/test_indicators_frontend_manifest_sync.py",
-      "bounded": true,
-      "unbounded_reasons": [],
+      "bounded": false,
+      "unbounded_reasons": [
+        "reads_repository_data_file"
+      ],
       "edges": [
         {
           "source": "scripts/ci/generate_indicators_frontend_manifest.py",
           "kind": "loader",
-          "line": 21
+          "line": 22
         },
         {
           "source": "scripts/ci/generate_indicators_frontend_manifest.py",
           "kind": "source_read",
-          "line": 13
+          "line": 14
         }
       ],
       "unresolved": []
