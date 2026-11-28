@@ -6445,7 +6445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28901108b4ae047eabd3112c9c94153c761931eca2ac584354eb0acee9166a22"
+          "content": "84841780867293653d34b94f2aecf025bdfe4932d1849641c0dea4619ffbaaff"
         }
       ],
       "name": "frontend/src/sections/FieldIntelligencePage.tsx",
