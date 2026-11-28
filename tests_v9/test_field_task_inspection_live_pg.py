@@ -2259,3 +2259,112 @@ def test_equipment_declaration_survives_review_and_conflicting_replay():
             assert stored["approved_evidence"]["digest"] == evidence["digest"]
 
     run(target())
+
+
+def test_inspection_legacy_handoff_survives_v292_rollout():
+    """Same HTTP journey on either schema; require the old schema in the RED/GREEN lane."""
+
+    async def target():
+        async with Live() as live:
+            has_equipment = await live.admin.fetchval(
+                """SELECT EXISTS (
+                       SELECT 1 FROM pg_attribute
+                        WHERE attrelid = 'public.inspection_evidence_versions'::regclass
+                          AND attname = 'equipment_id' AND NOT attisdropped
+                   )"""
+            )
+            if os.getenv("FIELD_TASK_PRE_V292_REQUIRED") == "1":
+                assert not has_equipment, "old-schema certification requires pre-v292 PostgreSQL"
+            task = await live.assign()
+            assert (await live.state(task))["revision"] == 0
+            accepted = await live.handoff(task, "accept", "inspector", {"expected_revision": 0})
+            assert accepted.status_code == 200, accepted.text
+            body = {
+                "expected_revision": 1,
+                "action": "submit",
+                "reason": "synthetic inspection",
+                "notes": "legacy finding",
+            }
+            if not has_equipment:
+                before = await live.state(task, "inspector")
+                blocked = await live.handoff(
+                    task, "finding", "inspector", body | {"equipment_id": "eqp_pump_a"}
+                )
+                assert blocked.status_code == 409, blocked.text
+                assert "v292" in blocked.json()["detail"]
+                assert await live.state(task, "inspector") == before
+            submitted = await live.handoff(task, "finding", "inspector", body)
+            assert submitted.status_code == 200, submitted.text
+            current = submitted.json()["current_evidence"]
+            assert current["equipment_id"] is None
+            assert current["digest"] == hashlib.sha256(b"||legacy finding").hexdigest()
+            replay = await live.handoff(task, "finding", "inspector", body)
+            assert replay.status_code == 200, replay.text
+            assert replay.json() == submitted.json()
+            approved = await live.handoff(
+                task,
+                "finding",
+                "reviewer",
+                {
+                    "expected_revision": 2,
+                    "action": "approve",
+                    "reason": "synthetic review",
+                    "evidence_version": current["version"],
+                },
+            )
+            assert approved.status_code == 200, approved.text
+            assert approved.json()["evidence_approved"] is True
+            assert approved.json()["approved_evidence"]["digest"] == current["digest"]
+            assert len(approved.json()["evidence"]) == 1
+            foreign = await live.fm.get(
+                f"/internal/field-tasks/fields/{live.field}/tasks/{task}/handoff",
+                headers=live.headers("manager", tenant=live.other_tenant),
+            )
+            assert foreign.status_code == 404, foreign.text
+
+    run(target())
+
+
+@pytest.mark.parametrize("direction", ["up", "down"])
+def test_v292_migration_aborts_when_evidence_table_is_busy(direction):
+    """A competing reader must cause a bounded lock failure without any schema change."""
+
+    async def target():
+        suffix = ".down.sql" if direction == "down" else ".sql"
+        migration = (ROOT / "migrations" / ("v292_inspection_equipment_evidence" + suffix))
+        blocker = await asyncpg.connect(ADMIN_DSN)
+        migrator = await asyncpg.connect(ADMIN_DSN)
+        try:
+            async def snapshot(conn):
+                return await conn.fetchrow(
+                    """SELECT EXISTS (
+                           SELECT 1 FROM pg_attribute
+                            WHERE attrelid = 'public.inspection_evidence_versions'::regclass
+                              AND attname = 'equipment_id' AND NOT attisdropped
+                       ) AS equipment_column,
+                       pg_get_functiondef(
+                           'public.inspection_evidence_version_guard()'::regprocedure
+                       ) AS evidence_guard"""
+                )
+
+            before = await snapshot(blocker)
+            async with blocker.transaction():
+                await blocker.execute(
+                    "LOCK TABLE public.inspection_evidence_versions IN ACCESS SHARE MODE"
+                )
+                # Outer bound makes the unpatched migration fail with a different SQLSTATE
+                # instead of letting the regression test hang indefinitely.
+                await migrator.execute("SET statement_timeout = '25s'")
+                try:
+                    with pytest.raises(asyncpg.PostgresError) as failure:
+                        await migrator.execute(migration.read_text(encoding="utf-8"))
+                    assert failure.value.sqlstate == "55P03", str(failure.value)
+                finally:
+                    await migrator.execute("ROLLBACK")
+                assert await snapshot(blocker) == before
+            assert await snapshot(migrator) == before
+        finally:
+            await migrator.close()
+            await blocker.close()
+
+    run(target())

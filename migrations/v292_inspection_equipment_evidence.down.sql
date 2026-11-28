@@ -1,5 +1,7 @@
 -- Refuse destructive rollback once an equipment declaration has been recorded.
 BEGIN;
+-- Bound the exclusive table lock wait; a busy store must fail without partial DDL.
+SET LOCAL lock_timeout = '15s';
 SET LOCAL row_security = off;
 LOCK TABLE inspection_evidence_versions IN ACCESS EXCLUSIVE MODE;
 DO $$ BEGIN
